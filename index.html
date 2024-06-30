@@ -6,7 +6,7 @@
     <title>Turd Soup</title>
     <style>
         body {
-            background-color: #121212;
+            background-color: #EF8C56;
             color: #ffffff;
             font-family: Arial, sans-serif;
             display: flex;
@@ -45,10 +45,10 @@
             border: 1px solid #333333;
         }
         .word-list {
-            background-color: #1f1f1f;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
+            color: #000000;
         }
         .word-list strong {
             display: block;
@@ -67,11 +67,20 @@
             background-color: #1f1f1f;
             border-radius: 5px;
         }
+        .color-option {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            border-radius: 50%;
+            margin: 0 5px;
+            border: 2px solid #ffffff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Word Game</h1>
+        <h1>Turd Soup</h1>
         <div id="dashboard" class="input-group">
             <button onclick="showWordListManager()">Manage Word Lists</button>
             <button onclick="startInversePrompt()">Create Inverse Prompt</button>
@@ -101,6 +110,12 @@
                 <br>
                 <textarea id="customWords" placeholder="Enter words separated by commas"></textarea>
                 <br>
+                <p>Select a color for the list:</p>
+                <div>
+                    <span class="color-option" style="background-color: #6FEF65;" onclick="selectColor('#6FEF65')"></span>
+                    <span class="color-option" style="background-color: #EE00F8;" onclick="selectColor('#EE00F8')"></span>
+                    <span class="color-option" style="background-color: #3576F6;" onclick="selectColor('#3576F6')"></span>
+                </div>
                 <button onclick="saveCustomWords()">Save Word List</button>
             </div>
             <div id="userWordLists">
