@@ -3,14 +3,15 @@ const defaultVerbs = ["run", "jump", "swim", "read", "write"];
 const defaultAdjectives = ["happy", "sad", "fast", "slow", "bright"];
 
 let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
-    { name: 'Default Nouns', words: defaultNouns },
-    { name: 'Default Verbs', words: defaultVerbs },
-    { name: 'Default Adjectives', words: defaultAdjectives }
+    { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
+    { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
+    { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' }
 ];
 
 let selectedNumber = 0;
 let selectedLists = [];
 let currentWord = 0;
+let selectedColor = '#6FEF65';  // Default color
 
 function showWordListManager() {
     document.getElementById('dashboard').classList.add('hidden');
@@ -27,7 +28,7 @@ function displayUserWordLists() {
     } else {
         customWordLists.forEach((list, index) => {
             userWordLists.innerHTML += `
-                <div class="word-list">
+                <div class="word-list" style="background-color: ${list.color};">
                     <strong>${list.name}</strong>
                     <p>${list.words.join(', ')}</p>
                     <button onclick="deleteWordList(${index})">Delete</button>
@@ -42,7 +43,7 @@ function saveCustomWords() {
     const words = document.getElementById('customWords').value.split(',').map(word => word.trim());
 
     if (listName && words.length > 0) {
-        customWordLists.push({ name: listName, words });
+        customWordLists.push({ name: listName, words, color: selectedColor });
         localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
         document.getElementById('listName').value = '';
         document.getElementById('customWords').value = '';
@@ -117,6 +118,11 @@ function generateWords() {
 
     document.getElementById('result').innerText = `Generated Words: ${words.join(', ')}`;
     document.getElementById('result').classList.remove('hidden');
+}
+
+function selectColor(color) {
+    selectedColor = color;
+    alert(`Selected color: ${color}`);
 }
 
 function capitalize(str) {
