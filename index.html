@@ -76,10 +76,23 @@
             margin: 0 5px;
             border: 2px solid #ffffff;
         }
+        .generate-button {
+            background: url('generate_words.png') no-repeat center center;
+            background-size: contain;
+            width: 150px;
+            height: 50px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .generate-button:hover {
+            filter: brightness(0.9);
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <img src="logo.png" alt="Logo" width="200">
         <h1>Turd Soup</h1>
         <div id="dashboard" class="input-group">
             <button onclick="showWordListManager()">Manage Word Lists</button>
@@ -100,7 +113,7 @@
             </div>
         </div>
         <div id="step3" class="input-group hidden">
-            <button onclick="generateWords()">Generate Words</button>
+            <button class="generate-button" onclick="generateWords()"></button>
         </div>
         <div id="wordListManager" class="input-group hidden">
             <p>Manage your word lists:</p>
