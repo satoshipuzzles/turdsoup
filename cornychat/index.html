@@ -3,12 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embedded Corny Chat</title>
+    <title>Embedded Chats</title>
     <style>
         body, html {
             height: 100%;
             margin: 0;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        #button-container {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            padding: 10px;
+        }
+        #button-container button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #iframe-container {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
         }
         iframe {
             border: none;
@@ -18,6 +37,24 @@
     </style>
 </head>
 <body>
-    <iframe src="https://cornychat.com/turdsoup" allowfullscreen></iframe>
+    <div id="button-container">
+        <button onclick="showIframe('cornychat')">Corny Chat</button>
+        <button onclick="showIframe('hivetalk')">Hive Talk</button>
+    </div>
+    <div id="iframe-container">
+        <iframe id="cornychat" src="https://cornychat.com/turdsoup" style="display:none;"></iframe>
+        <iframe id="hivetalk" src="https://hivetalk.org/join/turdsoup" style="display:none;"></iframe>
+    </div>
+
+    <script>
+        function showIframe(id) {
+            document.getElementById('cornychat').style.display = 'none';
+            document.getElementById('hivetalk').style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        }
+        
+        // Show the first iframe by default
+        showIframe('cornychat');
+    </script>
 </body>
 </html>
