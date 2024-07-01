@@ -127,6 +127,9 @@
             position: absolute;
             top: 10px;
             left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
         }
         .header-button {
             font-size: 24px;
@@ -140,6 +143,7 @@
 <body>
     <div class="header">
         <button class="header-button" onclick="goHome()">🏡</button>
+        <button class="header-button" onclick="openIframe()">⚡️</button>
     </div>
     <div class="container">
         <img src="logo.png" alt="Logo" width="200">
@@ -187,10 +191,6 @@
             <button onclick="backToDashboard()">Back to Dashboard</button>
         </div>
         <div id="result" class="result hidden"></div>
-    </div>
-
-    <div class="footer">
-        <button class="footer-button" onclick="openIframe()">⚡️</button>
     </div>
 
     <div id="iframeContainer" class="iframe-container">
