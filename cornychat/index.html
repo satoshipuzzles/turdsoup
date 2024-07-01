@@ -55,6 +55,15 @@
         .iframe-wrapper.active {
             display: flex;
         }
+        @media (max-width: 768px) {
+            .iframe-wrapper {
+                display: none;
+            }
+            .iframe-wrapper.active {
+                display: flex;
+                flex: 1 1 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -78,12 +87,23 @@
     <script>
         function toggleIframe(id) {
             const iframeWrapper = document.getElementById(id);
-            if (iframeWrapper.classList.contains('active')) {
-                iframeWrapper.classList.remove('active');
+            const isActive = iframeWrapper.classList.contains('active');
+            
+            if (window.innerWidth <= 768) {
+                // On mobile, hide all iframes and show only the selected one
+                document.querySelectorAll('.iframe-wrapper').forEach(wrapper => wrapper.classList.remove('active'));
+                if (!isActive) {
+                    iframeWrapper.classList.add('active');
+                }
             } else {
-                iframeWrapper.classList.add('active');
+                // On desktop, toggle the selected iframe
+                if (isActive) {
+                    iframeWrapper.classList.remove('active');
+                } else {
+                    iframeWrapper.classList.add('active');
+                }
+                adjustIframes();
             }
-            adjustIframes();
         }
 
         function adjustIframes() {
