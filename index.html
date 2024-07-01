@@ -104,7 +104,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -178,18 +178,20 @@
         <button class="footer-button" onclick="openIframe()">⚡️</button>
     </div>
 
-    <div id="iframeContainer" class="iframe-container hidden">
-        <iframe src="https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz" frameborder="0"></iframe>
+    <div id="iframeContainer" class="iframe-container">
+        <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
         <button class="iframe-close" onclick="closeIframe()">✖️</button>
     </div>
 
     <script>
         function openIframe() {
-            document.getElementById('iframeContainer').classList.remove('hidden');
+            document.getElementById('iframeContainer').style.display = 'flex';
+            document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
         }
 
         function closeIframe() {
-            document.getElementById('iframeContainer').classList.add('hidden');
+            document.getElementById('iframeContainer').style.display = 'none';
+            document.getElementById('iframe').src = 'about:blank';
         }
 
         // Add your other JavaScript functions here
