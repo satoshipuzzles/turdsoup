@@ -11,21 +11,34 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
         }
-        #button-container {
+        #header {
             flex: 0 0 auto;
             display: flex;
             justify-content: center;
-            background: #f0f0f0;
+            background: #1f1f1f;
             padding: 10px;
         }
-        #button-container button {
+        #header button {
             margin: 0 10px;
             padding: 10px 20px;
             font-size: 16px;
+            background-color: #333;
+            color: #ffffff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #header button:hover {
+            background-color: #555;
         }
         #iframe-container {
             flex: 1 1 auto;
+            display: flex;
             width: 100%;
             height: 100%;
         }
@@ -34,27 +47,56 @@
             width: 100%;
             height: 100%;
         }
+        .iframe-wrapper {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+        .iframe-wrapper.active {
+            display: flex;
+        }
     </style>
 </head>
 <body>
-    <div id="button-container">
-        <button onclick="showIframe('cornychat')">Corny Chat</button>
-        <button onclick="showIframe('hivetalk')">Hive Talk</button>
+    <div id="header">
+        <button onclick="toggleIframe('cornychat')">Corny Chat</button>
+        <button onclick="toggleIframe('hivetalk')">Hive Talk</button>
+        <button onclick="toggleIframe('homepage')">Homepage</button>
     </div>
     <div id="iframe-container">
-        <iframe id="cornychat" src="https://cornychat.com/turdsoup"></iframe>
-        <iframe id="hivetalk" src="https://hivetalk.org/join/turdsoup" style="display:none;"></iframe>
+        <div id="cornychat" class="iframe-wrapper">
+            <iframe src="https://cornychat.com/turdsoup"></iframe>
+        </div>
+        <div id="hivetalk" class="iframe-wrapper">
+            <iframe src="https://hivetalk.org/join/turdsoup"></iframe>
+        </div>
+        <div id="homepage" class="iframe-wrapper">
+            <iframe src="https://turdsoup.com"></iframe>
+        </div>
     </div>
 
     <script>
-        function showIframe(id) {
-            document.getElementById('cornychat').style.display = 'none';
-            document.getElementById('hivetalk').style.display = 'none';
-            document.getElementById(id).style.display = 'block';
+        function toggleIframe(id) {
+            const iframeWrapper = document.getElementById(id);
+            if (iframeWrapper.classList.contains('active')) {
+                iframeWrapper.classList.remove('active');
+            } else {
+                iframeWrapper.classList.add('active');
+            }
+            adjustIframes();
         }
-        
+
+        function adjustIframes() {
+            const activeIframes = document.querySelectorAll('.iframe-wrapper.active');
+            const container = document.getElementById('iframe-container');
+            container.style.display = 'flex';
+            activeIframes.forEach(iframe => {
+                iframe.style.flex = `1 1 ${100 / activeIframes.length}%`;
+            });
+        }
+
         // Show the first iframe by default
-        showIframe('cornychat');
+        toggleIframe('cornychat');
     </script>
 </body>
 </html>
