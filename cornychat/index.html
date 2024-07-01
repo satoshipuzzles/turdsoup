@@ -73,7 +73,7 @@
         <button onclick="toggleIframe('homepage')">Homepage</button>
     </div>
     <div id="iframe-container">
-        <div id="cornychat" class="iframe-wrapper">
+        <div id="cornychat" class="iframe-wrapper active">
             <iframe src="https://cornychat.com/turdsoup"></iframe>
         </div>
         <div id="hivetalk" class="iframe-wrapper">
@@ -90,13 +90,9 @@
             const isActive = iframeWrapper.classList.contains('active');
             
             if (window.innerWidth <= 768) {
-                // On mobile, hide all iframes and show only the selected one
                 document.querySelectorAll('.iframe-wrapper').forEach(wrapper => wrapper.classList.remove('active'));
-                if (!isActive) {
-                    iframeWrapper.classList.add('active');
-                }
+                iframeWrapper.classList.add('active');
             } else {
-                // On desktop, toggle the selected iframe
                 if (isActive) {
                     iframeWrapper.classList.remove('active');
                 } else {
@@ -116,7 +112,11 @@
         }
 
         // Show the first iframe by default
-        toggleIframe('cornychat');
+        window.onload = () => {
+            if (window.innerWidth > 768) {
+                adjustIframes();
+            }
+        };
     </script>
 </body>
 </html>
