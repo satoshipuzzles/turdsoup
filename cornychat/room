@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Corny Chat</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        iframe {
+            border: none;
+            width: 80%;
+            height: 80%;
+        }
+    </style>
+</head>
+<body>
+    <iframe src="https://cornychat.com/turdsoup" allowfullscreen></iframe>
+</body>
+</html>
