@@ -123,9 +123,24 @@
             font-size: 24px;
             cursor: pointer;
         }
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .header-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <button class="header-button" onclick="goHome()">🏡</button>
+    </div>
     <div class="container">
         <img src="logo.png" alt="Logo" width="200">
         <h1>Turd Soup</h1>
@@ -192,6 +207,10 @@
         function closeIframe() {
             document.getElementById('iframeContainer').style.display = 'none';
             document.getElementById('iframe').src = 'about:blank';
+        }
+
+        function goHome() {
+            window.location.href = '/'; // Adjust the URL to your home page
         }
 
         // Add your other JavaScript functions here
