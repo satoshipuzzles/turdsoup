@@ -107,10 +107,21 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
         .iframe-container iframe {
             width: 80%;
             height: 80%;
+        }
+        .iframe-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -169,7 +180,7 @@
 
     <div id="iframeContainer" class="iframe-container hidden">
         <iframe src="https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz" frameborder="0"></iframe>
-        <button onclick="closeIframe()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer;">✖️</button>
+        <button class="iframe-close" onclick="closeIframe()">✖️</button>
     </div>
 
     <script>
