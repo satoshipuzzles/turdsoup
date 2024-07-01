@@ -195,6 +195,41 @@
         }
 
         // Add your other JavaScript functions here
+
+        function showWordListManager() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('wordListManager').classList.remove('hidden');
+        }
+
+        function startInversePrompt() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+        }
+
+        function selectNumber(number) {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            // Further logic to handle number selection
+        }
+
+        function generateWords() {
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('result').classList.remove('hidden');
+            // Logic to generate words
+        }
+
+        function saveCustomWords() {
+            // Logic to save custom words
+        }
+
+        function selectColor(color) {
+            // Logic to select color
+        }
+
+        function backToDashboard() {
+            document.getElementById('wordListManager').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
     </script>
 </body>
 </html>
