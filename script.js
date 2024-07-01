@@ -6,8 +6,8 @@ const bip39SeedWords = ["abandon","ability","able","about","above","absent","abs
 let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
     { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
     { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
-    { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' }
-    { name: 'bip39SeedWords', words: defaultAdjectives, color: '#FF5E19' }
+    { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' },
+    { name: 'bip39SeedWords', words: bip39SeedWords, color: '#7A00A5' }
 ];
 
 let selectedNumber = 0;
