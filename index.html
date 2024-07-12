@@ -448,11 +448,11 @@
         }
 
         async function publishWordList(index) {
-            console.log("Publish button clicked");  // Debugging line
+            console.log("Publish button clicked");
             if (npub) {
                 try {
                     const existingNotes = await fetchExistingNotes(npub);
-                    console.log('Existing notes:', existingNotes);  // Debugging line
+                    console.log('Existing notes:', existingNotes);
                     const list = customWordLists[index];
                     existingNotes.push(list);
                     const event = {
@@ -461,9 +461,9 @@
                         tags: [['t', 'wordlist']],
                         created_at: Math.floor(Date.now() / 1000)
                     };
-                    console.log('Event to be signed:', event);  // Debugging line
+                    console.log('Event to be signed:', event);
                     const signedEvent = await window.nostr.signEvent(event);
-                    console.log('Signed event:', signedEvent);  // Debugging line
+                    console.log('Signed event:', signedEvent);
                     await postEvent(signedEvent);
                     alert('Word list published to Nostr!');
                 } catch (error) {
@@ -475,11 +475,11 @@
         }
 
         async function fetchExistingNotes(npub) {
-            console.log("Fetching existing notes for:", npub);  // Debugging line
+            console.log("Fetching existing notes for:", npub);
             return new Promise((resolve, reject) => {
                 const ws = new WebSocket('wss://relay.damus.io');
                 ws.onopen = () => {
-                    console.log("WebSocket connection opened for fetching notes");  // Debugging line
+                    console.log("WebSocket connection opened for fetching notes");
                     ws.send(JSON.stringify(["REQ", "1", { kinds: [31664], authors: [npub] }]));
                 };
                 const notes = [];
@@ -491,22 +491,22 @@
                     }
                 };
                 ws.onclose = () => {
-                    console.log("WebSocket connection closed after fetching notes");  // Debugging line
+                    console.log("WebSocket connection closed after fetching notes");
                     resolve(notes);
                 };
                 ws.onerror = (error) => {
-                    console.error("WebSocket error while fetching notes:", error);  // Debugging line
+                    console.error("WebSocket error while fetching notes:", error);
                     reject(error);
                 };
             });
         }
 
         function postEvent(event) {
-            console.log("Posting event:", event);  // Debugging line
+            console.log("Posting event:", event);
             return new Promise((resolve, reject) => {
                 const ws = new WebSocket('wss://relay.damus.io');
                 ws.onopen = () => {
-                    console.log("WebSocket connection opened for posting event");  // Debugging line
+                    console.log("WebSocket connection opened for posting event");
                     ws.send(JSON.stringify(["EVENT", event]));
                 };
                 ws.onmessage = (msg) => {
