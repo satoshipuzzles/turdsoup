@@ -451,6 +451,7 @@
             if (npub) {
                 try {
                     const existingNotes = await fetchExistingNotes(npub);
+                    console.log('Existing notes:', existingNotes);  // Debugging line
                     const list = customWordLists[index];
                     existingNotes.push(list);
                     const event = {
@@ -459,7 +460,9 @@
                         tags: [['t', 'wordlist']],
                         created_at: Math.floor(Date.now() / 1000)
                     };
+                    console.log('Event to be signed:', event);  // Debugging line
                     const signedEvent = await window.nostr.signEvent(event);
+                    console.log('Signed event:', signedEvent);  // Debugging line
                     postEvent(signedEvent);
                     alert('Word list published to Nostr!');
                 } catch (error) {
