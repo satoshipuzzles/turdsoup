@@ -354,9 +354,31 @@
         }
 
         function deleteWordList(index) {
-            customWordLists.splice(index, 1);
-            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-            displayUserWordLists();
+            const wordList = customWordLists[index];
+            if (wordList.creatorNpub === npub) {
+                customWordLists.splice(index, 1);
+                localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+                displayUserWordLists();
+                deleteWordListFromNostr(wordList);
+            } else {
+                alert('You can only delete lists you created.');
+            }
+        }
+
+        async function deleteWordListFromNostr(wordList) {
+            const event = {
+                kind: 5,
+                content: JSON.stringify(wordList),
+                tags: [['t', 'wordlist']],
+                created_at: Math.floor(Date.now() / 1000)
+            };
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Word list deleted from Nostr!');
+            } catch (error) {
+                console.error('Error deleting word list:', error);
+            }
         }
 
         function backToDashboard() {
