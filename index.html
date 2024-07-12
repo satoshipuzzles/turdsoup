@@ -312,7 +312,7 @@
                             <div id="creator-${index}" class="hidden"><img src="${list.creatorPicture || ''}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;"></div>
                             <button onclick="toggleWords(${index})">Show Words</button>
                             <div id="words-${index}" class="hidden">
-                                <p>${list.words ? list.words.join(', ') : ''}</p>
+                                <p>${list.words ? list.words.join(', ') : 'No words available'}</p>
                             </div>
                             <button onclick="deleteWordList(${index})">Delete</button>
                             ${list.creatorNpub === npub ? `<button onclick="publishWordList(${index})">Publish</button>` : ''}
