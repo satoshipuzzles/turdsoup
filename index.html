@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turd Soup</title>
+    <style>
+        body {
+            background-color: #EF8C56;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            position: relative;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            width: 80%;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        button, .option {
+            background-color: #ffffff;
+            color: #1f1f1f;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            background-color: #ffffff;
+            color: #1f1f1f;
+            border: 1px solid #333333;
+            margin-top: 10px;
+        }
+        .word-list {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .word-list strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .word-list p {
+            margin: 0;
+            font-size: 14px;
+        }
+        .word-list button {
+            margin-top: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #1f1f1f;
+            border-radius: 5px;
+        }
+        .color-option {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            border-radius: 50%;
+            margin: 0 5px;
+            border: 2px solid #ffffff;
+        }
+        .generate-button {
+            background: url('generate_words.png') no-repeat center center;
+            background-size: contain;
+            width: 300px;
+            height: 100px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        .footer-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #ffffff;
+        }
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .iframe-container iframe {
+            width: 80%;
+            height: 80%;
+        }
+        .iframe-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #ffffff;
+        }
+        #profile-pic img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="header-button" onclick="goHome()">🏡</button>
+        <div class="header-button" onclick="openIframe()">⚡️</div>
+        <div id="profile-pic" class="hidden">
+            <span id="profile-emoji">🤖</span>
+        </div>
+    </div>
+    <div class="container">
+        <img src="logo.png" alt="Logo" width="200">
+        <h1>Turd Soup</h1>
+        <div id="dashboard" class="input-group">
+            <button onclick="startInversePrompt()">Create Inverse Prompt</button>
+            <button onclick="showWordListManager()">Manage Word Lists</button>
+            <button onclick="goToMarketplace()">Marketplace</button>
+        </div>
+        <div id="step1" class="input-group hidden">
+            <p>Pick a number:</p>
+            <div>
+                <button class="option" onclick="selectNumber(1)">1</button>
+                <button class="option" onclick="selectNumber(2)">2</button>
+                <button class="option" onclick="selectNumber(3)">3</button>
+            </div>
+        </div>
+        <div id="step2" class="input-group hidden">
+            <p>Select lists for each word:</p>
+            <div id="listOptions">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+        </div>
+        <div id="step3" class="input-group hidden">
+            <button class="generate-button" onclick="generateWords()"></button>
+        </div>
+        <div id="wordListManager" class="input-group hidden">
+            <p>Manage your word lists:</p>
+            <div>
+                <label for="listName">List Name:</label>
+                <input type="text" id="listName">
+                <br>
+                <textarea id="customWords" placeholder="Enter words separated by commas"></textarea>
+                <br>
+                <p>Select a color for the list:</p>
+                <div>
+                    <span class="color-option" style="background-color: #6FEF65;" onclick="selectColor('#6FEF65')"></span>
+                    <span class="color-option" style="background-color: #EE00F8;" onclick="selectColor('#EE00F8')"></span>
+                    <span class="color-option" style="background-color: #3576F6')" onclick="selectColor('#3576F6')"></span>
+                </div>
+                <button onclick="saveCustomWords()">Save Word List</button>
+            </div>
+            <div id="userWordLists">
+                <!-- User word lists will be displayed here -->
+            </div>
+            <button onclick="backToDashboard()">🏡</button>
+        </div>
+        <div id="result" class="result hidden"></div>
+    </div>
+
+    <div id="iframeContainer" class="iframe-container">
+        <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
+        <button class="iframe-close" onclick="closeIframe()">✖️</button>
+    </div>
+
+    <script>
+        let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
+            { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
+            { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
+            { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' },
+            { name: 'bip39SeedWords', words: bip39SeedWords, color: '#7A00A5' }
+        ];
+
+        let selectedNumber = 0;
+        let selectedLists = [];
+        let currentWord = 0;
+        let selectedColor = '#6FEF65';  // Default color
+        let npub = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const profilePic = document.getElementById('profile-pic');
+            const storedProfile = JSON.parse(localStorage.getItem('profile'));
+
+            if (storedProfile) {
+                npub = storedProfile.npub;
+                profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
+                profilePic.classList.remove('hidden');
+                document.getElementById('login-button').style.display = 'none';
+            }
+
+            document.getElementById('login-button').addEventListener('click', async () => {
+                if (window.nostr && window.nostr.getPublicKey) {
+                    try {
+                        npub = await window.nostr.getPublicKey();
+                        const profile = await fetchProfile(npub);
+                        if (profile && profile.picture) {
+                            profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
+                            profilePic.classList.remove('hidden');
+                            localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
+                        }
+                        document.getElementById('login-button').style.display = 'none';
+                    } catch (error) {
+                        console.error('Error logging in:', error);
+                    }
+                } else {
+                    alert('NIP-07 extension not found.');
+                }
+            });
+
+            async function fetchProfile(npub) {
+                return new Promise((resolve, reject) => {
+                    const ws = new WebSocket('wss://relay.damus.io');
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
+                    };
+                    ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        if (data[0] === "EVENT" && data[2].content) {
+                            const profile = JSON.parse(data[2].content);
+                            ws.close();
+                            resolve(profile);
+                        }
+                    };
+                    ws.onerror = (error) => {
+                        reject(error);
+                    };
+                });
+            }
+        });
+
+        function openIframe() {
+            document.getElementById('iframeContainer').style.display = 'flex';
+            document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
+        }
+
+        function closeIframe() {
+            document.getElementById('iframeContainer').style.display = 'none';
+            document.getElementById('iframe').src = 'about:blank';
+        }
+
+        function showWordListManager() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('wordListManager').classList.remove('hidden');
+            displayUserWordLists();
+        }
+
+        function displayUserWordLists() {
+            const userWordLists = document.getElementById('userWordLists');
+            userWordLists.innerHTML = '';
+
+            if (customWordLists.length === 0) {
+                userWordLists.innerHTML = '<p>No custom lists available. Using default lists.</p>';
+            } else {
+                customWordLists.forEach((list, index) => {
+                    userWordLists.innerHTML += `
+                        <div class="word-list" style="background-color: ${list.color};">
+                            <strong>${list.name}</strong>
+                            <div id="creator-${index}" class="hidden"><img src="${list.creatorPicture}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;"></div>
+                            <button onclick="toggleWords(${index})">Show Words</button>
+                            <div id="words-${index}" class="hidden">
+                                <p>${list.words.join(', ')}</p>
+                            </div>
+                            <button onclick="deleteWordList(${index})">Delete</button>
+                            ${list.creatorNpub === npub ? `<button onclick="publishWordList(${index})">Publish</button>` : ''}
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        function toggleWords(index) {
+            const wordsDiv = document.getElementById(`words-${index}`);
+            wordsDiv.classList.toggle('hidden');
+            const creatorDiv = document.getElementById(`creator-${index}`);
+            creatorDiv.classList.toggle('hidden');
+        }
+
+        function saveCustomWords() {
+            const listName = document.getElementById('listName').value;
+            const words = document.getElementById('customWords').value.split(',').map(word => word.trim());
+
+            if (listName && words.length > 0) {
+                customWordLists.push({ name: listName, words, color: selectedColor, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture });
+                localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+                document.getElementById('listName').value = '';
+                document.getElementById('customWords').value = '';
+                displayUserWordLists();
+                alert('Word list saved!');
+            } else {
+                alert('Please enter a list name and words.');
+            }
+        }
+
+        function deleteWordList(index) {
+            customWordLists.splice(index, 1);
+            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+            displayUserWordLists();
+        }
+
+        function backToDashboard() {
+            document.getElementById('wordListManager').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        }
+
+        function startInversePrompt() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+        }
+
+        function selectNumber(number) {
+            selectedNumber = number;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            populateListOptions();
+        }
+
+        function populateListOptions() {
+            const listOptions = document.getElementById('listOptions');
+            listOptions.innerHTML = '';
+
+            for (let i = 0; i < selectedNumber; i++) {
+                listOptions.innerHTML += `<p>Select list for word ${i + 1}:</p>`;
+                customWordLists.forEach((list, index) => {
+                    listOptions.innerHTML += `<button class="option" onclick="selectList(${index})">${list.name}</button>`;
+                });
+            }
+        }
+
+        function selectList(index) {
+            selectedLists.push(customWordLists[index]);
+            currentWord++;
+
+            if (currentWord < selectedNumber) {
+                populateListOptions();
+            } else {
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step3').classList.remove('hidden');
+            }
+        }
+
+        function getRandomWords(arr, count) {
+            let result = [];
+            for (let i = 0; i < count; i++) {
+                result.push(arr[Math.floor(Math.random() * arr.length)]);
+            }
+            return result;
+        }
+
+        function generateWords() {
+            let words = [];
+
+            selectedLists.forEach(list => {
+                words.push(getRandomWords(list.words, 1)[0]);
+            });
+
+            document.getElementById('result').innerText = `Generated Words: ${words.join(', ')}`;
+            document.getElementById('result').classList.remove('hidden');
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            alert(`Selected color: ${color}`);
+        }
+
+        async function publishWordList(index) {
+            if (npub) {
+                const list = customWordLists[index];
+                const event = {
+                    kind: 888888,
+                    content: JSON.stringify(list),
+                    tags: [['t', 'wordlist']],
+                    created_at: Math.floor(Date.now() / 1000)
+                };
+                try {
+                    const signedEvent = await window.nostr.signEvent(event);
+                    postEvent(signedEvent);
+                    alert('Word list published to Nostr!');
+                } catch (error) {
+                    console.error('Error publishing word list:', error);
+                }
+            } else {
+                alert('Please login with Nostr first.');
+            }
+        }
+
+        function postEvent(event) {
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["EVENT", event]));
+            };
+            ws.onmessage = (msg) => {
+                console.log('Event posted:', msg.data);
+                ws.close();
+            };
+            ws.onerror = (error) => {
+                console.error('Error posting event:', error);
+            };
+        }
+
+        function goToMarketplace() {
+            window.location.href = '/market';
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
