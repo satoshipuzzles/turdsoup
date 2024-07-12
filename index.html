@@ -449,16 +449,16 @@
 
         async function publishWordList(index) {
             if (npub) {
-                const existingNotes = await fetchExistingNotes(npub);
-                const list = customWordLists[index];
-                existingNotes.push(list);
-                const event = {
-                    kind: 31664,
-                    content: JSON.stringify(existingNotes),
-                    tags: [['t', 'wordlist']],
-                    created_at: Math.floor(Date.now() / 1000)
-                };
                 try {
+                    const existingNotes = await fetchExistingNotes(npub);
+                    const list = customWordLists[index];
+                    existingNotes.push(list);
+                    const event = {
+                        kind: 31664,
+                        content: JSON.stringify(existingNotes),
+                        tags: [['t', 'wordlist']],
+                        created_at: Math.floor(Date.now() / 1000)
+                    };
                     const signedEvent = await window.nostr.signEvent(event);
                     postEvent(signedEvent);
                     alert('Word list published to Nostr!');
