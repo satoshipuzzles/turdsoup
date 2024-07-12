@@ -140,18 +140,25 @@
             justify-content: space-between;
             align-items: center;
         }
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+        }
         .header-button {
             font-size: 24px;
             cursor: pointer;
             background: none;
             border: none;
             color: #ffffff;
+            margin: 0 10px;
         }
         #lightning-button {
-            position: absolute;
-            left: 50%;
-            top: 10px;
-            transform: translateX(-50%);
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #ffffff;
+            margin: 0 auto;
         }
         #profile-pic {
             width: 40px;
@@ -170,9 +177,11 @@
 </head>
 <body>
     <div class="header-container">
-        <button class="header-button" onclick="goHome()">🏡</button>
+        <div class="header-left">
+            <button class="header-button" onclick="goHome()">🏡</button>
+        </div>
         <div id="lightning-button" class="header-button" onclick="openIframe()">⚡️</div>
-        <div class="login-container">
+        <div class="header-right login-container">
             <div id="profile-pic" class="hidden"><img src="" alt="Profile Picture"></div>
             <button id="login-button" class="header-button">🔑</button>
         </div>
