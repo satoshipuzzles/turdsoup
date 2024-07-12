@@ -270,8 +270,9 @@
 
         function importList(list, creatorPicture) {
             list.creatorPicture = creatorPicture;
-            customWordLists.push(list);
-            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+            const existingLists = JSON.parse(localStorage.getItem('customWordLists')) || [];
+            existingLists.push(list);
+            localStorage.setItem('customWordLists', JSON.stringify(existingLists));
             alert('List imported to your word lists!');
         }
 
