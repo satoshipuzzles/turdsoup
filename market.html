@@ -111,7 +111,8 @@
     </div>
     <div class="container">
         <h1>Word List Marketplace</h1>
-        <div id="marketplace-list">
+        <button id="login-button">Login with Nostr</button>
+        <div id="marketplace-list" class="hidden">
             <!-- Marketplace word lists will be displayed here -->
         </div>
     </div>
@@ -133,23 +134,31 @@
                 npub = storedProfile.npub;
                 profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
                 profilePic.classList.remove('hidden');
-            } else if (window.nostr && window.nostr.getPublicKey) {
-                try {
-                    npub = await window.nostr.getPublicKey();
-                    const profile = await fetchProfile(npub);
-                    if (profile && profile.picture) {
-                        profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
-                        profilePic.classList.remove('hidden');
-                        localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
-                    }
-                } catch (error) {
-                    console.error('Error logging in:', error);
-                }
+                document.getElementById('login-button').style.display = 'none';
+                document.getElementById('marketplace-list').classList.remove('hidden');
+                loadMarketplace();
             } else {
-                alert('NIP-07 extension not found.');
+                document.getElementById('login-button').addEventListener('click', async () => {
+                    if (window.nostr && window.nostr.getPublicKey) {
+                        try {
+                            npub = await window.nostr.getPublicKey();
+                            const profile = await fetchProfile(npub);
+                            if (profile && profile.picture) {
+                                profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
+                                profilePic.classList.remove('hidden');
+                                localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
+                            }
+                            document.getElementById('login-button').style.display = 'none';
+                            document.getElementById('marketplace-list').classList.remove('hidden');
+                            loadMarketplace();
+                        } catch (error) {
+                            console.error('Error logging in:', error);
+                        }
+                    } else {
+                        alert('NIP-07 extension not found.');
+                    }
+                });
             }
-
-            loadMarketplace();
         });
 
         async function fetchProfile(npub) {
