@@ -48,31 +48,31 @@
             color: #1f1f1f;
             border: 1px solid #333333;
             margin-top: 10px;
-            box-sizing: border-box;
+            box-sizing: border-box.
         }
         .word-list {
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             background-color: #ffffff;
-            color: #000000;
+            color: #000000.
         }
         .word-list strong {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 5px.
         }
         .word-list p {
             margin: 0;
-            font-size: 14px;
+            font-size: 14px.
         }
         .word-list button {
-            margin-top: 5px;
+            margin-top: 5px.
         }
         .result {
             margin-top: 20px;
             padding: 10px;
             background-color: #1f1f1f;
-            border-radius: 5px;
+            border-radius: 5px.
         }
         .color-option {
             display: inline-block;
@@ -81,7 +81,7 @@
             cursor: pointer;
             border-radius: 50%;
             margin: 0 5px;
-            border: 2px solid #ffffff;
+            border: 2px solid #ffffff.
         }
         .generate-button {
             background: url('generate_words.png') no-repeat center center;
@@ -90,20 +90,20 @@
             height: 100px;
             border: none;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 10px.
         }
         .footer {
             position: absolute;
             bottom: 10px;
             width: 100%;
-            text-align: center;
+            text-align: center.
         }
         .footer-button {
             font-size: 24px;
             cursor: pointer;
             background: none;
             border: none;
-            color: #ffffff;
+            color: #ffffff.
         }
         .iframe-container {
             position: fixed;
@@ -115,11 +115,11 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 1000.
         }
         .iframe-container iframe {
             width: 80%;
-            height: 80%;
+            height: 80%.
         }
         .iframe-close {
             position: absolute;
@@ -129,7 +129,7 @@
             border: none;
             color: #ffffff;
             font-size: 24px;
-            cursor: pointer;
+            cursor: pointer.
         }
         .header-container {
             position: absolute;
@@ -138,24 +138,24 @@
             right: 10px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: space-between.
         }
         .header-left, .header-right {
             display: flex;
-            align-items: center;
+            align-items: center.
         }
         .header-left {
-            flex: 1;
+            flex: 1.
         }
         .header-center {
             display: flex;
             align-items: center;
             justify-content: center;
-            flex: 1;
+            flex: 1.
         }
         .header-right {
             flex: 1;
-            justify-content: flex-end;
+            justify-content: flex-end.
         }
         .header-button {
             font-size: 24px;
@@ -163,20 +163,20 @@
             background: none;
             border: none;
             color: #ffffff;
-            margin: 0 10px;
+            margin: 0 10px.
         }
         #profile-pic {
             width: 40px;
-            height: 40px;
+            height: 40px.
         }
         #profile-pic img {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
+            border-radius: 50%.
         }
         .login-container {
             display: flex;
-            align-items: center;
+            align-items: center.
         }
     </style>
 </head>
@@ -451,7 +451,7 @@
             console.log("Publish button clicked");
             if (npub) {
                 try {
-                    const existingNotes = await fetchExistingNotes(npub);
+                    const existingNotes = await fetchExistingNotes(npub, 5000); // 5 seconds timeout
                     console.log('Existing notes:', existingNotes);
                     const list = customWordLists[index];
                     existingNotes.push(list);
@@ -474,15 +474,21 @@
             }
         }
 
-        async function fetchExistingNotes(npub) {
+        async function fetchExistingNotes(npub, timeout = 5000) {
             console.log("Fetching existing notes for:", npub);
             return new Promise((resolve, reject) => {
                 const ws = new WebSocket('wss://relay.damus.io');
+                const notes = [];
+                const timeoutId = setTimeout(() => {
+                    ws.close();
+                    resolve(notes);
+                }, timeout);
+
                 ws.onopen = () => {
                     console.log("WebSocket connection opened for fetching notes");
                     ws.send(JSON.stringify(["REQ", "1", { kinds: [31664], authors: [npub] }]));
                 };
-                const notes = [];
+
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data[0] === "EVENT" && data[2].content) {
@@ -490,12 +496,16 @@
                         notes.push(note);
                     }
                 };
+
                 ws.onclose = () => {
                     console.log("WebSocket connection closed after fetching notes");
+                    clearTimeout(timeoutId);
                     resolve(notes);
                 };
+
                 ws.onerror = (error) => {
                     console.error("WebSocket error while fetching notes:", error);
+                    clearTimeout(timeoutId);
                     reject(error);
                 };
             });
