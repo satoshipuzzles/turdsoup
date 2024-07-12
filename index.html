@@ -346,7 +346,7 @@
                                 <p>${list.words.join(', ')}</p>
                             </div>
                             <button onclick="deleteWordList(${index})">Delete</button>
-                            ${list.creatorNpub === npub ? `<button onclick="publishWordList(${index})">Publish</button>` : ''}
+                            <button onclick="publishWordList(${index})">Publish</button>
                         </div>
                     `;
                 });
@@ -365,11 +365,13 @@
             const words = document.getElementById('customWords').value.split(',').map(word => word.trim());
 
             if (listName && words.length > 0) {
-                customWordLists.push({ name: listName, words, color: selectedColor, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture });
+                const newList = { name: listName, words, color: selectedColor, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture };
+                customWordLists.push(newList);
                 localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+                publishWordList(customWordLists.length - 1);
+                displayUserWordLists();
                 document.getElementById('listName').value = '';
                 document.getElementById('customWords').value = '';
-                displayUserWordLists();
                 alert('Word list saved!');
             } else {
                 alert('Please enter a list name and words.');
@@ -377,31 +379,9 @@
         }
 
         function deleteWordList(index) {
-            const wordList = customWordLists[index];
-            if (wordList.creatorNpub === npub) {
-                customWordLists.splice(index, 1);
-                localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-                displayUserWordLists();
-                deleteWordListFromNostr(wordList);
-            } else {
-                alert('You can only delete lists you created.');
-            }
-        }
-
-        async function deleteWordListFromNostr(wordList) {
-            const event = {
-                kind: 5,
-                content: JSON.stringify(wordList),
-                tags: [['t', 'wordlist']],
-                created_at: Math.floor(Date.now() / 1000)
-            };
-            try {
-                const signedEvent = await window.nostr.signEvent(event);
-                postEvent(signedEvent);
-                alert('Word list deleted from Nostr!');
-            } catch (error) {
-                console.error('Error deleting word list:', error);
-            }
+            customWordLists.splice(index, 1);
+            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+            displayUserWordLists();
         }
 
         function backToDashboard() {
