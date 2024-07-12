@@ -158,7 +158,8 @@
     <div class="container">
         <img src="logo.png" alt="Logo" width="200">
         <h1>Turd Soup</h1>
-        <div id="dashboard" class="input-group">
+        <button id="login-button">Login with Nostr</button>
+        <div id="dashboard" class="input-group hidden">
             <button onclick="startInversePrompt()">Create Inverse Prompt</button>
             <button onclick="showWordListManager()">Manage Word Lists</button>
             <button onclick="goToMarketplace()">Marketplace</button>
@@ -232,6 +233,7 @@
                 profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
                 profilePic.classList.remove('hidden');
                 document.getElementById('login-button').style.display = 'none';
+                document.getElementById('dashboard').classList.remove('hidden');
             }
 
             document.getElementById('login-button').addEventListener('click', async () => {
@@ -245,6 +247,7 @@
                             localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                         }
                         document.getElementById('login-button').style.display = 'none';
+                        document.getElementById('dashboard').classList.remove('hidden');
                     } catch (error) {
                         console.error('Error logging in:', error);
                     }
@@ -412,7 +415,7 @@
             if (npub) {
                 const list = customWordLists[index];
                 const event = {
-                    kind: 888888,
+                    kind: 31664,
                     content: JSON.stringify(list),
                     tags: [['t', 'wordlist']],
                     created_at: Math.floor(Date.now() / 1000)
