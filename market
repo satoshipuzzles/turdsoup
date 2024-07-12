@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word List Marketplace</title>
+    <style>
+        body {
+            background-color: #EF8C56;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            position: relative;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            width: 80%;
+        }
+        .word-list {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+            cursor: pointer;
+        }
+        .word-list img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .word-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .word-list strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .word-list p {
+            margin: 0;
+            font-size: 14px;
+        }
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #ffffff;
+        }
+        #profile-pic img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        .hidden {
+            display: none;
+        }
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .iframe-container iframe {
+            width: 80%;
+            height: 80%;
+        }
+        .iframe-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="header-button" onclick="goHome()">🏡</button>
+        <div class="header-button" onclick="openIframe()">⚡️</div>
+        <div id="profile-pic" class="hidden">
+            <span id="profile-emoji">🤖</span>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Word List Marketplace</h1>
+        <div id="marketplace-list">
+            <!-- Marketplace word lists will be displayed here -->
+        </div>
+    </div>
+
+    <div id="iframeContainer" class="iframe-container">
+        <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
+        <button class="iframe-close" onclick="closeIframe()">✖️</button>
+    </div>
+
+    <script>
+        let npub = null;
+        let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const profilePic = document.getElementById('profile-pic');
+            const storedProfile = JSON.parse(localStorage.getItem('profile'));
+
+            if (storedProfile) {
+                npub = storedProfile.npub;
+                profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
+                profilePic.classList.remove('hidden');
+            } else if (window.nostr && window.nostr.getPublicKey) {
+                try {
+                    npub = await window.nostr.getPublicKey();
+                    const profile = await fetchProfile(npub);
+                    if (profile && profile.picture) {
+                        profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
+                        profilePic.classList.remove('hidden');
+                        localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
+                    }
+                } catch (error) {
+                    console.error('Error logging in:', error);
+                }
+            } else {
+                alert('NIP-07 extension not found.');
+            }
+
+            loadMarketplace();
+        });
+
+        async function fetchProfile(npub) {
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket('wss://relay.damus.io');
+                ws.onopen = () => {
+                    ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
+                };
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data[0] === "EVENT" && data[2].content) {
+                        const profile = JSON.parse(data[2].content);
+                        ws.close();
+                        resolve(profile);
+                    }
+                };
+                ws.onerror = (error) => {
+                    reject(error);
+                };
+            });
+        }
+
+        async function loadMarketplace() {
+            const marketplaceList = document.getElementById('marketplace-list');
+            marketplaceList.innerHTML = '';
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["REQ", "2", { kinds: [888888] }]));
+            };
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data[0] === "EVENT" && data[2].content) {
+                    const list = JSON.parse(data[2].content);
+                    const profile = data[2].pubkey;
+                    fetchProfile(profile).then(profileData => {
+                        const div = document.createElement('div');
+                        div.className = 'word-list';
+                        div.onclick = () => toggleWords(div);
+                        div.innerHTML = `
+                            <div class="word-list-header">
+                                <div>
+                                    <img src="${profileData.picture}" alt="Profile Picture">
+                                    <strong>${list.name}</strong>
+                                </div>
+                                <span>${profile}</span>
+                            </div>
+                            <div class="words hidden">
+                                <p>${list.words.join(', ')}</p>
+                                <button onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
+                            </div>
+                        `;
+                        marketplaceList.appendChild(div);
+                    });
+                }
+            };
+            ws.onerror = (error) => {
+                console.error('Error loading marketplace:', error);
+            };
+        }
+
+        function toggleWords(div) {
+            const wordsDiv = div.querySelector('.words');
+            wordsDiv.classList.toggle('hidden');
+        }
+
+        function importList(list, creatorPicture) {
+            list.creatorPicture = creatorPicture;
+            customWordLists.push(list);
+            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+            alert('List imported to your word lists!');
+        }
+
+        function openIframe() {
+            document.getElementById('iframeContainer').style.display = 'flex';
+            document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
+        }
+
+        function closeIframe() {
+            document.getElementById('iframeContainer').style.display = 'none';
+            document.getElementById('iframe').src = 'about:blank';
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>
