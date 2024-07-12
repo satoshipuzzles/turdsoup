@@ -56,14 +56,31 @@
             margin: 0;
             font-size: 14px;
         }
-        .header {
+        .header-container {
             position: absolute;
             top: 10px;
             left: 10px;
             right: 10px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+        }
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .header-left {
+            flex: 1;
+        }
+        .header-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        .header-right {
+            flex: 1;
+            justify-content: flex-end;
         }
         .header-button {
             font-size: 24px;
@@ -71,10 +88,15 @@
             background: none;
             border: none;
             color: #ffffff;
+            margin: 0 10px;
         }
-        #profile-pic img {
+        #profile-pic {
             width: 40px;
             height: 40px;
+        }
+        #profile-pic img {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
         }
         .hidden {
@@ -118,16 +140,20 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <button class="header-button" onclick="goHome()">🏡</button>
-        <div class="header-button" onclick="openIframe()">⚡️</div>
-        <div id="profile-pic" class="hidden">
-            <span id="profile-emoji">🤖</span>
+    <div class="header-container">
+        <div class="header-left">
+            <button class="header-button" onclick="goHome()">🏡</button>
+        </div>
+        <div class="header-center">
+            <div id="lightning-button" class="header-button" onclick="openIframe()">⚡️</div>
+        </div>
+        <div class="header-right login-container">
+            <div id="profile-pic" class="hidden"><img src="" alt="Profile Picture"></div>
+            <button id="login-button" class="header-button">🔑</button>
         </div>
     </div>
     <div class="container">
         <h1>Word List Marketplace</h1>
-        <button id="login-button">Login with Nostr</button>
         <div id="marketplace-list" class="hidden">
             <!-- Marketplace word lists will be displayed here -->
         </div>
@@ -155,7 +181,7 @@
                 document.getElementById('marketplace-list').classList.remove('hidden');
                 loadMarketplace();
             } else {
-                document.getElementById('login-button').addEventListener('click', async () => {
+                loginButton.addEventListener('click', async () => {
                     if (window.nostr && window.nostr.getPublicKey) {
                         try {
                             npub = await window.nostr.getPublicKey();
@@ -165,7 +191,7 @@
                                 profilePic.classList.remove('hidden');
                                 localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                             }
-                            document.getElementById('login-button').style.display = 'none';
+                            loginButton.style.display = 'none';
                             document.getElementById('marketplace-list').classList.remove('hidden');
                             loadMarketplace();
                         } catch (error) {
@@ -221,68 +247,8 @@
                                     <strong>${list.name}</strong>
                                     <span>${profile}</span>
                                 </div>
-                            </div>
-                            <div class="words hidden">
-                                <p>${list.words.join(', ')}</p>
-                                <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
-                                ${profile === npub ? `<button class="import-button" onclick='deleteList(${JSON.stringify(list)})'>Delete List</button>` : ''}
-                            </div>
-                        `;
-                        marketplaceList.appendChild(div);
-                    });
-                }
-            };
-            ws.onerror = (error) => {
-                console.error('Error loading marketplace:', error);
-            };
-        }
-
-        function toggleWords(div) {
-            const wordsDiv = div.querySelector('.words');
-            wordsDiv.classList.toggle('hidden');
-        }
-
-        function importList(list, creatorPicture) {
-            list.creatorPicture = creatorPicture;
-            customWordLists.push(list);
-            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-            alert('List imported to your word lists!');
-        }
-
-        async function deleteList(list) {
-            const event = {
-                kind: 5,
-                content: JSON.stringify(list),
-                tags: [['t', 'wordlist']],
-                created_at: Math.floor(Date.now() / 1000)
-            };
-            try {
-                const signedEvent = await window.nostr.signEvent(event);
-                postEvent(signedEvent);
-                alert('Word list deleted from Nostr!');
-            } catch (error) {
-                console.error('Error deleting word list:', error);
-            }
-        }
-
-        function postEvent(event) {
-            const ws = new WebSocket('wss://relay.damus.io');
-            ws.onopen = () => {
-                ws.send(JSON.stringify(["EVENT", event]));
-            };
-            ws.onmessage = (msg) => {
-                console.log('Event posted:', msg.data);
-                ws.close();
-                loadMarketplace();
-            };
-            ws.onerror = (error) => {
-                console.error('Error posting event:', error);
-            };
-        }
-
-        function openIframe() {
-            document.getElementById('iframeContainer').style.display = 'flex';
-            document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
+                            </div
+                                                    zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
         }
 
         function closeIframe() {
@@ -296,3 +262,4 @@
     </script>
 </body>
 </html>
+
