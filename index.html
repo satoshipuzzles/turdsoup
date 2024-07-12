@@ -149,7 +149,7 @@
             display: flex;
             align-items: center;
         }
-        #profile-pic img {
+        #profile-pic {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -159,6 +159,11 @@
             justify-content: space-between;
             width: 100%;
             max-width: 600px;
+            align-items: center;
+        }
+        .login-container {
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
@@ -166,15 +171,15 @@
     <div class="header-container">
         <button class="header-button" onclick="goHome()">🏡</button>
         <div class="header-button" onclick="openIframe()">⚡️</div>
-        <div id="profile-pic" class="hidden">
-            <span id="profile-emoji">🤖</span>
+        <div class="login-container">
+            <div id="profile-pic" class="hidden"></div>
+            <button id="login-button" class="header-button">🔑</button>
         </div>
     </div>
     <div class="container">
         <img src="logo.png" alt="Logo" width="200">
         <h1>Turd Soup</h1>
-        <button id="login-button">Login with Nostr</button>
-        <div id="dashboard" class="input-group hidden">
+        <div id="dashboard" class="input-group">
             <button onclick="startInversePrompt()">Create Inverse Prompt</button>
             <button onclick="showWordListManager()">Manage Word Lists</button>
             <button onclick="goToMarketplace()">Marketplace</button>
@@ -228,7 +233,7 @@
     <script>
         let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
             { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
-            { name: 'Default Verbs', words: defaultVerbs, color: #EE00F8 },
+            { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
             { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' },
             { name: 'bip39SeedWords', words: bip39SeedWords, color: '#7A00A5' }
         ];
@@ -239,16 +244,18 @@
         let selectedColor = '#6FEF65';
         let npub = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const profilePic = document.getElementById('profile-pic');
+            const loginButton = document.getElementById('login-button');
             const storedProfile = JSON.parse(localStorage.getItem('profile'));
 
             if (storedProfile) {
                 npub = storedProfile.npub;
                 profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
                 profilePic.classList.remove('hidden');
-                document.getElementById('login-button').style.display = 'none';
-                document.getElementById('dashboard').classList.remove('hidden');
+                loginButton.classList.add('hidden');
+            } else {
+                loginButton.classList.remove('hidden');
             }
 
             document.getElementById('login-button').addEventListener('click', async () => {
@@ -262,8 +269,7 @@
                             profilePic.classList.remove('hidden');
                             localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                         }
-                        document.getElementById('login-button').style.display = 'none';
-                        document.getElementById('dashboard').classList.remove('hidden');
+                        loginButton.classList.add('hidden');
                     } catch (error) {
                         console.error('Error logging in:', error);
                         alert('Error logging in. Please try again.');
@@ -272,29 +278,29 @@
                     alert('NIP-07 extension not found.');
                 }
             });
-
-            async function fetchProfile(npub) {
-                return new Promise((resolve, reject) => {
-                    const ws = new WebSocket('wss://relay.damus.io');
-                    ws.onopen = () => {
-                        console.log('WebSocket connection opened.');
-                        ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
-                    };
-                    ws.onmessage = (event) => {
-                        const data = JSON.parse(event.data);
-                        if (data[0] === "EVENT" && data[2].content) {
-                            const profile = JSON.parse(data[2].content);
-                            ws.close();
-                            resolve(profile);
-                        }
-                    };
-                    ws.onerror = (error) => {
-                        console.error('WebSocket error:', error);
-                        reject(error);
-                    };
-                });
-            }
         });
+
+        async function fetchProfile(npub) {
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket('wss://relay.damus.io');
+                ws.onopen = () => {
+                    console.log('WebSocket connection opened.');
+                    ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
+                };
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data[0] === "EVENT" && data[2].content) {
+                        const profile = JSON.parse(data[2].content);
+                        ws.close();
+                        resolve(profile);
+                    }
+                };
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    reject(error);
+                };
+            });
+        }
 
         function openIframe() {
             document.getElementById('iframeContainer').style.display = 'flex';
