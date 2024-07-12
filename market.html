@@ -177,7 +177,7 @@
                 npub = storedProfile.npub;
                 profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
                 profilePic.classList.remove('hidden');
-                document.getElementById('login-button').style.display = 'none';
+                loginButton.style.display = 'none';
                 document.getElementById('marketplace-list').classList.remove('hidden');
                 loadMarketplace();
             } else {
@@ -247,8 +247,68 @@
                                     <strong>${list.name}</strong>
                                     <span>${profile}</span>
                                 </div>
-                            </div
-                                                    zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
+                            </div>
+                            <div class="words hidden">
+                                <p>${list.words.join(', ')}</p>
+                                <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
+                                <button class="import-button" onclick='deleteList(${JSON.stringify(list)})'>Delete List</button>
+                            </div>
+                        `;
+                        marketplaceList.appendChild(div);
+                    });
+                }
+            };
+            ws.onerror = (error) => {
+                console.error('Error loading marketplace:', error);
+            };
+        }
+
+        function toggleWords(div) {
+            const wordsDiv = div.querySelector('.words');
+            wordsDiv.classList.toggle('hidden');
+        }
+
+        function importList(list, creatorPicture) {
+            list.creatorPicture = creatorPicture;
+            customWordLists.push(list);
+            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+            alert('List imported to your word lists!');
+        }
+
+        async function deleteList(list) {
+            const event = {
+                kind: 5,
+                content: JSON.stringify(list),
+                tags: [['t', 'wordlist']],
+                created_at: Math.floor(Date.now() / 1000)
+            };
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Word list deleted from Nostr!');
+            } catch (error) {
+                console.error('Error deleting word list:', error);
+            }
+        }
+
+        function postEvent(event) {
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["EVENT", event]));
+            };
+            ws.onmessage = (msg) => {
+                console.log('Event posted:', msg.data);
+                ws.close();
+                loadMarketplace();
+            };
+            ws.onerror = (error) => {
+                console.error('Error posting event:', error);
+            };
+        }
+
+        function openIframe() {
+            document.getElementById('iframeContainer').style.display = 'flex';
+            document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
         }
 
         function closeIframe() {
@@ -262,4 +322,3 @@
     </script>
 </body>
 </html>
-
