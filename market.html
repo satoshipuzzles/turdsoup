@@ -154,7 +154,7 @@
     </div>
     <div class="container">
         <h1>Word List Marketplace</h1>
-        <div id="marketplace-list">
+        <div id="marketplace-list" class="hidden">
             <!-- Marketplace word lists will be displayed here -->
         </div>
     </div>
@@ -175,24 +175,24 @@
 
             if (storedProfile) {
                 npub = storedProfile.npub;
-                profilePic.querySelector('img').src = storedProfile.picture;
+                profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
                 profilePic.classList.remove('hidden');
                 loginButton.classList.add('hidden');
+                document.getElementById('marketplace-list').classList.remove('hidden');
                 loadMarketplace();
             } else {
-                loginButton.classList.remove('hidden');
                 loginButton.addEventListener('click', async () => {
                     if (window.nostr && window.nostr.getPublicKey) {
                         try {
                             npub = await window.nostr.getPublicKey();
-                            console.log('Public key obtained:', npub);
                             const profile = await fetchProfile(npub);
                             if (profile && profile.picture) {
-                                profilePic.querySelector('img').src = profile.picture;
+                                profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
                                 profilePic.classList.remove('hidden');
                                 localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                             }
                             loginButton.classList.add('hidden');
+                            document.getElementById('marketplace-list').classList.remove('hidden');
                             loadMarketplace();
                         } catch (error) {
                             console.error('Error logging in:', error);
@@ -208,7 +208,6 @@
             return new Promise((resolve, reject) => {
                 const ws = new WebSocket('wss://relay.damus.io');
                 ws.onopen = () => {
-                    console.log('WebSocket connection opened.');
                     ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
                 };
                 ws.onmessage = (event) => {
@@ -220,7 +219,6 @@
                     }
                 };
                 ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
                     reject(error);
                 };
             });
@@ -233,29 +231,31 @@
             ws.onopen = () => {
                 ws.send(JSON.stringify(["REQ", "2", { kinds: [31664] }]));
             };
-            ws.onmessage = async (event) => {
+            ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data[0] === "EVENT" && data[2].content) {
                     const list = JSON.parse(data[2].content);
                     const profile = data[2].pubkey;
-                    const profileData = await fetchProfile(profile);
-                    const div = document.createElement('div');
-                    div.className = 'word-list';
-                    div.onclick = () => toggleWords(div);
-                    div.innerHTML = `
-                        <div class="word-list-header">
-                            <img src="${profileData.picture}" alt="Profile Picture">
-                            <div>
-                                <strong>${list.name || 'Unnamed List'}</strong>
-                                <span>${profile}</span>
+                    fetchProfile(profile).then(profileData => {
+                        const div = document.createElement('div');
+                        div.className = 'word-list';
+                        div.onclick = () => toggleWords(div);
+                        div.innerHTML = `
+                            <div class="word-list-header">
+                                <img src="${profileData.picture}" alt="Profile Picture">
+                                <div>
+                                    <strong>${list.name}</strong>
+                                    <span>${profile}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="words hidden">
-                            <p>${Array.isArray(list.words) ? list.words.join(', ') : 'No words available'}</p>
-                            <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
-                        </div>
-                    `;
-                    marketplaceList.appendChild(div);
+                            <div class="words hidden">
+                                <p>${list.words.join(', ')}</p>
+                                <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
+                                ${profile === npub ? `<button class="import-button" onclick='deleteList(${JSON.stringify(list)})'>Delete List</button>` : ''}
+                            </div>
+                        `;
+                        marketplaceList.appendChild(div);
+                    });
                 }
             };
             ws.onerror = (error) => {
@@ -273,6 +273,37 @@
             customWordLists.push(list);
             localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
             alert('List imported to your word lists!');
+        }
+
+        async function deleteList(list) {
+            const event = {
+                kind: 5,
+                content: JSON.stringify(list),
+                tags: [['t', 'wordlist']],
+                created_at: Math.floor(Date.now() / 1000)
+            };
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Word list deleted from Nostr!');
+            } catch (error) {
+                console.error('Error deleting word list:', error);
+            }
+        }
+
+        function postEvent(event) {
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["EVENT", event]));
+            };
+            ws.onmessage = (msg) => {
+                console.log('Event posted:', msg.data);
+                ws.close();
+                loadMarketplace();
+            };
+            ws.onerror = (error) => {
+                console.error('Error posting event:', error);
+            };
         }
 
         function openIframe() {
