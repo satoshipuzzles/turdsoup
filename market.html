@@ -177,7 +177,7 @@
                 npub = storedProfile.npub;
                 profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
                 profilePic.classList.remove('hidden');
-                loginButton.style.display = 'none';
+                loginButton.classList.add('hidden');
                 document.getElementById('marketplace-list').classList.remove('hidden');
                 loadMarketplace();
             } else {
@@ -191,7 +191,7 @@
                                 profilePic.classList.remove('hidden');
                                 localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                             }
-                            loginButton.style.display = 'none';
+                            loginButton.classList.add('hidden');
                             document.getElementById('marketplace-list').classList.remove('hidden');
                             loadMarketplace();
                         } catch (error) {
@@ -251,7 +251,7 @@
                             <div class="words hidden">
                                 <p>${list.words.join(', ')}</p>
                                 <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
-                                <button class="import-button" onclick='deleteList(${JSON.stringify(list)})'>Delete List</button>
+                                ${profile === npub ? `<button class="import-button" onclick='deleteList(${JSON.stringify(list)})'>Delete List</button>` : ''}
                             </div>
                         `;
                         marketplaceList.appendChild(div);
@@ -270,9 +270,8 @@
 
         function importList(list, creatorPicture) {
             list.creatorPicture = creatorPicture;
-            const existingLists = JSON.parse(localStorage.getItem('customWordLists')) || [];
-            existingLists.push(list);
-            localStorage.setItem('customWordLists', JSON.stringify(existingLists));
+            customWordLists.push(list);
+            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
             alert('List imported to your word lists!');
         }
 
