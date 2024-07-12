@@ -365,13 +365,11 @@
             const words = document.getElementById('customWords').value.split(',').map(word => word.trim());
 
             if (listName && words.length > 0) {
-                const newList = { name: listName, words, color: selectedColor, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture };
-                customWordLists.push(newList);
+                customWordLists.push({ name: listName, words, color: selectedColor, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture });
                 localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-                publishWordList(customWordLists.length - 1);
-                displayUserWordLists();
                 document.getElementById('listName').value = '';
                 document.getElementById('customWords').value = '';
+                displayUserWordLists();
                 alert('Word list saved!');
             } else {
                 alert('Please enter a list name and words.');
