@@ -243,12 +243,12 @@
                                 <div class="word-list-header">
                                     <img src="${profileData.picture}" alt="Profile Picture">
                                     <div>
-                                        <strong>${list.name}</strong>
+                                        <strong>${list.name || 'Unnamed List'}</strong>
                                         <span>${profile}</span>
                                     </div>
                                 </div>
                                 <div class="words hidden">
-                                    <p>${list.words ? list.words.join(', ') : 'No words available'}</p>
+                                    <p>${Array.isArray(list.words) ? list.words.join(', ') : 'No words available'}</p>
                                     <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
                                     ${profile === npub ? `<button class="import-button" onclick='deleteList("${data[2].id}")'>Delete List</button>` : ''}
                                 </div>
