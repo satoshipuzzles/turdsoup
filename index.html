@@ -132,12 +132,13 @@
             cursor: pointer;
         }
         .header-container {
-            position: relative;
-            width: 100%;
-            height: 60px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
         }
         .header-button {
             font-size: 24px;
@@ -145,23 +146,6 @@
             background: none;
             border: none;
             color: #ffffff;
-        }
-        #home-button {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        #lightning-button {
-            position: relative;
-        }
-        .login-container {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            align-items: center;
         }
         #profile-pic {
             width: 40px;
@@ -172,12 +156,16 @@
             height: 100%;
             border-radius: 50%;
         }
+        .login-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
     <div class="header-container">
-        <button id="home-button" class="header-button" onclick="goHome()">🏡</button>
-        <div id="lightning-button" class="header-button" onclick="openIframe()">⚡️</div>
+        <button class="header-button" onclick="goHome()">🏡</button>
+        <div class="header-button" onclick="openIframe()">⚡️</div>
         <div class="login-container">
             <div id="profile-pic" class="hidden"><img src="" alt="Profile Picture"></div>
             <button id="login-button" class="header-button">🔑</button>
