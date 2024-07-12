@@ -72,7 +72,7 @@
             border: none;
             color: #ffffff;
         }
-        #profile-pic {
+        #profile-pic img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -126,7 +126,7 @@
         <button class="header-button" onclick="goHome()">🏡</button>
         <div class="header-button" onclick="openIframe()">⚡️</div>
         <div class="login-container">
-            <div id="profile-pic" class="hidden"></div>
+            <div id="profile-pic" class="hidden"><img src="" alt="Profile Picture"></div>
             <button id="login-button" class="header-button">🔑</button>
         </div>
     </div>
@@ -153,7 +153,7 @@
 
             if (storedProfile) {
                 npub = storedProfile.npub;
-                profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
+                profilePic.querySelector('img').src = storedProfile.picture;
                 profilePic.classList.remove('hidden');
                 loginButton.classList.add('hidden');
             } else {
@@ -169,7 +169,7 @@
                         console.log('Public key obtained:', npub);
                         const profile = await fetchProfile(npub);
                         if (profile && profile.picture) {
-                            profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
+                            profilePic.querySelector('img').src = profile.picture;
                             profilePic.classList.remove('hidden');
                             localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                         }
