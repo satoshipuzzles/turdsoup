@@ -230,30 +230,34 @@
                 ws.send(JSON.stringify(["REQ", "2", { kinds: [31664] }]));
             };
             ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data[0] === "EVENT" && data[2].content) {
-                    const list = JSON.parse(data[2].content);
-                    const profile = data[2].pubkey;
-                    fetchProfile(profile).then(profileData => {
-                        const div = document.createElement('div');
-                        div.className = 'word-list';
-                        div.onclick = () => toggleWords(div);
-                        div.innerHTML = `
-                            <div class="word-list-header">
-                                <img src="${profileData.picture}" alt="Profile Picture">
-                                <div>
-                                    <strong>${list.name}</strong>
-                                    <span>${profile}</span>
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data[0] === "EVENT" && data[2].content) {
+                        const list = JSON.parse(data[2].content);
+                        const profile = data[2].pubkey;
+                        fetchProfile(profile).then(profileData => {
+                            const div = document.createElement('div');
+                            div.className = 'word-list';
+                            div.onclick = () => toggleWords(div);
+                            div.innerHTML = `
+                                <div class="word-list-header">
+                                    <img src="${profileData.picture}" alt="Profile Picture">
+                                    <div>
+                                        <strong>${list.name}</strong>
+                                        <span>${profile}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="words hidden">
-                                <p>${list.words.join(', ')}</p>
-                                <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
-                                ${profile === npub ? `<button class="import-button" onclick='deleteList("${data[2].id}")'>Delete List</button>` : ''}
-                            </div>
-                        `;
-                        marketplaceList.appendChild(div);
-                    });
+                                <div class="words hidden">
+                                    <p>${list.words ? list.words.join(', ') : 'No words available'}</p>
+                                    <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
+                                    ${profile === npub ? `<button class="import-button" onclick='deleteList("${data[2].id}")'>Delete List</button>` : ''}
+                                </div>
+                            `;
+                            marketplaceList.appendChild(div);
+                        }).catch(error => console.error('Error fetching profile:', error));
+                    }
+                } catch (error) {
+                    console.error('Error processing message:', error);
                 }
             };
             ws.onerror = (error) => {
