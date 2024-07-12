@@ -448,20 +448,17 @@
         }
 
         async function publishWordList(index) {
-            console.log("Publish button clicked");
             if (npub) {
+                const list = customWordLists[index];
+                const event = {
+                    kind: 31664,
+                    content: JSON.stringify(list),
+                    tags: [['t', 'wordlist']],
+                    created_at: Math.floor(Date.now() / 1000)
+                };
                 try {
-                    const list = customWordLists[index];
-                    const event = {
-                        kind: 31664,
-                        content: JSON.stringify(list),
-                        tags: [['t', 'wordlist']],
-                        created_at: Math.floor(Date.now() / 1000)
-                    };
-                    console.log('Event to be signed:', event);
                     const signedEvent = await window.nostr.signEvent(event);
-                    console.log('Signed event:', signedEvent);
-                    await postEvent(signedEvent);
+                    postEvent(signedEvent);
                     alert('Word list published to Nostr!');
                 } catch (error) {
                     console.error('Error publishing word list:', error);
@@ -472,23 +469,17 @@
         }
 
         function postEvent(event) {
-            console.log("Posting event:", event);
-            return new Promise((resolve, reject) => {
-                const ws = new WebSocket('wss://relay.damus.io');
-                ws.onopen = () => {
-                    console.log("WebSocket connection opened for posting event");
-                    ws.send(JSON.stringify(["EVENT", event]));
-                };
-                ws.onmessage = (msg) => {
-                    console.log('Event posted:', msg.data);
-                    ws.close();
-                    resolve();
-                };
-                ws.onerror = (error) => {
-                    console.error('Error posting event:', error);
-                    reject(error);
-                };
-            });
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["EVENT", event]));
+            };
+            ws.onmessage = (msg) => {
+                console.log('Event posted:', msg.data);
+                ws.close();
+            };
+            ws.onerror = (error) => {
+                console.error('Error posting event:', error);
+            };
         }
 
         function goToMarketplace() {
