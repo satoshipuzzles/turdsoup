@@ -132,9 +132,30 @@
             cursor: pointer;
         }
         .header-container {
-            position: relative;
-            width: 100%;
-            height: 60px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .header-left {
+            flex: 1;
+        }
+        .header-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        .header-right {
+            flex: 1;
+            justify-content: flex-end;
         }
         .header-button {
             font-size: 24px;
@@ -142,18 +163,7 @@
             background: none;
             border: none;
             color: #ffffff;
-        }
-        #lightning-button {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-        }
-        .login-container {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            display: flex;
-            align-items: center;
+            margin: 0 10px;
         }
         #profile-pic {
             width: 40px;
@@ -164,12 +174,21 @@
             height: 100%;
             border-radius: 50%;
         }
+        .login-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
     <div class="header-container">
-        <div id="lightning-button" class="header-button" onclick="openIframe()">⚡️</div>
-        <div class="login-container">
+        <div class="header-left">
+            <button class="header-button" onclick="goHome()">🏡</button>
+        </div>
+        <div class="header-center">
+            <div id="lightning-button" class="header-button" onclick="openIframe()">⚡️</div>
+        </div>
+        <div class="header-right login-container">
             <div id="profile-pic" class="hidden"><img src="" alt="Profile Picture"></div>
             <button id="login-button" class="header-button">🔑</button>
         </div>
@@ -358,9 +377,31 @@
         }
 
         function deleteWordList(index) {
-            customWordLists.splice(index, 1);
-            localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-            displayUserWordLists();
+            const wordList = customWordLists[index];
+            if (wordList.creatorNpub === npub) {
+                customWordLists.splice(index, 1);
+                localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+                displayUserWordLists();
+                deleteWordListFromNostr(wordList);
+            } else {
+                alert('You can only delete lists you created.');
+            }
+        }
+
+        async function deleteWordListFromNostr(wordList) {
+            const event = {
+                kind: 5,
+                content: JSON.stringify(wordList),
+                tags: [['t', 'wordlist']],
+                created_at: Math.floor(Date.now() / 1000)
+            };
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Word list deleted from Nostr!');
+            } catch (error) {
+                console.error('Error deleting word list:', error);
+            }
         }
 
         function backToDashboard() {
