@@ -154,7 +154,7 @@
     </div>
     <div class="container">
         <h1>Word List Marketplace</h1>
-        <div id="marketplace-list" class="hidden">
+        <div id="marketplace-list">
             <!-- Marketplace word lists will be displayed here -->
         </div>
     </div>
@@ -175,10 +175,9 @@
 
             if (storedProfile) {
                 npub = storedProfile.npub;
-                profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
+                profilePic.querySelector('img').src = storedProfile.picture;
                 profilePic.classList.remove('hidden');
                 loginButton.classList.add('hidden');
-                document.getElementById('marketplace-list').classList.remove('hidden');
                 loadMarketplace();
             } else {
                 loginButton.addEventListener('click', async () => {
@@ -187,12 +186,11 @@
                             npub = await window.nostr.getPublicKey();
                             const profile = await fetchProfile(npub);
                             if (profile && profile.picture) {
-                                profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
+                                profilePic.querySelector('img').src = profile.picture;
                                 profilePic.classList.remove('hidden');
                                 localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
                             }
                             loginButton.classList.add('hidden');
-                            document.getElementById('marketplace-list').classList.remove('hidden');
                             loadMarketplace();
                         } catch (error) {
                             console.error('Error logging in:', error);
@@ -251,7 +249,7 @@
                             <div class="words hidden">
                                 <p>${list.words.join(', ')}</p>
                                 <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
-                                ${profile === npub ? `<button class="import-button" onclick='deleteList(${JSON.stringify(list)})'>Delete List</button>` : ''}
+                                ${profile === npub ? `<button class="import-button" onclick='deleteList("${data[2].id}")'>Delete List</button>` : ''}
                             </div>
                         `;
                         marketplaceList.appendChild(div);
@@ -275,35 +273,37 @@
             alert('List imported to your word lists!');
         }
 
-        async function deleteList(list) {
+        async function deleteList(eventId) {
             const event = {
                 kind: 5,
-                content: JSON.stringify(list),
-                tags: [['t', 'wordlist']],
+                tags: [['e', eventId]],
                 created_at: Math.floor(Date.now() / 1000)
             };
             try {
                 const signedEvent = await window.nostr.signEvent(event);
-                postEvent(signedEvent);
+                await postEvent(signedEvent);
                 alert('Word list deleted from Nostr!');
+                loadMarketplace(); // Refresh marketplace
             } catch (error) {
                 console.error('Error deleting word list:', error);
             }
         }
 
         function postEvent(event) {
-            const ws = new WebSocket('wss://relay.damus.io');
-            ws.onopen = () => {
-                ws.send(JSON.stringify(["EVENT", event]));
-            };
-            ws.onmessage = (msg) => {
-                console.log('Event posted:', msg.data);
-                ws.close();
-                loadMarketplace();
-            };
-            ws.onerror = (error) => {
-                console.error('Error posting event:', error);
-            };
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket('wss://relay.damus.io');
+                ws.onopen = () => {
+                    ws.send(JSON.stringify(["EVENT", event]));
+                };
+                ws.onmessage = (msg) => {
+                    ws.close();
+                    resolve();
+                };
+                ws.onerror = (error) => {
+                    console.error('Error posting event:', error);
+                    reject(error);
+                };
+            });
         }
 
         function openIframe() {
