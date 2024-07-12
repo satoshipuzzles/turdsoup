@@ -154,10 +154,16 @@
             height: 40px;
             border-radius: 50%;
         }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="header-container">
         <button class="header-button" onclick="goHome()">🏡</button>
         <div class="header-button" onclick="openIframe()">⚡️</div>
         <div id="profile-pic" class="hidden">
@@ -222,7 +228,7 @@
     <script>
         let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
             { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
-            { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
+            { name: 'Default Verbs', words: defaultVerbs, color: #EE00F8 },
             { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' },
             { name: 'bip39SeedWords', words: bip39SeedWords, color: '#7A00A5' }
         ];
@@ -230,7 +236,7 @@
         let selectedNumber = 0;
         let selectedLists = [];
         let currentWord = 0;
-        let selectedColor = '#6FEF65';  // Default color
+        let selectedColor = '#6FEF65';
         let npub = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -271,6 +277,7 @@
                 return new Promise((resolve, reject) => {
                     const ws = new WebSocket('wss://relay.damus.io');
                     ws.onopen = () => {
+                        console.log('WebSocket connection opened.');
                         ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
                     };
                     ws.onmessage = (event) => {
@@ -282,6 +289,7 @@
                         }
                     };
                     ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
                         reject(error);
                     };
                 });
