@@ -209,7 +209,7 @@
                                     <span>${profile}</span>
                                 </div>
                                 <div class="words hidden">
-                                    <p>${list.words.join(', ')}</p>
+                                    <p>${list.words ? list.words.join(', ') : 'No words available'}</p>
                                     <button onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
                                 </div>
                             `;
