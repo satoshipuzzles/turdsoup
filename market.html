@@ -205,7 +205,7 @@
             marketplaceList.innerHTML = '';
             const ws = new WebSocket('wss://relay.damus.io');
             ws.onopen = () => {
-                ws.send(JSON.stringify(["REQ", "2", { kinds: [31664] }]));
+                ws.send(JSON.stringify(["REQ", "2", { kinds: [888888] }]));
             };
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
