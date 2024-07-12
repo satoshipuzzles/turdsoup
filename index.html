@@ -309,7 +309,7 @@
                     userWordLists.innerHTML += `
                         <div class="word-list" style="background-color: ${list.color};">
                             <strong>${list.name}</strong>
-                            <div id="creator-${index}" class="hidden"><img src="${list.creatorPicture}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;"></div>
+                            <div id="creator-${index}" class="hidden"><img src="${list.creatorPicture || ''}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;"></div>
                             <button onclick="toggleWords(${index})">Show Words</button>
                             <div id="words-${index}" class="hidden">
                                 <p>${list.words.join(', ')}</p>
