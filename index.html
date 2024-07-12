@@ -249,6 +249,7 @@
                 if (window.nostr && window.nostr.getPublicKey) {
                     try {
                         npub = await window.nostr.getPublicKey();
+                        console.log('Public key obtained:', npub);
                         const profile = await fetchProfile(npub);
                         if (profile && profile.picture) {
                             profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
@@ -259,6 +260,7 @@
                         document.getElementById('dashboard').classList.remove('hidden');
                     } catch (error) {
                         console.error('Error logging in:', error);
+                        alert('Error logging in. Please try again.');
                     }
                 } else {
                     alert('NIP-07 extension not found.');
