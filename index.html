@@ -211,6 +211,11 @@
     </div>
 
     <script>
+        const defaultNouns = ["dog", "cat", "house"];
+        const defaultVerbs = ["run", "jump", "swim"];
+        const defaultAdjectives = ["big", "small", "fast"];
+        const bip39SeedWords = ["abandon", "ability", "able"];
+
         let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
             { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
             { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
