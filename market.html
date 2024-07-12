@@ -188,7 +188,13 @@
                 try {
                     const data = JSON.parse(event.data);
                     if (data[0] === "EVENT" && data[2].content) {
-                        const list = JSON.parse(data[2].content);
+                        let list;
+                        try {
+                            list = JSON.parse(data[2].content);
+                        } catch (parseError) {
+                            console.error('Error parsing list content:', data[2].content);
+                            return;
+                        }
                         const profile = data[2].pubkey;
                         fetchProfile(profile).then(profileData => {
                             const div = document.createElement('div');
@@ -211,7 +217,7 @@
                         });
                     }
                 } catch (error) {
-                    console.error('Error processing data:', error);
+                    console.error('Error processing data:', error, event.data);
                 }
             };
             ws.onerror = (error) => {
