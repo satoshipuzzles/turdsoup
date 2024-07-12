@@ -147,6 +147,12 @@
             border: none;
             color: #ffffff;
         }
+        #lightning-button {
+            position: absolute;
+            left: 50%;
+            top: 10px;
+            transform: translateX(-50%);
+        }
         #profile-pic {
             width: 40px;
             height: 40px;
@@ -164,6 +170,7 @@
 </head>
 <body>
     <div class="header-container">
+        <button class="header-button" onclick="goHome()">🏡</button>
         <div id="lightning-button" class="header-button" onclick="openIframe()">⚡️</div>
         <div class="login-container">
             <div id="profile-pic" class="hidden"><img src="" alt="Profile Picture"></div>
