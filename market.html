@@ -275,40 +275,6 @@
             alert('List imported to your word lists!');
         }
 
-        async function deleteList(eventId) {
-            const event = {
-                kind: 5,
-                tags: [['e', eventId]],
-                created_at: Math.floor(Date.now() / 1000)
-            };
-            try {
-                const signedEvent = await window.nostr.signEvent(event);
-                await postEvent(signedEvent);
-                alert('Word list deleted!');
-            } catch (error) {
-                console.error('Error deleting word list:', error);
-                alert('Error deleting word list. Please try again.');
-            }
-        }
-
-        function postEvent(event) {
-            return new Promise((resolve, reject) => {
-                const ws = new WebSocket('wss://relay.damus.io');
-                ws.onopen = () => {
-                    ws.send(JSON.stringify(["EVENT", event]));
-                };
-                ws.onmessage = (msg) => {
-                    console.log('Event posted:', msg.data);
-                    ws.close();
-                    resolve();
-                };
-                ws.onerror = (error) => {
-                    console.error('Error posting event:', error);
-                    reject(error);
-                };
-            });
-        }
-
         function openIframe() {
             document.getElementById('iframeContainer').style.display = 'flex';
             document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
