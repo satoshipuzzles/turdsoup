@@ -451,13 +451,10 @@
             console.log("Publish button clicked");
             if (npub) {
                 try {
-                    const existingNotes = await fetchExistingNotes(npub, 5000); // 5 seconds timeout
-                    console.log('Existing notes:', existingNotes);
                     const list = customWordLists[index];
-                    existingNotes.push(list);
                     const event = {
                         kind: 31664,
-                        content: JSON.stringify(existingNotes),
+                        content: JSON.stringify(list),
                         tags: [['t', 'wordlist']],
                         created_at: Math.floor(Date.now() / 1000)
                     };
@@ -472,43 +469,6 @@
             } else {
                 alert('Please login with Nostr first.');
             }
-        }
-
-        async function fetchExistingNotes(npub, timeout = 5000) {
-            console.log("Fetching existing notes for:", npub);
-            return new Promise((resolve, reject) => {
-                const ws = new WebSocket('wss://relay.damus.io');
-                const notes = [];
-                const timeoutId = setTimeout(() => {
-                    ws.close();
-                    resolve(notes);
-                }, timeout);
-
-                ws.onopen = () => {
-                    console.log("WebSocket connection opened for fetching notes");
-                    ws.send(JSON.stringify(["REQ", "1", { kinds: [31664], authors: [npub] }]));
-                };
-
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    if (data[0] === "EVENT" && data[2].content) {
-                        const note = JSON.parse(data[2].content);
-                        notes.push(note);
-                    }
-                };
-
-                ws.onclose = () => {
-                    console.log("WebSocket connection closed after fetching notes");
-                    clearTimeout(timeoutId);
-                    resolve(notes);
-                };
-
-                ws.onerror = (error) => {
-                    console.error("WebSocket error while fetching notes:", error);
-                    clearTimeout(timeoutId);
-                    reject(error);
-                };
-            });
         }
 
         function postEvent(event) {
