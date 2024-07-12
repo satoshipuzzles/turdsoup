@@ -222,7 +222,7 @@
                                 </div>
                             </div>
                             <div class="words hidden">
-                                <p>${list.words.join(', ')}</p>
+                                <p>${Array.isArray(list.words) ? list.words.join(', ') : ''}</p>
                                 <button class="import-button" onclick='importList(${JSON.stringify(list)}, "${profileData.picture}")'>Import List</button>
                             </div>
                         `;
