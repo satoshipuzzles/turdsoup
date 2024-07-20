@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Script</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #BB86FC;
+        }
+        button {
+            background-color: #BB86FC;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        button:hover {
+            background-color: #3700B3;
+            color: #ffffff;
+        }
+        .container {
+            background-color: #1E1E1E;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Migration Script for Kind 888888 to 31664</h1>
+        <button onclick="startMigration()">Start Migration</button>
+    </div>
+
+    <script>
+        let npub = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const storedProfile = JSON.parse(localStorage.getItem('profile'));
+
+            if (storedProfile) {
+                npub = storedProfile.npub;
+            } else if (window.nostr && window.nostr.getPublicKey) {
+                try {
+                    npub = await window.nostr.getPublicKey();
+                } catch (error) {
+                    console.error('Error logging in:', error);
+                }
+            } else {
+                alert('NIP-07 extension not found.');
+            }
+        });
+
+        async function startMigration() {
+            if (!npub) {
+                alert('User not logged in.');
+                return;
+            }
+
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["REQ", "migration", { kinds: [888888], authors: [npub] }]));
+            };
+
+            ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+                if (data[0] === "EVENT" && data[2].content) {
+                    const note = data[2];
+                    const transformedNote = transformNoteTo31664(note);
+                    await publishTransformedNote(transformedNote);
+                    await deleteOriginalNote(note);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('Error fetching 888888 notes:', error);
+            };
+        }
+
+        function transformNoteTo31664(note) {
+            const content = JSON.parse(note.content);
+            const transformedNote = {
+                kind: 31664,
+                content: JSON.stringify(content),
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [
+                    ["d", content.name],
+                    ["l", content.words.join(',')],
+                    ["c", content.color],
+                    ["n", note.pubkey]
+                ],
+                pubkey: note.pubkey
+            };
+            return transformedNote;
+        }
+
+        async function publishTransformedNote(note) {
+            try {
+                const signedEvent = await window.nostr.signEvent(note);
+                postEvent(signedEvent);
+                alert('Note published as kind 31664!');
+            } catch (error) {
+                console.error('Error publishing transformed note:', error);
+            }
+        }
+
+        async function deleteOriginalNote(note) {
+            const deleteEvent = {
+                kind: 5,
+                content: '',
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [
+                    ["e", note.id]
+                ],
+                pubkey: npub
+            };
+
+            try {
+                const signedEvent = await window.nostr.signEvent(deleteEvent);
+                postEvent(signedEvent);
+                alert('Original kind 888888 note deleted!');
+            } catch (error) {
+                console.error('Error deleting original note:', error);
+            }
+        }
+
+        function postEvent(event) {
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["EVENT", event]));
+            };
+            ws.onmessage = (msg) => {
+                console.log('Event posted:', msg.data);
+                ws.close();
+            };
+            ws.onerror = (error) => {
+                console.error('Error posting event:', error);
+            };
+        }
+    </script>
+</body>
+</html>
