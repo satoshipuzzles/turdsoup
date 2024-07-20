@@ -8,7 +8,7 @@
         body {
             background-color: #EF8C56;
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -16,10 +16,12 @@
             margin: 0;
             position: relative;
             min-height: 100vh;
+            padding: 20px;
         }
         .container {
             text-align: center;
-            width: 80%;
+            width: 100%;
+            max-width: 600px;
         }
         .input-group {
             margin: 10px 0;
@@ -31,50 +33,106 @@
             padding: 10px 20px;
             cursor: pointer;
             margin: 5px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover, .option:hover {
+            background-color: #e0e0e0;
         }
         .hidden {
             display: none;
         }
-        textarea {
-            width: 100%;
-            height: 100px;
+        .input-container {
             background-color: #ffffff;
             color: #1f1f1f;
             border: 1px solid #333333;
             margin-top: 10px;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background-color: #ffffff;
+            color: #1f1f1f;
+            resize: none;
+            box-sizing: border-box;
         }
         .word-list {
-            padding: 10px;
+            padding: 20px;
             margin: 10px 0;
-            border-radius: 5px;
+            border-radius: 10px;
             background-color: #ffffff;
             color: #000000;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-        .word-list strong {
-            display: block;
-            margin-bottom: 5px;
+        .word-list-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .word-list-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .username {
+            margin-right: 10px;
+            color: #888;
+            font-weight: bold;
+        }
+        .word-list-name {
+            font-weight: bold;
         }
         .word-list p {
             margin: 0;
             font-size: 14px;
         }
-        .word-list button {
-            margin-top: 5px;
+        .buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .buttons button:hover {
+            background-color: #45a049;
+        }
+        .buttons button.delete {
+            background-color: #f44336;
+        }
+        .buttons button.delete:hover {
+            background-color: #e41e10;
         }
         .result {
             margin-top: 20px;
             padding: 10px;
             background-color: #1f1f1f;
             border-radius: 5px;
-        }
-        .color-option {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            border-radius: 50%;
-            margin: 0 5px;
-            border: 2px solid #ffffff;
         }
         .generate-button {
             background: url('generate_words.png') no-repeat center center;
@@ -145,6 +203,71 @@
             height: 40px;
             border-radius: 50%;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 5px;
+            align-self: flex-start;
+        }
+        .modal-label {
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background-color: #ffffff;
+            color: #1f1f1f;
+            resize: none;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -168,7 +291,7 @@
             <p>Pick a number:</p>
             <div>
                 <button class="option" onclick="selectNumber(1)">1</button>
-                <button class="option" onclick="selectNumber(2)">2</button>
+                <button class="option" onclick="selectNumber(2)">2"></button>
                 <button class="option" onclick="selectNumber(3)">3</button>
             </div>
         </div>
@@ -183,19 +306,14 @@
         </div>
         <div id="wordListManager" class="input-group hidden">
             <p>Manage your word lists:</p>
-            <div>
-                <label for="listName">List Name:</label>
-                <input type="text" id="listName">
-                <br>
-                <textarea id="customWords" placeholder="Enter words separated by commas"></textarea>
-                <br>
-                <p>Select a color for the list:</p>
-                <div>
-                    <span class="color-option" style="background-color: #6FEF65;" onclick="selectColor('#6FEF65')"></span>
-                    <span class="color-option" style="background-color: #EE00F8;" onclick="selectColor('#EE00F8')"></span>
-                    <span class="color-option" style="background-color: #3576F6')" onclick="selectColor('#3576F6')"></span>
-                </div>
-                <button onclick="saveCustomWords()">Save Word List</button>
+            <div class="input-container">
+                <label for="listName" class="modal-label">List Name:</label>
+                <input type="text" id="listName" class="modal-input">
+                <label for="customWords" class="modal-label">Enter words separated by commas:</label>
+                <textarea id="customWords" class="modal-input" placeholder="Enter words separated by commas"></textarea>
+                <label for="colorPicker" class="modal-label">Select a color for the list:</label>
+                <input type="color" id="colorPicker" value="#6FEF65">
+                <button id="saveButton" class="modal-button" onclick="saveCustomWords()">Save Word List</button>
             </div>
             <div id="userWordLists">
                 <!-- User word lists will be displayed here -->
@@ -210,24 +328,32 @@
         <button class="iframe-close" onclick="closeIframe()">✖️</button>
     </div>
 
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Edit Word List</h2>
+            <label for="modalListName" class="modal-label">List Name:</label>
+            <input type="text" id="modalListName" class="modal-input">
+            <label for="modalCustomWords" class="modal-label">Enter words separated by commas:</label>
+            <textarea id="modalCustomWords" class="modal-input" placeholder="Enter words separated by commas"></textarea>
+            <label for="modalColorPicker" class="modal-label">Select a color for the list:</label>
+            <input type="color" id="modalColorPicker" value="#6FEF65">
+            <button class="modal-button" id="saveAndPublishButton">Save and Publish</button>
+        </div>
+    </div>
+
     <script>
         const defaultNouns = ["dog", "cat", "house"];
         const defaultVerbs = ["run", "jump", "swim"];
         const defaultAdjectives = ["big", "small", "fast"];
         const bip39SeedWords = ["abandon", "ability", "able"];
 
-        let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [
-            { name: 'Default Nouns', words: defaultNouns, color: '#6FEF65' },
-            { name: 'Default Verbs', words: defaultVerbs, color: '#EE00F8' },
-            { name: 'Default Adjectives', words: defaultAdjectives, color: '#3576F6' },
-            { name: 'bip39SeedWords', words: bip39SeedWords, color: '#7A00A5' }
-        ];
-
+        let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [];
         let selectedNumber = 0;
         let selectedLists = [];
         let currentWord = 0;
-        let selectedColor = '#6FEF65';  // Default color
         let npub = null;
+        let editIndex = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             const profilePic = document.getElementById('profile-pic');
@@ -298,7 +424,7 @@
             displayUserWordLists();
         }
 
-        function displayUserWordLists() {
+        async function displayUserWordLists() {
             const userWordLists = document.getElementById('userWordLists');
             userWordLists.innerHTML = '';
 
@@ -308,14 +434,19 @@
                 customWordLists.forEach((list, index) => {
                     userWordLists.innerHTML += `
                         <div class="word-list" style="background-color: ${list.color};">
-                            <strong>${list.name}</strong>
-                            <div id="creator-${index}" class="hidden"><img src="${list.creatorPicture || ''}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;"></div>
+                            <div class="word-list-header">
+                                <img src="${list.creatorPicture}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;">
+                                <strong>${list.name}</strong>
+                            </div>
                             <button onclick="toggleWords(${index})">Show Words</button>
                             <div id="words-${index}" class="hidden">
                                 <p>${list.words ? list.words.join(', ') : 'No words available'}</p>
                             </div>
-                            <button onclick="deleteWordList(${index})">Delete</button>
-                            ${list.creatorNpub === npub ? `<button onclick="publishWordList(${index})">Publish</button>` : ''}
+                            <div class="buttons">
+                                <button onclick="editWordList(${index})">Edit</button>
+                                <button class="delete" onclick="deleteWordList(${index})">Delete</button>
+                                <button onclick="publishSingleWordList(${index})">Publish</button>
+                            </div>
                         </div>
                     `;
                 });
@@ -325,30 +456,133 @@
         function toggleWords(index) {
             const wordsDiv = document.getElementById(`words-${index}`);
             wordsDiv.classList.toggle('hidden');
-            const creatorDiv = document.getElementById(`creator-${index}`);
-            creatorDiv.classList.toggle('hidden');
         }
 
-        function saveCustomWords() {
+        function openModal(index) {
+            editIndex = index;
+            const list = customWordLists[index];
+            document.getElementById('modalListName').value = list.name;
+            document.getElementById('modalCustomWords').value = list.words.join(', ');
+            document.getElementById('modalColorPicker').value = list.color;
+            document.getElementById('editModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = "none";
+        }
+
+        async function saveAndPublishModalChanges() {
+            await saveEditedWords(editIndex);
+            await publishSingleWordList(editIndex);
+            closeModal();
+        }
+
+        async function saveCustomWords() {
             const listName = document.getElementById('listName').value;
             const words = document.getElementById('customWords').value.split(',').map(word => word.trim());
+            const color = document.getElementById('colorPicker').value;
 
             if (listName && words.length > 0) {
-                customWordLists.push({ name: listName, words, color: selectedColor, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture });
+                const newList = { name: listName, words, color, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture };
+
+                customWordLists.push(newList);
                 localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
                 document.getElementById('listName').value = '';
                 document.getElementById('customWords').value = '';
                 displayUserWordLists();
-                alert('Word list saved!');
+                await publishSingleWordList(customWordLists.length - 1);
+                alert('Word list saved and published!');
             } else {
                 alert('Please enter a list name and words.');
             }
         }
 
-        function deleteWordList(index) {
+        async function publishSingleWordList(index) {
+            const singleList = customWordLists[index];
+            if (singleList.creatorNpub !== npub) {
+                alert("You can only publish lists you authored.");
+                return;
+            }
+            const event = {
+                kind: 31664,
+                content: JSON.stringify(singleList),
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [
+                    ["d", singleList.name],  // Word list name
+                    ["l", singleList.words.join(',')],
+                    ["c", singleList.color],
+                    ["n", npub]  // User npub
+                ],
+                pubkey: npub
+            };
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Word list published to Nostr!');
+            } catch (error) {
+                console.error('Error publishing word list:', error);
+            }
+        }
+
+        function postEvent(event) {
+            const ws = new WebSocket('wss://relay.damus.io');
+            ws.onopen = () => {
+                ws.send(JSON.stringify(["EVENT", event]));
+            };
+            ws.onmessage = (msg) => {
+                console.log('Event posted:', msg.data);
+                ws.close();
+            };
+            ws.onerror = (error) => {
+                console.error('Error posting event:', error);
+            };
+        }
+
+        async function editWordList(index) {
+            openModal(index);
+        }
+
+        async function saveEditedWords(index) {
+            const listName = document.getElementById('modalListName').value;
+            const words = document.getElementById('modalCustomWords').value.split(',').map(word => word.trim());
+            const color = document.getElementById('modalColorPicker').value;
+
+            if (listName && words.length > 0) {
+                const updatedList = { name: listName, words, color, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture };
+
+                customWordLists[index] = updatedList;
+                localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
+                displayUserWordLists();
+                await publishSingleWordList(index);
+                alert('Word list updated and published!');
+            } else {
+                alert('Please enter a list name and words.');
+            }
+        }
+
+        async function deleteWordList(index) {
+            const listToDelete = customWordLists[index];
             customWordLists.splice(index, 1);
             localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
             displayUserWordLists();
+
+            const event = {
+                kind: 5,  // kind 5 is used for deletion in Nostr
+                content: '',
+                tags: [
+                    ["e", listToDelete.id]  // e tag to specify the event ID of the list to be deleted
+                ],
+                pubkey: npub,
+                created_at: Math.floor(Date.now() / 1000)
+            };
+
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Word list deleted from Nostr!');
+            } catch (error) {
+                console.error('Error deleting word list:', error);
+            }
         }
 
         function backToDashboard() {
@@ -409,46 +643,6 @@
 
             document.getElementById('result').innerText = `Generated Words: ${words.join(', ')}`;
             document.getElementById('result').classList.remove('hidden');
-        }
-
-        function selectColor(color) {
-            selectedColor = color;
-            alert(`Selected color: ${color}`);
-        }
-
-        async function publishWordList(index) {
-            if (npub) {
-                const list = customWordLists[index];
-                const event = {
-                    kind: 888888,
-                    content: JSON.stringify(list),
-                    tags: [['t', 'wordlist']],
-                    created_at: Math.floor(Date.now() / 1000)
-                };
-                try {
-                    const signedEvent = await window.nostr.signEvent(event);
-                    postEvent(signedEvent);
-                    alert('Word list published to Nostr!');
-                } catch (error) {
-                    console.error('Error publishing word list:', error);
-                }
-            } else {
-                alert('Please login with Nostr first.');
-            }
-        }
-
-        function postEvent(event) {
-            const ws = new WebSocket('wss://relay.damus.io');
-            ws.onopen = () => {
-                ws.send(JSON.stringify(["EVENT", event]));
-            };
-            ws.onmessage = (msg) => {
-                console.log('Event posted:', msg.data);
-                ws.close();
-            };
-            ws.onerror = (error) => {
-                console.error('Error posting event:', error);
-            };
         }
 
         function goToMarketplace() {
