@@ -274,7 +274,7 @@
 
         async function fetchProfile(npub) {
             return new Promise((resolve, reject) => {
-                const ws = new WebSocket('wss://relay.nostrfreaks.com');
+                const ws = new WebSocket('wss://purplepag.es');
                 ws.onopen = () => {
                     ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
                 };
@@ -425,7 +425,7 @@
         }
 
         function postEvent(event) {
-            const ws = new WebSocket('wss://relay.damus.io');
+            const ws = new WebSocket('wss://relay.nostrfreaks.com');
             ws.onopen = () => {
                 ws.send(JSON.stringify(["EVENT", event]));
             };
