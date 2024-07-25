@@ -537,7 +537,7 @@
         }
 
         function postEvent(event) {
-            const ws = new WebSocket('wss://relay.damus.io');
+            const ws = new WebSocket('wss://relay.nostrfreaks.com');
             ws.onopen = () => {
                 ws.send(JSON.stringify(["EVENT", event]));
             };
