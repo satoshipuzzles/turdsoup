@@ -333,6 +333,9 @@
             <button onclick="backToDashboard()">🏡</button>
         </div>
         <div id="result" class="result hidden"></div>
+        <div id="shareOnNostrContainer" class="hidden">
+            <button onclick="shareOnNostr()">Share on Nostr</button>
+        </div>
     </div>
 
     <div id="iframeContainer" class="iframe-container">
@@ -350,7 +353,7 @@
             <textarea id="modalCustomWords" class="modal-input" placeholder="Enter words separated by commas"></textarea>
             <label for="modalColorPicker" class="modal-label">Select a color for the list:</label>
             <input type="color" id="modalColorPicker" value="#6FEF65">
-            <button class="modal-button" id="saveAndPublishButton">Save and Publish</button>
+            <button class="modal-button" id="saveAndPublishButton" onclick="saveAndPublishModalChanges()">Save and Publish</button>
         </div>
     </div>
 
@@ -655,6 +658,29 @@
 
             document.getElementById('result').innerText = `Generated Words: ${words.join(', ')}`;
             document.getElementById('result').classList.remove('hidden');
+
+            // Show the "Share on Nostr" button
+            document.getElementById('shareOnNostrContainer').classList.remove('hidden');
+        }
+
+        async function shareOnNostr() {
+            const resultContainer = document.getElementById('result');
+            const generatedWords = resultContainer.innerText;
+
+            const event = {
+                kind: 1, // Kind 1 is a regular note
+                content: generatedWords,
+                created_at: Math.floor(Date.now() / 1000),
+                pubkey: npub
+            };
+
+            try {
+                const signedEvent = await window.nostr.signEvent(event);
+                postEvent(signedEvent);
+                alert('Inverse prompt shared on Nostr!');
+            } catch (error) {
+                console.error('Error sharing on Nostr:', error);
+            }
         }
 
         function goToMarketplace() {
