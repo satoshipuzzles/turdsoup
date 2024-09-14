@@ -245,6 +245,11 @@
         let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [];
         let editIndex = null;
 
+        // Define your primary and backup relays
+        const primaryRelay = 'wss://relay.nostrfreaks.com';
+        const backupRelay = 'wss://relay.damus.io';
+        let activeRelay = primaryRelay;
+
         document.addEventListener('DOMContentLoaded', async () => {
             const profilePic = document.getElementById('profile-pic');
             const storedProfile = JSON.parse(localStorage.getItem('profile'));
@@ -295,47 +300,71 @@
         async function loadMarketplace() {
             const marketplaceList = document.getElementById('marketplace-list');
             marketplaceList.innerHTML = ''; // Clear the list only once at the beginning
-            const ws = new WebSocket('wss://relay.nostrfreaks.com');
-            ws.onopen = () => {
-                ws.send(JSON.stringify(["REQ", "2", { kinds: [31664] }]));
-            };
-            ws.onmessage = (event) => {
+            try {
+                await fetchFromRelay(activeRelay, "2", { kinds: [31664] }, (data) => {
+                    processMarketplaceData(data, marketplaceList);
+                });
+            } catch (error) {
+                console.error('Primary relay failed, switching to backup:', error);
+                activeRelay = backupRelay;
                 try {
+                    await fetchFromRelay(backupRelay, "2", { kinds: [31664] }, (data) => {
+                        processMarketplaceData(data, marketplaceList);
+                    });
+                } catch (error) {
+                    console.error('Backup relay also failed:', error);
+                    alert('Both relays are currently down. Please try again later.');
+                }
+            }
+        }
+
+        function fetchFromRelay(relayUrl, subscriptionId, filters, callback) {
+            return new Promise((resolve, reject) => {
+                const ws = new WebSocket(relayUrl);
+                ws.onopen = () => {
+                    ws.send(JSON.stringify(["REQ", subscriptionId, filters]));
+                };
+                ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data[0] === "EVENT" && data[2].content) {
-                        const listContent = JSON.parse(data[2].content);
-                        const profile = data[2].pubkey;
-                        fetchProfile(profile).then(profileData => {
-                            const div = document.createElement('div');
-                            div.className = 'word-list';
-                            div.style.backgroundColor = listContent.color;
-                            div.innerHTML = `
-                                <div class="word-list-header">
-                                    <img src="${profileData.picture}" alt="Profile Picture">
-                                    <span class="username">${profileData.name || profileData.nip05}</span>
-                                    <span class="word-list-name">${listContent.name}</span>
-                                </div>
-                                <div class="author-npub">${profile}</div>
-                                <div class="words hidden">
-                                    <p>${listContent.words.join(', ')}</p>
-                                    <div class="buttons">
-                                        ${profile === npub ? `<button onclick='editMarketplaceList(${JSON.stringify(listContent)}, "${data[2].id}")'>Edit</button>
-                                        <button class='delete' onclick='deleteMarketplaceList("${data[2].id}")'>Delete</button>` : ''}
-                                        <button onclick='importList(${JSON.stringify(listContent)}, "${profileData.picture}")'>Import</button>
-                                    </div>
-                                </div>
-                            `;
-                            marketplaceList.appendChild(div); // Append each note to the list
-                            div.addEventListener('click', () => toggleWords(div));
-                        });
+                        callback(data);
                     }
-                } catch (error) {
-                    console.error('Error processing data:', error, event.data);
-                }
-            };
-            ws.onerror = (error) => {
-                console.error('Error loading marketplace:', error);
-            };
+                };
+                ws.onerror = (error) => {
+                    reject(error);
+                };
+                ws.onclose = () => {
+                    resolve();
+                };
+            });
+        }
+
+        function processMarketplaceData(data, marketplaceList) {
+            const listContent = JSON.parse(data[2].content);
+            const profile = data[2].pubkey;
+            fetchProfile(profile).then(profileData => {
+                const div = document.createElement('div');
+                div.className = 'word-list';
+                div.style.backgroundColor = listContent.color;
+                div.innerHTML = `
+                    <div class="word-list-header">
+                        <img src="${profileData.picture}" alt="Profile Picture">
+                        <span class="username">${profileData.name || profileData.nip05}</span>
+                        <span class="word-list-name">${listContent.name}</span>
+                    </div>
+                    <div class="author-npub">${profile}</div>
+                    <div class="words hidden">
+                        <p>${listContent.words.join(', ')}</p>
+                        <div class="buttons">
+                            ${profile === npub ? `<button onclick='editMarketplaceList(${JSON.stringify(listContent)}, "${data[2].id}")'>Edit</button>
+                            <button class='delete' onclick='deleteMarketplaceList("${data[2].id}")'>Delete</button>` : ''}
+                            <button onclick='importList(${JSON.stringify(listContent)}, "${profileData.picture}")'>Import</button>
+                        </div>
+                    </div>
+                `;
+                marketplaceList.appendChild(div);
+                div.addEventListener('click', () => toggleWords(div));
+            });
         }
 
         function toggleWords(div) {
@@ -425,7 +454,7 @@
         }
 
         function postEvent(event) {
-            const ws = new WebSocket('wss://relay.nostrfreaks.com');
+            const ws = new WebSocket(activeRelay);
             ws.onopen = () => {
                 ws.send(JSON.stringify(["EVENT", event]));
             };
