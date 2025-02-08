@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puff Puff Paint - TurdSoup</title>
-    <meta property="og:title" content="Puff Puff Paint - TurdSoup" />
-    <meta property="og:description" content="Create and share your art on Nostr!" />
-    <meta property="og:image" content="logo.png" />
-    <meta property="og:url" content="https://TurdSoup.com/puff" />
-    <!-- Twitter Card meta tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Puff Puff Paint - TurdSoup" />
-    <meta name="twitter:description" content="Create and share your art on Nostr!" />
-    <meta name="twitter:image" content="logo.png" />
+    <!-- React and Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include Lucide Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
     <style>
         body {
             background-color: #EF8C56;
@@ -110,7 +109,6 @@
     </div>
 
     <script>
-        // Navigation functions
         function goHome() {
             window.location.href = '/';
         }
@@ -137,6 +135,22 @@
                 profilePic.classList.remove('hidden');
             }
         });
+    </script>
+
+    <!-- Mount React Component -->
+    <script type="text/babel">
+        // Import the React component
+        const { useState, useEffect, useRef } = React;
+        const { Send, Upload, Zap, MessageCircle, AlertTriangle, AtSign } = lucide;
+
+        // Include the PuffPuffPaint component code here
+        ${PuffPuffPaintComponent}
+
+        // Mount the component
+        ReactDOM.render(
+            <PuffPuffPaint />,
+            document.getElementById('root')
+        );
     </script>
 </body>
 </html>
