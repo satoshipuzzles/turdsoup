@@ -1,727 +1,1024 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turd Soup</title>
-  <!-- Open Graph meta tags -->
-  <meta property="og:title" content="Turd Soup" />
-  <!-- NIP-47 Nostr Wallet Connect (NWC) Documentation (omitted here for brevity; see your original spec) -->
-  <meta property="og:description" content="Welcome to Turd Soup Bitches!" />
-  <meta property="og:image" content="logo.png" />
-  <meta property="og:url" content="https://TurdSoup.com" />
-  <meta property="og:type" content="website" />
-  <!-- Twitter Card meta tags -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Turd Soup" />
-  <meta name="twitter:description" content="Welcome to Turd Soup Bitches!" />
-  <meta name="twitter:image" content="logo.png" />
-  <meta name="twitter:url" content="https://turdsoup.com" />
-  <style>
-    body {
-      background-color: #EF8C56;
-      color: #ffffff;
-      font-family: 'Arial', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: 0;
-      position: relative;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .container {
-      text-align: center;
-      width: 100%;
-      max-width: 600px;
-    }
-    .input-group {
-      margin: 10px 0;
-    }
-    button, .option {
-      background-color: #ffffff;
-      color: #1f1f1f;
-      border: none;
-      padding: 10px 20px;
-      cursor: pointer;
-      margin: 5px;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-    button:hover, .option:hover {
-      background-color: #e0e0e0;
-    }
-    .hidden {
-      display: none;
-    }
-    .input-container {
-      background-color: #ffffff;
-      color: #1f1f1f;
-      border: 1px solid #333333;
-      margin-top: 10px;
-      border-radius: 5px;
-      padding: 20px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      font-weight: bold;
-      color: #000000;
-      margin-bottom: 10px;
-    }
-    textarea, input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      border: none;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      background-color: #ffffff;
-      color: #1f1f1f;
-      resize: none;
-      box-sizing: border-box;
-    }
-    .word-list {
-      padding: 20px;
-      margin: 10px 0;
-      border-radius: 10px;
-      background-color: #ffffff;
-      color: #000000;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    .word-list-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .word-list-header img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-    }
-    .username {
-      margin-right: 10px;
-      color: #888;
-      font-weight: bold;
-    }
-    .word-list-name {
-      font-weight: bold;
-    }
-    .word-list p {
-      margin: 0;
-      font-size: 14px;
-    }
-    .buttons {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-    }
-    .buttons button {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      transition: background-color 0.3s;
-    }
-    .buttons button:hover {
-      background-color: #45a049;
-    }
-    .buttons button.delete {
-      background-color: #f44336;
-    }
-    .buttons button.delete:hover {
-      background-color: #e41e10;
-    }
-    .result {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #1f1f1f;
-      border-radius: 5px;
-    }
-    .generate-button {
-      background: url('generate_words.png') no-repeat center center;
-      background-size: contain;
-      width: 300px;
-      height: 100px;
-      border: none;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .footer {
-      position: absolute;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-    }
-    .footer-button {
-      font-size: 24px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: #ffffff;
-    }
-    .iframe-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .iframe-container iframe {
-      width: 80%;
-      height: 80%;
-    }
-    .iframe-close {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: none;
-      border: none;
-      color: #ffffff;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    .header {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header-button {
-      font-size: 24px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: #ffffff;
-    }
-    #profile-pic img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
-      padding-top: 60px;
-    }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 5% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 600px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-    }
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-    }
-    .close:hover,
-    .close:focus {
-      color: black;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .modal-button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-      margin: 5px;
-      border-radius: 5px;
-      align-self: flex-start;
-    }
-    .modal-label {
-      font-weight: bold;
-      color: #000000;
-      margin-bottom: 10px;
-    }
-    .modal-input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      border: none;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      background-color: #ffffff;
-      color: #1f1f1f;
-      resize: none;
-      box-sizing: border-box;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puff Puff Paint - TurdSoup</title>
+    <style>
+        :root {
+            --primary: #EF8C56;
+            --primary-dark: #D97B45;
+            --background: #ffffff;
+            --text: #1f1f1f;
+            --text-light: #666666;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--text);
+            font-family: -apple-system, system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .header-button:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 60px auto 0;
+            padding: 20px;
+        }
+
+        .compose-card {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .note-card {
+            background: var(--background);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+
+        .note-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .note-header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+
+        .author-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .author-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timestamp {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .note-content {
+            padding: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .media-container {
+            width: 100%;
+            display: grid;
+            gap: 2px;
+            background: #f5f5f5;
+        }
+
+        .media-container.single {
+            max-height: 500px;
+        }
+
+        .media-container.single img {
+            width: 100%;
+            height: 100%;
+            max-height: 500px;
+            object-fit: contain;
+        }
+
+        .media-container.multiple {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .media-container.multiple img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+
+        .media-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .media-preview img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .note-actions {
+            padding: 10px 15px;
+            display: flex;
+            gap: 15px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            background: rgba(239,140,86,0.1);
+            color: var(--primary);
+        }
+
+        .compose-text {
+            width: 100%;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: inherit;
+            font-size: 16px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .compose-text:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(239,140,86,0.1);
+        }
+
+        .compose-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .floating-compose {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-compose:hover {
+            transform: scale(1.1);
+            background: var(--primary-dark);
+        }
+
+        .upload-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .upload-button:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .publish-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .publish-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .publish-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .replies-container {
+            margin-left: 40px;
+            padding: 10px 15px;
+            border-left: 2px solid rgba(0,0,0,0.05);
+        }
+
+        .reply-card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+
+        .reply-card:hover {
+            transform: translateY(-1px);
+        }
+
+        .reply-input {
+            padding: 10px 15px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+        }
+
+        .reply-input textarea {
+            flex: 1;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            min-height: 36px;
+            max-height: 120px;
+        }
+
+        .reply-input textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(239,140,86,0.1);
+        }
+
+        .new-notes-banner {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 90;
+        }
+
+        .new-notes-banner.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .new-notes-banner:hover {
+            transform: translateX(-50%) translateY(-2px);
+        }
+
+        .zap-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .zap-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 10px;
+            }
+
+            .note-card {
+                border-radius: 12px;
+                margin: 0 0 15px 0;
+            }
+
+            .media-container.multiple {
+                grid-template-columns: 1fr;
+            }
+
+            .replies-container {
+                margin-left: 20px;
+            }
+
+            .floating-compose {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <button class="header-button" onclick="goHome()">🏡</button>
-    <div class="header-button" onclick="openIframe()">⚡️</div>
-    <div id="profile-pic" class="hidden">
-      <span id="profile-emoji">🤖</span>
+    <div class="header">
+        <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
+        <div class="header-button">⚡️</div>
+        <div id="profile-pic" class="hidden">
+            <span>🤖</span>
+        </div>
     </div>
-  </div>
-  <div class="container">
-    <img src="logo.png" alt="Logo" width="200">
-    <h1>Turd Soup</h1>
-    <button id="login-button">Login with Nostr</button>
-    <!-- Dashboard: shown after login -->
-    <div id="dashboard" class="input-group hidden">
-      <button onclick="startInversePrompt()">Create Inverse Prompt</button>
-      <button onclick="showWordListManager()">Manage Word Lists</button>
-      <button onclick="goToMarketplace()">Marketplace</button>
-      <button onclick="goToPuffPuffPaint()">Puff Puff Paint</button>
-      <!-- NWC Wallet Connect Buttons -->
-      <button onclick="connectNwc()">Connect Wallet (NWC)</button>
-      <button onclick="disconnectNwc()">Disconnect Wallet (NWC)</button>
-      <div id="nwcStatus"></div>
-    </div>
-    <div id="step1" class="input-group hidden">
-      <p>Pick a number:</p>
-      <div>
-        <button class="option" onclick="selectNumber(1)">1</button>
-        <button class="option" onclick="selectNumber(2)">2</button>
-        <button class="option" onclick="selectNumber(3)">3</button>
-      </div>
-    </div>
-    <div id="step2" class="input-group hidden">
-      <p>Select lists for each word:</p>
-      <div id="listOptions">
-        <!-- Options will be populated by JavaScript -->
-      </div>
-    </div>
-    <div id="step3" class="input-group hidden">
-      <button class="generate-button" onclick="generateWords()"></button>
-    </div>
-    <div id="wordListManager" class="input-group hidden">
-      <p>Manage your word lists:</p>
-      <div class="input-container">
-        <label for="listName" class="modal-label">List Name:</label>
-        <input type="text" id="listName" class="modal-input">
-        <label for="customWords" class="modal-label">Enter words separated by commas:</label>
-        <textarea id="customWords" class="modal-input" placeholder="Enter words separated by commas"></textarea>
-        <label for="colorPicker" class="modal-label">Select a color for the list:</label>
-        <input type="color" id="colorPicker" value="#6FEF65">
-        <button id="saveButton" class="modal-button" onclick="saveCustomWords()">Save Word List</button>
-      </div>
-      <div id="userWordLists">
-        <!-- User word lists will be displayed here -->
-      </div>
-      <button onclick="backToDashboard()">🏡</button>
-    </div>
-    <div id="result" class="result hidden"></div>
-  </div>
 
-  <div id="iframeContainer" class="iframe-container">
-    <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
-    <button class="iframe-close" onclick="closeIframe()">✖️</button>
-  </div>
+    <div id="new-notes-banner" class="new-notes-banner">See new notes</div>
 
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h2>Edit Word List</h2>
-      <label for="modalListName" class="modal-label">List Name:</label>
-      <input type="text" id="modalListName" class="modal-input">
-      <label for="modalCustomWords" class="modal-label">Enter words separated by commas:</label>
-      <textarea id="modalCustomWords" class="modal-input" placeholder="Enter words separated by commas"></textarea>
-      <label for="modalColorPicker" class="modal-label">Select a color for the list:</label>
-      <input type="color" id="modalColorPicker" value="#6FEF65">
-      <button class="modal-button" id="saveAndPublishButton">Save and Publish</button>
-    </div>
-  </div>
-
-  <script>
-    // Global variables and default word lists
-    const defaultNouns = ["dog", "cat", "house"];
-    const defaultVerbs = ["run", "jump", "swim"];
-    const defaultAdjectives = ["big", "small", "fast"];
-    const bip39SeedWords = ["abandon", "ability", "able"];
-
-    let customWordLists = JSON.parse(localStorage.getItem('customWordLists')) || [];
-    let selectedNumber = 0;
-    let selectedLists = [];
-    let currentWord = 0;
-    let npub = null;
-    let editIndex = null;
-    // Global variable for the NWC connection string (if any)
-    let nwcConnection = localStorage.getItem('nwcConnection') || null;
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const profilePic = document.getElementById('profile-pic');
-      const storedProfile = JSON.parse(localStorage.getItem('profile'));
-      updateNwcStatus(); // Update the UI with any saved NWC connection
-
-      if (storedProfile) {
-        npub = storedProfile.npub;
-        profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
-        profilePic.classList.remove('hidden');
-        document.getElementById('login-button').style.display = 'none';
-        document.getElementById('dashboard').classList.remove('hidden');
-      }
-
-      document.getElementById('login-button').addEventListener('click', async () => {
-        if (window.nostr && window.nostr.getPublicKey) {
-          try {
-            npub = await window.nostr.getPublicKey();
-            const profile = await fetchProfile(npub);
-            if (profile && profile.picture) {
-              profilePic.innerHTML = `<img src="${profile.picture}" alt="Profile Picture">`;
-              profilePic.classList.remove('hidden');
-              localStorage.setItem('profile', JSON.stringify({ npub, picture: profile.picture }));
-            }
-            document.getElementById('login-button').style.display = 'none';
-            document.getElementById('dashboard').classList.remove('hidden');
-          } catch (error) {
-            console.error('Error logging in:', error);
-          }
-        } else {
-          alert('NIP-07 extension not found.');
-        }
-      });
-
-      async function fetchProfile(npub) {
-        return new Promise((resolve, reject) => {
-          const ws = new WebSocket('wss://relay.damus.io');
-          ws.onopen = () => {
-            ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [npub] }]));
-          };
-          ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data[0] === "EVENT" && data[2].content) {
-              const profile = JSON.parse(data[2].content);
-              ws.close();
-              resolve(profile);
-            }
-          };
-          ws.onerror = (error) => {
-            reject(error);
-          };
-        });
-      }
-    });
-
-    // --------------------- NWC (Nostr Wallet Connect) Functions ---------------------
-    // Update the dashboard with the current NWC connection status.
-    function updateNwcStatus() {
-      const statusDiv = document.getElementById('nwcStatus');
-      if (nwcConnection) {
-        statusDiv.innerText = "NWC Connected: " + nwcConnection;
-      } else {
-        statusDiv.innerText = "No NWC Connection set.";
-      }
-    }
-
-    // Validates that the provided URI is a NWC connection string.
-    function validateNwcUri(uri) {
-      return uri.startsWith("nostr+walletconnect://") && uri.includes("relay=") && uri.includes("secret=");
-    }
-
-    // Prompt the user for a NWC connection string, validate it, and save it.
-    function connectNwc() {
-      const uri = prompt("Enter your NWC connection URI (must start with nostr+walletconnect://):");
-      if (uri) {
-        if (validateNwcUri(uri.trim())) {
-          nwcConnection = uri.trim();
-          localStorage.setItem("nwcConnection", nwcConnection);
-          updateNwcStatus();
-          alert("NWC connection saved!");
-        } else {
-          alert("Invalid NWC URI. Please ensure it starts with nostr+walletconnect:// and contains the required parameters.");
-        }
-      }
-    }
-
-    // Remove the stored NWC connection.
-    function disconnectNwc() {
-      nwcConnection = null;
-      localStorage.removeItem("nwcConnection");
-      updateNwcStatus();
-      alert("NWC connection removed.");
-    }
-    // ---------------------------------------------------------------------------------
-
-    // --------------------- Other App Functions ---------------------
-    function openIframe() {
-      document.getElementById('iframeContainer').style.display = 'flex';
-      // For now, we use a fixed URL. You might later update this to use NWC data.
-      document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
-    }
-
-    function closeIframe() {
-      document.getElementById('iframeContainer').style.display = 'none';
-      document.getElementById('iframe').src = 'about:blank';
-    }
-
-    function showWordListManager() {
-      document.getElementById('dashboard').classList.add('hidden');
-      document.getElementById('wordListManager').classList.remove('hidden');
-      displayUserWordLists();
-    }
-
-    async function displayUserWordLists() {
-      const userWordLists = document.getElementById('userWordLists');
-      userWordLists.innerHTML = '';
-
-      if (customWordLists.length === 0) {
-        userWordLists.innerHTML = '<p>No custom lists available. Using default lists.</p>';
-      } else {
-        customWordLists.forEach((list, index) => {
-          userWordLists.innerHTML += `
-            <div class="word-list" style="background-color: ${list.color};">
-              <div class="word-list-header">
-                <img src="${list.creatorPicture}" alt="Creator Picture" style="width: 20px; height: 20px; border-radius: 50%;">
-                <strong>${list.name}</strong>
-              </div>
-              <button onclick="toggleWords(${index})">Show Words</button>
-              <div id="words-${index}" class="hidden">
-                <p>${list.words ? list.words.join(', ') : 'No words available'}</p>
-              </div>
-              <div class="buttons">
-                <button onclick="editWordList(${index})">Edit</button>
-                <button class="delete" onclick="deleteWordList(${index})">Delete</button>
-                <button onclick="publishSingleWordList(${index})">Publish</button>
-              </div>
+    <div class="container">
+        <div id="compose" class="compose-card">
+            <div class="note-header">
+                <img id="compose-avatar" class="avatar" src="" alt="Profile">
+                <div class="author-info">
+                    <div id="compose-name" class="author-name"></div>
+                </div>
             </div>
-          `;
+            <textarea id="content" class="compose-text" placeholder="What's on your mind?" rows="3"></textarea>
+            <div id="media-preview" class="media-preview"></div>
+            <div class="compose-actions">
+                <input type="file" accept="image/*" id="image-input" style="display: none" multiple>
+                <button class="upload-button" onclick="document.getElementById('image-input').click()">📷</button>
+                <button id="publish-button" class="publish-button" onclick="publishNote()">Paint</button>
+            </div>
+        </div>
+
+        <div id="notes"></div>
+    </div>
+
+    <button class="floating-compose" onclick="scrollToCompose()">+</button>
+
+    <div id="zap-modal" class="modal-overlay" style="display: none;">
+        <div class="zap-modal">
+            <h3>Send Zap</h3>
+            <input type="number" id="zap-amount" class="zap-input" placeholder="Amount in sats" min="1">
+            <div class="compose-actions">
+                <button class="publish-button" onclick="closeZapModal()">Cancel</button>
+                <button id="send-zap-button" class="publish-button" onclick="confirmZap()">Send Zap</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+        let npub = null;
+        let profile = null;
+        let profileCache = new Map();
+        let newNotes = [];
+        let seenNoteIds = new Set();
+        let lastSeenTimestamp = Date.now() / 1000;
+        let zapRecipientData = null;
+
+        const RELAYS = [
+            'wss://relay.damus.io',
+            'wss://nos.lol',
+            'wss://relay.nostrfreaks.com'
+        ];
+
+        // WebSocket Pool
+        const wsPool = new Map();
+
+        function getWebSocket(url) {
+            if (wsPool.has(url)) {
+                const ws = wsPool.get(url);
+                if (ws.readyState === WebSocket.OPEN) return ws;
+            }
+
+            const ws = new WebSocket(url);
+            wsPool.set(url, ws);
+
+            ws.onclose = () => {
+                wsPool.delete(url);
+                setTimeout(() => getWebSocket(url), 1000);
+            };
+
+            return ws;
+        }
+
+        function publishToRelays(event) {
+            RELAYS.forEach(url => {
+                const ws = getWebSocket(url);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(["EVENT", event]));
+                } else {
+                    ws.addEventListener('open', () => {
+                        ws.send(JSON.stringify(["EVENT", event]));
+                    });
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const storedProfile = JSON.parse(localStorage.getItem('profile'));
+            if (storedProfile) {
+                npub = storedProfile.npub;
+                profile = storedProfile;
+                if (profile.picture) {
+                    document.getElementById('compose-avatar').src = profile.picture;
+                    document.getElementById('compose-name').textContent = profile.name || npub.slice(0, 8);
+                    document.getElementById('profile-pic').innerHTML = 
+                        `<img src="${profile.picture}" alt="Profile" class="avatar">`;
+                }
+                document.getElementById('profile-pic').classList.remove('hidden');
+                connectToRelays();
+            }
         });
-      }
-    }
 
-    function toggleWords(index) {
-      const wordsDiv = document.getElementById(`words-${index}`);
-      wordsDiv.classList.toggle('hidden');
-    }
+        // Connect to Relays
+        function connectToRelays() {
+            RELAYS.forEach(url => {
+                const ws = getWebSocket(url);
+                if (ws.readyState === WebSocket.OPEN) {
+                    subscribeToFeed(ws);
+                } else {
+                    ws.addEventListener('open', () => subscribeToFeed(ws));
+                }
+            });
+        }
 
-    function openModal(index) {
-      editIndex = index;
-      const list = customWordLists[index];
-      document.getElementById('modalListName').value = list.name;
-      document.getElementById('modalCustomWords').value = list.words.join(', ');
-      document.getElementById('modalColorPicker').value = list.color;
-      document.getElementById('editModal').style.display = "block";
-    }
+        function subscribeToFeed(ws) {
+            // Subscribe to new notes
+            ws.send(JSON.stringify([
+                "REQ",
+                "feed",
+                {
+                    kinds: [1],
+                    "#t": ["puffpuffpaint"],
+                    since: Math.floor(Date.now() / 1000)
+                }
+            ]));
 
-    function closeModal() {
-      document.getElementById('editModal').style.display = "none";
-    }
+            // Get initial feed
+            ws.send(JSON.stringify([
+                "REQ",
+                "initial",
+                {
+                    kinds: [1],
+                    "#t": ["puffpuffpaint"],
+                    limit: 50,
+                    until: Math.floor(Date.now() / 1000)
+                }
+            ]));
 
-    async function saveAndPublishModalChanges() {
-      await saveEditedWords(editIndex);
-      await publishSingleWordList(editIndex);
-      closeModal();
-    }
+            ws.addEventListener('message', async (e) => {
+                const data = JSON.parse(e.data);
+                if (data[0] === "EVENT") {
+                    handleNewNote(data[2]);
+                }
+            });
+        }
 
-    async function saveCustomWords() {
-      const listName = document.getElementById('listName').value;
-      const words = document.getElementById('customWords').value.split(',').map(word => word.trim());
-      const color = document.getElementById('colorPicker').value;
+        // Image Upload - Following Animal Sunset's implementation
+        async function handleImageUpload(file) {
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
 
-      if (listName && words.length > 0) {
-        const newList = { name: listName, words, color, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture };
+                // Create NIP-98 auth event
+                const authEvent = {
+                    kind: 27235,
+                    created_at: Math.floor(Date.now() / 1000),
+                    content: "",
+                    tags: [
+                        ["u", "https://nostr.build/api/v2/upload/files"],
+                        ["method", "POST"]
+                    ]
+                };
 
-        customWordLists.push(newList);
-        localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-        document.getElementById('listName').value = '';
-        document.getElementById('customWords').value = '';
-        displayUserWordLists();
-        await publishSingleWordList(customWordLists.length - 1);
-        alert('Word list saved and published!');
-      } else {
-        alert('Please enter a list name and words.');
-      }
-    }
+                const signedEvent = await window.nostr.signEvent(authEvent);
 
-    async function publishSingleWordList(index) {
-      const singleList = customWordLists[index];
-      if (singleList.creatorNpub !== npub) {
-        alert("You can only publish lists you authored.");
-        return;
-      }
-      const event = {
-        kind: 31664,
-        content: JSON.stringify(singleList),
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ["d", singleList.name],
-          ["l", singleList.words.join(',')],
-          ["c", singleList.color],
-          ["n", npub]
-        ],
-        pubkey: npub
-      };
-      try {
-        const signedEvent = await window.nostr.signEvent(event);
-        postEvent(signedEvent);
-        alert('Word list published to Nostr!');
-      } catch (error) {
-        console.error('Error publishing word list:', error);
-      }
-    }
+                const response = await fetch('https://nostr.build/api/v2/upload/files', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Nostr ${btoa(JSON.stringify(signedEvent))}`
+                    },
+                    body: formData
+                });
 
-    function postEvent(event) {
-      const ws = new WebSocket('wss://relay.nostrfreaks.com');
-      ws.onopen = () => {
-        ws.send(JSON.stringify(["EVENT", event]));
-      };
-      ws.onmessage = (msg) => {
-        console.log('Event posted:', msg.data);
-        ws.close();
-      };
-      ws.onerror = (error) => {
-        console.error('Error posting event:', error);
-      };
-    }
+                if (!response.ok) throw new Error('Upload failed');
+                
+                const data = await response.json();
+                if (!data.data?.url) throw new Error('No URL in response');
 
-    async function editWordList(index) {
-      openModal(index);
-    }
+                const preview = document.getElementById('media-preview');
+                const img = document.createElement('img');
+                img.src = data.data.url;
+                img.dataset.url = data.data.url;
+                preview.appendChild(img);
 
-    async function saveEditedWords(index) {
-      const listName = document.getElementById('modalListName').value;
-      const words = document.getElementById('modalCustomWords').value.split(',').map(word => word.trim());
-      const color = document.getElementById('modalColorPicker').value;
+                // Update preview container class
+                const images = preview.getElementsByTagName('img');
+                preview.className = `media-preview ${images.length === 1 ? 'single' : 'multiple'}`;
 
-      if (listName && words.length > 0) {
-        const updatedList = { name: listName, words, color, creatorNpub: npub, creatorPicture: JSON.parse(localStorage.getItem('profile')).picture };
+                return data.data.url;
+            } catch (error) {
+                console.error('Upload error:', error);
+                throw error;
+            }
+        }
 
-        customWordLists[index] = updatedList;
-        localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-        displayUserWordLists();
-        await publishSingleWordList(index);
-        alert('Word list updated and published!');
-      } else {
-        alert('Please enter a list name and words.');
-      }
-    }
-
-    async function deleteWordList(index) {
-      const listToDelete = customWordLists[index];
-      customWordLists.splice(index, 1);
-      localStorage.setItem('customWordLists', JSON.stringify(customWordLists));
-      displayUserWordLists();
-
-      const event = {
-        kind: 5,
-        content: '',
-        tags: [
-          ["e", listToDelete.id]
-        ],
-        pubkey: npub,
-        created_at: Math.floor(Date.now() / 1000)
-      };
-
-      try {
-        const signedEvent = await window.nostr.signEvent(event);
-        postEvent(signedEvent);
-        alert('Word list deleted from Nostr!');
-      } catch (error) {
-        console.error('Error deleting word list:', error);
-      }
-    }
-
-    function backToDashboard() {
-      document.getElementById('wordListManager').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-    }
-
-    function startInversePrompt() {
-      document.getElementById('dashboard').classList.add('hidden');
-      document.getElementById('step1').classList.remove('hidden');
-    }
-
-    function selectNumber(number) {
-      selectedNumber = number;
-      document.getElementById('step1').classList.add('hidden');
-      document.getElementById('step2').classList.remove('hidden');
-      populateListOptions();
-    }
-
-    function populateListOptions() {
-      const listOptions = document.getElementById('listOptions');
-      listOptions.innerHTML = '';
-
-      for (let i = 0; i < selectedNumber; i++) {
-        listOptions.innerHTML += `<p>Select list for word ${i + 1}:</p>`;
-        customWordLists.forEach((list, index) => {
-          listOptions.innerHTML += `<button class="option" onclick="selectList(${index})">${list.name}</button>`;
+        document.getElementById('image-input').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            for (let file of files) {
+                try {
+                    await handleImageUpload(file);
+                } catch (error) {
+                    alert('Failed to upload image: ' + error.message);
+                }
+            }
+            e.target.value = '';
         });
-      }
-    }
 
-    function selectList(index) {
-      selectedLists.push(customWordLists[index]);
-      currentWord++;
+        // Zap Implementation
+        let currentZapNote = null;
 
-      if (currentWord < selectedNumber) {
-        populateListOptions();
-      } else {
-        document.getElementById('step2').classList.add('hidden');
-        document.getElementById('step3').classList.remove('hidden');
-      }
-    }
+        function showZapModal(noteId, pubkey) {
+            currentZapNote = { noteId, pubkey };
+            document.getElementById('zap-modal').style.display = 'block';
+            document.getElementById('zap-amount').value = '1000';
+            document.getElementById('zap-amount').focus();
+        }
 
-    function getRandomWords(arr, count) {
-      let result = [];
-      for (let i = 0; i < count; i++) {
-        result.push(arr[Math.floor(Math.random() * arr.length)]);
-      }
-      return result;
-    }
+        function closeZapModal() {
+            document.getElementById('zap-modal').style.display = 'none';
+            currentZapNote = null;
+        }
 
-    function generateWords() {
-      let words = [];
+        async function confirmZap() {
+            if (!currentZapNote) return;
+            const amount = parseInt(document.getElementById('zap-amount').value);
+            if (!amount || amount < 1) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            try {
+                await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
+                closeZapModal();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
 
-      selectedLists.forEach(list => {
-        words.push(getRandomWords(list.words, 1)[0]);
-      });
+        async function sendZap(noteId, pubkey, amount) {
+            try {
+                if (!window.webln) {
+                    throw new Error('Please install a WebLN provider like Alby');
+                }
 
-      document.getElementById('result').innerText = `Generated Words: ${words.join(', ')}`;
-      document.getElementById('result').classList.remove('hidden');
-    }
+                // Get user's profile
+                const authorProfile = await fetchProfile(pubkey);
+                if (!authorProfile.lud16) {
+                    throw new Error('User has not set up a Lightning address');
+                }
 
-    function goToMarketplace() {
-      window.location.href = '/market';
-    }
+                // Parse lightning address
+                const [name, domain] = authorProfile.lud16.split('@');
+                
+                // Get LNURL data from well-known URL
+                const response = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
+                if (!response.ok) {
+                    throw new Error('Failed to get Lightning address info');
+                }
+                
+                const lnurlData = await response.json();
+                
+                // Validate amount
+                const millisats = amount * 1000;
+                if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable) {
+                    throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
+                }
 
-    function goToPuffPuffPaint() {
-      window.location.href = '/puff.html';
-    }
+                // Create zap request
+                const zapRequest = {
+                    kind: 9734,
+                    created_at: Math.floor(Date.now() / 1000),
+                    content: "",
+                    tags: [
+                        ["relays", ...RELAYS],
+                        ["amount", millisats.toString()],
+                        ["p", pubkey],
+                        ["e", noteId]
+                    ]
+                };
 
-    function goHome() {
-      window.location.href = '/';
-    }
-    // ----------------------------------------------------------------
-  </script>
+                const signedZapRequest = await window.nostr.signEvent(zapRequest);
+
+                // Get invoice from callback
+                const callbackResponse = await fetch(`${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`);
+                if (!callbackResponse.ok) {
+                    throw new Error('Failed to get invoice');
+                }
+                
+                const { pr: invoice } = await callbackResponse.json();
+
+                // Pay invoice
+                await window.webln.enable();
+                await window.webln.sendPayment(invoice);
+                
+                alert('Zap sent successfully! ⚡️');
+            } catch (error) {
+                console.error('Zap error:', error);
+                throw error;
+            }
+        }
+
+        // Profile Management
+        async function fetchProfile(pubkey) {
+            if (profileCache.has(pubkey)) {
+                return profileCache.get(pubkey);
+            }
+
+            return new Promise((resolve) => {
+                const ws = getWebSocket('wss://relay.damus.io');
+                const timeoutId = setTimeout(() => resolve({}), 5000);
+
+                ws.addEventListener('message', (e) => {
+                    const data = JSON.parse(e.data);
+                    if (data[0] === "EVENT" && data[2].content) {
+                        try {
+                            const profile = JSON.parse(data[2].content);
+                            clearTimeout(timeoutId);
+                            profileCache.set(pubkey, profile);
+                            resolve(profile);
+                        } catch (error) {
+                            resolve({});
+                        }
+                    }
+                });
+
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
+                } else {
+                    ws.addEventListener('open', () => {
+                        ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
+                    });
+                }
+            });
+        }
+
+        // Note Management
+        function handleNewNote(note) {
+            if (note.created_at > lastSeenTimestamp) {
+                newNotes.push(note);
+                const banner = document.getElementById('new-notes-banner');
+                banner.textContent = `${newNotes.length} new note${newNotes.length === 1 ? '' : 's'}`;
+                banner.classList.add('visible');
+            } else {
+                createNoteElement(note).then(element => {
+                    if (element) {
+                        document.getElementById('notes').appendChild(element);
+                    }
+                });
+            }
+        }
+
+        async function createNoteElement(note) {
+            if (seenNoteIds.has(note.id)) return null;
+            seenNoteIds.add(note.id);
+
+            const authorProfile = await fetchProfile(note.pubkey);
+            const div = document.createElement('div');
+            div.className = 'note-card';
+            div.dataset.timestamp = note.created_at;
+            
+            const images = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
+            
+            div.innerHTML = `
+                <div class="note-header">
+                    <img src="${authorProfile.picture || '#'}" 
+                         alt="Profile" 
+                         class="avatar"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23ccc\' d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\'/%3E%3C/svg%3E'">
+                    <div class="author-info">
+                        <div class="author-name">${authorProfile.name || note.pubkey.slice(0, 8)}</div>
+                        <div class="timestamp">${formatTimestamp(note.created_at)}</div>
+                    </div>
+                </div>
+                <div class="note-content">${note.content}</div>
+                ${images.length ? `
+                    <div class="media-container ${images.length === 1 ? 'single' : 'multiple'}">
+                        ${images.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                    </div>
+                ` : ''}
+                <div class="note-actions">
+                    <button class="action-button" onclick="toggleReplies('${note.id}')">
+                        💬 <span id="reply-count-${note.id}">0</span>
+                    </button>
+                    <button class="action-button" onclick="showZapModal('${note.id}', '${note.pubkey}')">
+                        ⚡️ Zap
+                    </button>
+                </div>
+                <div id="replies-${note.id}" class="replies-container"></div>
+                <div class="reply-input">
+                    <textarea placeholder="Write a reply..." 
+                             onkeydown="handleReplyKeydown(event, '${note.id}')"></textarea>
+                    <button class="publish-button" 
+                            onclick="publishReply('${note.id}', this.previousElementSibling)">
+                        Reply
+                    </button>
+                </div>
+            `;
+
+            loadReplies(note.id);
+            return div;
+        }
+
+        async function publishNote() {
+            const content = document.getElementById('content').value;
+            const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
+                .map(img => img.dataset.url);
+            
+            if (!content.trim() && images.length === 0) {
+                alert('Please add some content or images');
+                return;
+            }
+
+            try {
+                const event = {
+                    kind: 1,
+                    content: content,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ["t", "puffpuffpaint"],
+                        ...images.map(url => ["r", url])
+                    ]
+                };
+
+                const signedEvent = await window.nostr.signEvent(event);
+                publishToRelays(signedEvent);
+
+                document.getElementById('content').value = '';
+                document.getElementById('media-preview').innerHTML = '';
+                
+                const element = await createNoteElement({
+                    ...event,
+                    id: signedEvent.id,
+                    pubkey: npub,
+                    sig: signedEvent.sig});
+                
+                if (element) {
+                    const notesDiv = document.getElementById('notes');
+                    notesDiv.insertBefore(element, notesDiv.firstChild);
+                }
+            } catch (error) {
+                console.error('Publish error:', error);
+                alert('Failed to publish note: ' + error.message);
+            }
+        }
+
+        // Reply Management
+        async function loadReplies(noteId) {
+            const replyContainer = document.getElementById(`replies-${noteId}`);
+            const replies = new Set();
+            
+            RELAYS.forEach(url => {
+                const ws = getWebSocket(url);
+                const sub = ["REQ", `replies-${noteId}`, {
+                    kinds: [1],
+                    "#e": [noteId],
+                    limit: 50
+                }];
+
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(sub));
+                } else {
+                    ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
+                }
+
+                ws.addEventListener('message', async (e) => {
+                    const data = JSON.parse(e.data);
+                    if (data[0] === "EVENT") {
+                        const reply = data[2];
+                        if (!replies.has(reply.id)) {
+                            replies.add(reply.id);
+                            const replyElement = await createReplyElement(reply);
+                            replyContainer.appendChild(replyElement);
+                            updateReplyCount(noteId, replies.size);
+                        }
+                    }
+                });
+            });
+        }
+
+        async function createReplyElement(reply) {
+            const authorProfile = await fetchProfile(reply.pubkey);
+            const div = document.createElement('div');
+            div.className = 'reply-card';
+            
+            div.innerHTML = `
+                <div class="note-header" style="padding: 0 0 8px 0">
+                    <img src="${authorProfile.picture || '#'}" 
+                         alt="Profile" 
+                         class="avatar"
+                         style="width: 32px; height: 32px;"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23ccc\' d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\'/%3E%3C/svg%3E'">
+                    <div class="author-info">
+                        <div class="author-name">${authorProfile.name || reply.pubkey.slice(0, 8)}</div>
+                        <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
+                    </div>
+                </div>
+                <div class="note-content" style="padding: 0">${reply.content}</div>
+            `;
+
+            return div;
+        }
+
+        async function publishReply(parentId, textarea) {
+            const content = textarea.value.trim();
+            if (!content) return;
+
+            try {
+                const event = {
+                    kind: 1,
+                    content: content,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ["t", "puffpuffpaint"],
+                        ["e", parentId, "", "reply"]
+                    ]
+                };
+
+                const signedEvent = await window.nostr.signEvent(event);
+                publishToRelays(signedEvent);
+
+                textarea.value = '';
+
+                const replyContainer = document.getElementById(`replies-${parentId}`);
+                const replyElement = await createReplyElement({
+                    ...event,
+                    id: signedEvent.id,
+                    pubkey: npub,
+                    sig: signedEvent.sig
+                });
+
+                replyContainer.insertBefore(replyElement, replyContainer.firstChild);
+                updateReplyCount(parentId);
+            } catch (error) {
+                console.error('Reply error:', error);
+                alert('Failed to publish reply: ' + error.message);
+            }
+        }
+
+        function handleReplyKeydown(event, noteId) {
+            if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault();
+                publishReply(noteId, event.target);
+            }
+        }
+
+        function updateReplyCount(noteId) {
+            const container = document.getElementById(`replies-${noteId}`);
+            const count = container.children.length;
+            const countElement = document.getElementById(`reply-count-${noteId}`);
+            if (countElement) {
+                countElement.textContent = count;
+            }
+        }
+
+        // UI Helpers
+        document.getElementById('new-notes-banner').onclick = async () => {
+            const notesDiv = document.getElementById('notes');
+            const fragment = document.createDocumentFragment();
+            
+            newNotes.sort((a, b) => b.created_at - a.created_at);
+            
+            for (const note of newNotes) {
+                const element = await createNoteElement(note);
+                if (element) fragment.appendChild(element);
+            }
+            
+            notesDiv.insertBefore(fragment, notesDiv.firstChild);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            newNotes = [];
+            lastSeenTimestamp = Date.now() / 1000;
+            document.getElementById('new-notes-banner').classList.remove('visible');
+        };
+
+        function scrollToCompose() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('content').focus();
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+            
+            return date.toLocaleDateString();
+        }
+    </script>
 </body>
 </html>
