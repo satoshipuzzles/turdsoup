@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puff Puff Paint - TurdSoup</title>
+    <meta property="og:title" content="Puff Puff Paint - TurdSoup" />
+    <meta property="og:description" content="Create and share your art on Nostr!" />
+    <meta property="og:image" content="logo.png" />
+    <meta property="og:url" content="https://TurdSoup.com/puff" />
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Puff Puff Paint - TurdSoup" />
+    <meta name="twitter:description" content="Create and share your art on Nostr!" />
+    <meta name="twitter:image" content="logo.png" />
+    <style>
+        body {
+            background-color: #EF8C56;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .header-button {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #ffffff;
+        }
+
+        #profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        #profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .iframe-container iframe {
+            width: 80%;
+            height: 80%;
+        }
+
+        .iframe-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        #root {
+            padding-top: 60px;
+            min-height: calc(100vh - 60px);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="header-button" onclick="goHome()">🏡</button>
+        <div class="header-button" onclick="openIframe()">⚡️</div>
+        <div id="profile-pic" class="hidden">
+            <span id="profile-emoji">🤖</span>
+        </div>
+    </div>
+    
+    <div id="root"></div>
+
+    <div id="iframeContainer" class="iframe-container">
+        <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
+        <button class="iframe-close" onclick="closeIframe()">✖️</button>
+    </div>
+
+    <script>
+        // Navigation functions
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        function openIframe() {
+            document.getElementById('iframeContainer').style.display = 'flex';
+            document.getElementById('iframe').src = 'https://zaplinks.lol/z.php?npub=npub1ymt2j3n8tesrlr0yhaheem6yyqmmwrr7actslurw6annls6vnrcslapxnz';
+        }
+
+        function closeIframe() {
+            document.getElementById('iframeContainer').style.display = 'none';
+            document.getElementById('iframe').src = 'about:blank';
+        }
+
+        // Check login status on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const profilePic = document.getElementById('profile-pic');
+            const storedProfile = JSON.parse(localStorage.getItem('profile'));
+
+            if (storedProfile) {
+                if (storedProfile.picture) {
+                    profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
+                }
+                profilePic.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
