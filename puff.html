@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puff Puff Paint - TurdSoup</title>
     
-    <!-- React and Dependencies -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- React Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.20/babel.min.js"></script>
     
-    <!-- Include Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Tailwind -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <style>
         body {
@@ -34,6 +34,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 100;
+            padding: 0 20px;
         }
         
         .header-button {
@@ -59,6 +60,11 @@
 
         .hidden {
             display: none;
+        }
+
+        #root {
+            padding-top: 60px;
+            min-height: calc(100vh - 60px);
         }
 
         .iframe-container {
@@ -89,52 +95,6 @@
             font-size: 24px;
             cursor: pointer;
         }
-
-        #root {
-            padding-top: 60px;
-            min-height: calc(100vh - 60px);
-        }
-
-        /* Card Styles */
-        .card {
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-
-        .card-content {
-            padding: 1rem;
-        }
-
-        /* Alert Styles */
-        .alert {
-            background-color: #FEF3C7;
-            border-radius: 0.375rem;
-            padding: 0.75rem;
-            margin: 0.5rem 0;
-        }
-
-        .alert-description {
-            color: #92400E;
-            font-size: 0.875rem;
-        }
-
-        /* Debug styles to see WebSocket activity */
-        #debug {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            max-width: 300px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-        }
     </style>
 </head>
 <body>
@@ -147,7 +107,6 @@
     </div>
     
     <div id="root"></div>
-    <div id="debug" class="hidden"></div>
 
     <div id="iframeContainer" class="iframe-container">
         <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
@@ -155,22 +114,6 @@
     </div>
 
     <script>
-        // Debug helper
-        const debug = {
-            log: function(msg) {
-                const debugEl = document.getElementById('debug');
-                debugEl.innerHTML += msg + '<br>';
-                debugEl.scrollTop = debugEl.scrollHeight;
-            },
-            clear: function() {
-                document.getElementById('debug').innerHTML = '';
-            },
-            show: function() {
-                document.getElementById('debug').classList.remove('hidden');
-            }
-        };
-
-        // Navigation functions
         function goHome() {
             window.location.href = 'index.html';
         }
@@ -187,26 +130,16 @@
 
         // Error handling
         window.onerror = function(msg, url, lineNo, columnNo, error) {
-            debug.log(`Error: ${msg}\nURL: ${url}\nLine: ${lineNo}\nColumn: ${columnNo}`);
-            debug.show();
+            console.error('Error:', msg, '\nURL:', url, '\nLine:', lineNo, '\nColumn:', columnNo, '\nError:', error);
             return false;
         };
-
-        // Initialize debug mode for development
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.location.search.includes('debug')) {
-                debug.show();
-            }
-        });
     </script>
 
-    <!-- Include the React component -->
-    <script type="text/babel" src="puffpuffpaint.js"></script>
-
-    <!-- Mount the component -->
-    <script type="text/babel">
-        const container = document.getElementById('root');
-        const root = ReactDOM.createRoot(container);
+    <!-- Include and mount the React component -->
+    <script type="text/babel" data-presets="react" data-type="module">
+        import { PuffPuffPaint } from './puffpuffpaint.js';
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(React.createElement(PuffPuffPaint));
     </script>
 </body>
