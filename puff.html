@@ -11,6 +11,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
+            line-height: 1.5;
         }
 
         .header {
@@ -36,6 +37,7 @@
             border-radius: 10px;
             margin-bottom: 20px;
             color: black;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .post-box textarea {
@@ -45,25 +47,36 @@
             border-radius: 5px;
             margin: 10px 0;
             resize: vertical;
+            box-sizing: border-box;
+            min-height: 80px;
+            font-family: inherit;
         }
 
         .post-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-top: 10px;
         }
 
         .post-box button, .note button {
             background: #4CAF50;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
         }
 
         .post-box button:hover, .note button:hover {
             background: #45a049;
+        }
+
+        .post-box button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
         }
 
         .media-preview {
@@ -74,36 +87,69 @@
         }
 
         .media-preview img {
-            max-width: 100px;
+            width: 100px;
             height: 100px;
             object-fit: cover;
             border-radius: 5px;
         }
 
-        .note img {
-            max-width: 100%;
-            border-radius: 5px;
+        .note-media {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
             margin: 10px 0;
+        }
+
+        .note-media img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
         }
 
         .note-header {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            gap: 12px;
         }
 
-        .note-header img {
-            width: 40px;
-            height: 40px;
+        .profile-pic {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            margin-right: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .note-author {
+            font-weight: bold;
+            font-size: 16px;
+            margin: 0;
+            word-break: break-word;
+        }
+
+        .note-content {
+            margin: 0 0 15px 0;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .interactions {
             display: flex;
             gap: 15px;
-            margin-top: 10px;
-            color: #666;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .interactions button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #EF8C56;  /* Using your theme color */
+            padding: 8px 16px;
+            font-size: 14px;
         }
 
         .hidden {
@@ -114,6 +160,13 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            overflow: hidden;
+        }
+
+        #profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .header-button {
@@ -122,6 +175,81 @@
             background: none;
             border: none;
             color: white;
+            padding: 8px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .reply-box {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .reply-box textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            resize: vertical;
+            box-sizing: border-box;
+            min-height: 60px;
+        }
+
+        .upload-button {
+            position: relative;
+            overflow: hidden;
+            background: none !important;
+            padding: 0 !important;
+        }
+
+        .upload-button input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            cursor: pointer;
+            display: block;
+        }
+
+        .error-message {
+            background: #ff5252;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .note-media {
+                grid-template-columns: 1fr;
+            }
+
+            .interactions {
+                flex-wrap: wrap;
+            }
+
+            .interactions button {
+                flex: 1;
+                min-width: 120px;
+            }
         }
     </style>
 </head>
@@ -141,23 +269,31 @@
         <div id="post-form" class="post-box hidden">
             <textarea id="content" placeholder="What's on your mind?" rows="3"></textarea>
             <div id="media-preview" class="media-preview"></div>
+            <div id="error" class="error-message hidden"></div>
             <div class="post-controls">
-                <input type="file" id="image" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
-                <button onclick="document.getElementById('image').click()">📷</button>
-                <button onclick="publishNote()">Publish</button>
+                <button class="upload-button">
+                    📷
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event)" multiple>
+                </button>
+                <button onclick="publishNote()" id="publish-button">Publish</button>
             </div>
         </div>
 
+        <div id="loading" class="loading hidden">Loading notes...</div>
         <div id="notes"></div>
     </div>
 
     <script>
         let npub = null;
         let profile = null;
+        let publishInProgress = false;
         const RELAYS = [
             'wss://relay.damus.io',
-            'wss://art.nostrfreaks.com',
-            'wss://relay.nostrfreaks.com'
+            'wss://relay.nostr.band',
+            'wss://nos.lol',
+            'wss://relay.nostrfreaks.com',
+            'wss://relay.snort.social',
+            'wss://nostr.wine'
         ];
 
         async function login() {
@@ -179,114 +315,196 @@
                 fetchNotes();
             } catch (error) {
                 console.error('Login error:', error);
+                showError('Failed to login. Please try again.');
             }
         }
 
-        function fetchProfile(pubkey) {
-            return new Promise((resolve) => {
-                const ws = new WebSocket('wss://relay.damus.io');
-                ws.onopen = () => {
-                    ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
-                };
-                ws.onmessage = (e) => {
-                    const data = JSON.parse(e.data);
-                    if (data[0] === "EVENT") {
-                        try {
-                            resolve(JSON.parse(data[2].content));
-                        } catch (error) {
-                            resolve({});
-                        }
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
+
+        async function fetchProfile(pubkey) {
+            const profiles = await Promise.all(RELAYS.map(relay => {
+                return new Promise((resolve) => {
+                    const ws = new WebSocket(relay);
+                    const timeoutId = setTimeout(() => {
                         ws.close();
-                    }
-                };
-                setTimeout(() => {
-                    ws.close();
-                    resolve({});
-                }, 5000);
-            });
+                        resolve(null);
+                    }, 5000);
+
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
+                    };
+
+                    ws.onmessage = (e) => {
+                        const data = JSON.parse(e.data);
+                        if (data[0] === "EVENT" && data[2].content) {
+                            clearTimeout(timeoutId);
+                            try {
+                                ws.close();
+                                resolve(JSON.parse(data[2].content));
+                            } catch (error) {
+                                resolve(null);
+                            }
+                        }
+                    };
+
+                    ws.onerror = () => {
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        resolve(null);
+                    };
+                });
+            }));
+
+            return profiles.find(p => p) || {};
         }
 
         async function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+            const files = event.target.files;
+            if (!files.length) return;
+
+            const preview = document.getElementById('media-preview');
+            const uploadButton = document.querySelector('.upload-button');
+            uploadButton.disabled = true;
 
             try {
-                const formData = new FormData();
-                formData.append('image', file);
+                for (let file of files) {
+                    const formData = new FormData();
+                    formData.append('image', file);
 
-                const auth = await window.nostr.signEvent({
-                    kind: 27235,
-                    content: "",
-                    created_at: Math.floor(Date.now() / 1000),
-                    tags: [
-                        ["u", "https://nostr.build/upload.php"],
-                        ["method", "POST"]
-                    ]
-                });
+                    const auth = await window.nostr.signEvent({
+                        kind: 27235,
+                        content: "",
+                        created_at: Math.floor(Date.now() / 1000),
+                        tags: [
+                            ["u", "https://nostr.build/upload.php"],
+                            ["method", "POST"]
+                        ]
+                    });
 
-                const response = await fetch('https://nostr.build/upload.php', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Nostr ${btoa(JSON.stringify(auth))}`
-                    },
-                    body: formData
-                });
+                    const response = await fetch('https://nostr.build/upload.php', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Nostr ${btoa(JSON.stringify(auth))}`
+                        },
+                        body: formData
+                    });
 
-                const data = await response.json();
-                const preview = document.getElementById('media-preview');
-                preview.innerHTML += `<img src="${data.url}" data-url="${data.url}">`;
+                    if (!response.ok) throw new Error('Upload failed');
+
+                    const data = await response.json();
+                    if (!data.url) throw new Error('No URL in response');
+
+                    const img = document.createElement('img');
+                    img.src = data.url;
+                    img.dataset.url = data.url;
+                    preview.appendChild(img);
+                }
             } catch (error) {
                 console.error('Upload error:', error);
-                alert('Failed to upload image');
+                showError('Failed to upload image. Please try again.');
+            } finally {
+                uploadButton.disabled = false;
+                event.target.value = '';  // Reset file input
             }
         }
 
         async function publishNote() {
-            const content = document.getElementById('content').value;
-            const images = Array.from(document.getElementById('media-preview').children).map(img => img.dataset.url);
-            
-            if (!content.trim() && images.length === 0) return;
+            if (publishInProgress) return;
 
-            const event = {
-                kind: 1,
-                content: content,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [
-                    ["t", "puffpuffpaint"],
-                    ...images.map(url => ["r", url])
-                ]
-            };
+            const content = document.getElementById('content').value;
+            const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img')).map(img => img.dataset.url);
+            
+            if (!content.trim() && images.length === 0) {
+                showError('Please add some content or images');
+                return;
+            }
+
+            const publishButton = document.getElementById('publish-button');
+            publishButton.disabled = true;
+            publishInProgress = true;
 
             try {
+                const event = {
+                    kind: 1,
+                    content: content,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ["t", "puffpuffpaint"],
+                        ...images.map(url => ["r", url])
+                    ]
+                };
+
                 const signedEvent = await window.nostr.signEvent(event);
-                RELAYS.forEach(relay => {
+                
+                await Promise.all(RELAYS.map(relay => new Promise((resolve) => {
                     const ws = new WebSocket(relay);
+                    const timeoutId = setTimeout(() => {
+                        ws.close();
+                        resolve();
+                    }, 5000);
+
                     ws.onopen = () => {
                         ws.send(JSON.stringify(["EVENT", signedEvent]));
-                        ws.close();
                     };
-                });
+
+                    ws.onmessage = (e) => {
+                        const data = JSON.parse(e.data);
+                        if (data[0] === "OK") {
+                            clearTimeout(timeoutId);
+                            ws.close();
+                            resolve();
+                        }
+                    };
+
+                    ws.onerror = () => {
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        resolve();
+                    };
+                })));
 
                 document.getElementById('content').value = '';
                 document.getElementById('media-preview').innerHTML = '';
-                setTimeout(fetchNotes, 1000);
+                await fetchNotes();
             } catch (error) {
                 console.error('Publish error:', error);
-                alert('Failed to publish note');
+                showError('Failed to publish note. Please try again.');
+            } finally {
+                publishButton.disabled = false;
+                publishInProgress = false;
             }
         }
 
-        function fetchNotes() {
-            const notes = document.getElementById('notes');
-            notes.innerHTML = '';
+        async function fetchNotes() {
+            const loadingDiv = document.getElementById('loading');
+            const notesDiv = document.getElementById('notes');
+            
+            loadingDiv.classList.remove('hidden');
+            notesDiv.innerHTML = '';
 
-            RELAYS.forEach(relay => {
+            const seenNotes = new Set();
+            const notePromises = RELAYS.map(relay => new Promise((resolve) => {
                 const ws = new WebSocket(relay);
+                const timeoutId = setTimeout(() => {
+                    ws.close();
+                    resolve();
+                }, 10000);
+
                 ws.onopen = () => {
                     ws.send(JSON.stringify([
                         "REQ",
                         "notes",
-                        { kinds: [1], "#t": ["puffpuffpaint"], limit: 50 }
+                        { 
+                            kinds: [1], 
+                            "#t": ["puffpuffpaint"], 
+                            limit: 100,
+                            since: Math.floor(Date.now()/1000) - 86400 * 7  // Last 7 days
+                        }
                     ]));
                 };
 
@@ -294,30 +512,67 @@
                     const data = JSON.parse(e.data);
                     if (data[0] === "EVENT") {
                         const note = data[2];
-                        const noteProfile = await fetchProfile(note.pubkey);
-                        const images = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-                        
-                        const noteElement = document.createElement('div');
-                        noteElement.className = 'note';
-                        noteElement.innerHTML = `
-                            <div class="note-header">
-                                ${noteProfile.picture ? `<img src="${noteProfile.picture}" alt="Profile">` : ''}
-                                <strong>${noteProfile.name || note.pubkey.slice(0, 8)}</strong>
-                            </div>
-                            <p>${note.content}</p>
-                            ${images.map(url => `<img src="${url}" alt="Attached">`).join('')}
-                            <div class="interactions">
-                                <button onclick="sendZap('${note.id}')">⚡️ Zap</button>
-                                <button onclick="replyTo('${note.id}')">💬 Reply</button>
-                            </div>
-                        `;
-                        notes.appendChild(noteElement);
+                        if (!seenNotes.has(note.id)) {
+                            seenNotes.add(note.id);
+                            const authorProfile = await fetchProfile(note.pubkey);
+                            const images = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
+                            
+                            const noteElement = document.createElement('div');
+                            noteElement.className = 'note';
+                            noteElement.innerHTML = `
+                                <div class="note-header">
+                                    ${authorProfile.picture ? 
+                                        `<img src="${authorProfile.picture}" alt="Profile" class="profile-pic">` : 
+                                        '<div class="profile-pic">👤</div>'}
+                                    <span class="note-author">${authorProfile.name || note.pubkey.slice(0, 8)}</span>
+                                </div>
+                                ${note.content ? `<p class="note-content">${note.content}</p>` : ''}
+                                ${images.length ? `
+                                    <div class="note-media">
+                                        ${images.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                                    </div>
+                                ` : ''}
+                                <div class="interactions">
+                                    <button onclick="sendZap('${note.id}', '${note.pubkey}')">⚡️ Zap</button>
+                                    <button onclick="toggleReply('${note.id}')">💬 Reply</button>
+                                </div>
+                                <div id="reply-${note.id}" class="reply-box hidden">
+                                    <textarea placeholder="Write your reply..." rows="2"></textarea>
+                                    <button onclick="publishReply('${note.id}', this.previousElementSibling)">Send Reply</button>
+                                </div>
+                            `;
+                            notesDiv.appendChild(noteElement);
+                        }
+                    }
+                    if (data[0] === "EOSE") {
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        resolve();
                     }
                 };
+
+                ws.onerror = () => {
+                    clearTimeout(timeoutId);
+                    ws.close();
+                    resolve();
+                };
+            }));
+
+            await Promise.all(notePromises);
+            loadingDiv.classList.add('hidden');
+
+            // Sort notes by timestamp
+            const notes = Array.from(notesDiv.children);
+            notes.sort((a, b) => {
+                const aTime = parseInt(a.dataset.time || '0');
+                const bTime = parseInt(b.dataset.time || '0');
+                return bTime - aTime;
             });
+            notesDiv.innerHTML = '';
+            notes.forEach(note => notesDiv.appendChild(note));
         }
 
-        async function sendZap(noteId) {
+        async function sendZap(noteId, pubkey) {
             if (!window.webln) {
                 alert('Please install a WebLN provider like Alby!');
                 return;
@@ -325,15 +580,96 @@
 
             try {
                 await window.webln.enable();
-                const response = await fetch(`https://nostur.com/zap/${noteId}/1000`);
+                const response = await fetch(`https://api.snort.social/api/v1/zap/${pubkey}/${noteId}/1000`);
+                if (!response.ok) throw new Error('Failed to get invoice');
                 const { invoice } = await response.json();
                 await window.webln.sendPayment(invoice);
-                alert('Zap sent successfully!');
+                alert('Zap sent successfully! ⚡️');
             } catch (error) {
                 console.error('Zap error:', error);
-                alert('Failed to send zap');
+                showError('Failed to send zap. Please try again.');
             }
         }
+
+        function toggleReply(noteId) {
+            const replyBox = document.getElementById(`reply-${noteId}`);
+            replyBox.classList.toggle('hidden');
+            if (!replyBox.classList.contains('hidden')) {
+                replyBox.querySelector('textarea').focus();
+            }
+        }
+
+        async function publishReply(parentId, textarea) {
+            if (!textarea.value.trim()) return;
+
+            const replyButton = textarea.nextElementSibling;
+            replyButton.disabled = true;
+
+            try {
+                const event = {
+                    kind: 1,
+                    content: textarea.value,
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ["t", "puffpuffpaint"],
+                        ["e", parentId, "", "reply"]
+                    ]
+                };
+
+                const signedEvent = await window.nostr.signEvent(event);
+                
+                await Promise.all(RELAYS.map(relay => new Promise((resolve) => {
+                    const ws = new WebSocket(relay);
+                    const timeoutId = setTimeout(() => {
+                        ws.close();
+                        resolve();
+                    }, 5000);
+
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify(["EVENT", signedEvent]));
+                    };
+
+                    ws.onmessage = (e) => {
+                        const data = JSON.parse(e.data);
+                        if (data[0] === "OK") {
+                            clearTimeout(timeoutId);
+                            ws.close();
+                            resolve();
+                        }
+                    };
+
+                    ws.onerror = () => {
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        resolve();
+                    };
+                })));
+
+                textarea.value = '';
+                toggleReply(parentId);
+                await fetchNotes();
+            } catch (error) {
+                console.error('Reply error:', error);
+                showError('Failed to publish reply. Please try again.');
+            } finally {
+                replyButton.disabled = false;
+            }
+        }
+
+        // Handle Enter key in textareas
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                const textarea = e.target;
+                if (textarea.tagName === 'TEXTAREA') {
+                    if (textarea.closest('.post-box')) {
+                        publishNote();
+                    } else if (textarea.closest('.reply-box')) {
+                        const noteId = textarea.closest('.note').querySelector('.reply-box').id.replace('reply-', '');
+                        publishReply(noteId, textarea);
+                    }
+                }
+            }
+        });
 
         // Check for stored profile on load
         window.onload = () => {
