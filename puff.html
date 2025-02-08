@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puff Puff Paint - TurdSoup</title>
-    <!-- React and Dependencies -->
+    <meta property="og:title" content="Puff Puff Paint - TurdSoup" />
+    <meta property="og:description" content="Create and share your art on Nostr!" />
+    <meta property="og:image" content="logo.png" />
+    <meta property="og:url" content="https://TurdSoup.com/puff.html" />
+    
+    <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Include Lucide Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+
     <style>
         body {
             background-color: #EF8C56;
@@ -19,6 +23,7 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
+            min-height: 100vh;
         }
         
         .header {
@@ -30,6 +35,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 100;
+            padding: 0 20px;
         }
         
         .header-button {
@@ -38,6 +44,7 @@
             background: none;
             border: none;
             color: #ffffff;
+            padding: 8px;
         }
 
         #profile-pic {
@@ -45,6 +52,7 @@
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
+            background: #ffffff;
         }
 
         #profile-pic img {
@@ -73,6 +81,7 @@
         .iframe-container iframe {
             width: 80%;
             height: 80%;
+            border-radius: 10px;
         }
 
         .iframe-close {
@@ -89,6 +98,34 @@
         #root {
             padding-top: 60px;
             min-height: calc(100vh - 60px);
+        }
+
+        /* Alert Component Styles */
+        .alert {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-description {
+            color: #1f2937;
+            font-size: 0.875rem;
+        }
+
+        /* Card Component Styles */
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .card-content {
+            padding: 1rem;
         }
     </style>
 </head>
@@ -108,9 +145,10 @@
         <button class="iframe-close" onclick="closeIframe()">✖️</button>
     </div>
 
+    <!-- Navigation Functions -->
     <script>
         function goHome() {
-            window.location.href = '/';
+            window.location.href = 'index.html';
         }
 
         function openIframe() {
@@ -135,20 +173,21 @@
                 profilePic.classList.remove('hidden');
             }
         });
+
+        // Error handling
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Error:', msg, '\nURL:', url, '\nLine:', lineNo, '\nColumn:', columnNo, '\nError object:', error);
+            return false;
+        };
     </script>
+
+    <!-- React Component -->
+    <script type="text/babel" src="puffpuffpaint.js"></script>
 
     <!-- Mount React Component -->
     <script type="text/babel">
-        // Import the React component
-        const { useState, useEffect, useRef } = React;
-        const { Send, Upload, Zap, MessageCircle, AlertTriangle, AtSign } = lucide;
-
-        // Include the PuffPuffPaint component code here
-        ${PuffPuffPaintComponent}
-
-        // Mount the component
         ReactDOM.render(
-            <PuffPuffPaint />,
+            React.createElement(PuffPuffPaint),
             document.getElementById('root')
         );
     </script>
