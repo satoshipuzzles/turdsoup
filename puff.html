@@ -8,13 +8,9 @@
         :root {
             --primary: #EF8C56;
             --primary-dark: #D97B45;
-            --background: #111111;
-            --card-bg: #ffffff;
+            --background: #ffffff;
             --text: #1f1f1f;
             --text-light: #666666;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
         }
 
         * {
@@ -26,15 +22,8 @@
         body {
             background-color: var(--primary);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.5;
+            font-family: -apple-system, system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 60px auto;
-            padding: 0 20px;
         }
 
         .header {
@@ -49,7 +38,7 @@
             align-items: center;
             padding: 0 20px;
             z-index: 100;
-            box-shadow: var(--shadow);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .header-button {
@@ -58,37 +47,39 @@
             background: none;
             border: none;
             color: white;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 10px;
             border-radius: 50%;
             transition: background-color 0.2s;
         }
 
         .header-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 60px auto 0;
+            padding: 20px;
         }
 
         .compose-card {
-            background: var(--card-bg);
-            border-radius: 16px;
+            background: var(--background);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .note-card {
-            background: var(--card-bg);
-            border-radius: 16px;
+            background: var(--background);
+            border-radius: 12px;
             overflow: hidden;
             margin-bottom: 20px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .note-header {
-            padding: 16px;
+            padding: 15px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -100,7 +91,6 @@
             height: 48px;
             border-radius: 50%;
             object-fit: cover;
-            background: #f5f5f5;
         }
 
         .author-info {
@@ -110,11 +100,7 @@
 
         .author-name {
             font-weight: 600;
-            color: var(--text);
             margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .timestamp {
@@ -123,14 +109,12 @@
         }
 
         .note-content {
-            padding: 16px;
+            padding: 15px;
             white-space: pre-wrap;
             word-break: break-word;
-            color: var(--text);
         }
 
         .media-container {
-            position: relative;
             width: 100%;
             display: grid;
             gap: 2px;
@@ -141,30 +125,27 @@
             max-height: 500px;
         }
 
-        .media-container.multiple {
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            aspect-ratio: 1;
-        }
-
-        .media-container img {
+        .media-container.single img {
             width: 100%;
             height: 100%;
+            max-height: 500px;
             object-fit: contain;
-            background: #f5f5f5;
-            cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .media-container.single img {
-            max-height: 500px;
-            width: auto;
-            margin: 0 auto;
+        .media-container.multiple {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .media-container.multiple img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
         }
 
         .note-actions {
-            padding: 12px 16px;
+            padding: 10px 15px;
             display: flex;
-            gap: 16px;
+            gap: 15px;
             border-top: 1px solid rgba(0,0,0,0.05);
         }
 
@@ -175,68 +156,33 @@
             font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             padding: 8px;
-            border-radius: 9999px;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .action-button:hover {
-            background: rgba(239, 140, 86, 0.1);
+            background: rgba(239,140,86,0.1);
             color: var(--primary);
-        }
-
-        .replies-container {
-            margin-left: 40px;
-            padding: 0 16px 16px;
-            border-left: 2px solid #f5f5f5;
-        }
-
-        .reply-card {
-            background: #f9f9f9;
-            border-radius: 12px;
-            padding: 12px;
-            margin-top: 12px;
-        }
-
-        .new-replies-banner {
-            position: fixed;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 9999px;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 90;
-        }
-
-        .new-replies-banner.visible {
-            opacity: 1;
         }
 
         .compose-text {
             width: 100%;
-            padding: 12px;
             border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 12px;
-            resize: none;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
             font-family: inherit;
             font-size: 16px;
-            line-height: 1.5;
-            margin: 10px 0;
+            resize: none;
+            outline: none;
         }
 
         .compose-text:focus {
-            outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(239, 140, 86, 0.2);
+            box-shadow: 0 0 0 2px rgba(239,140,86,0.1);
         }
 
         .compose-actions {
@@ -248,12 +194,11 @@
         .upload-button {
             background: none;
             border: none;
-            color: var(--text-light);
             font-size: 24px;
             cursor: pointer;
             padding: 8px;
             border-radius: 50%;
-            transition: all 0.2s;
+            transition: background-color 0.2s;
         }
 
         .upload-button:hover {
@@ -264,11 +209,11 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 9999px;
+            padding: 8px 20px;
+            border-radius: 20px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s;
         }
 
         .publish-button:hover {
@@ -280,53 +225,71 @@
             cursor: not-allowed;
         }
 
+        .replies-container {
+            margin-left: 40px;
+            padding: 10px 15px;
+            border-left: 2px solid rgba(0,0,0,0.05);
+        }
+
+        .reply-card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
         .reply-input {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            padding-top: 12px;
+            padding: 10px 15px;
             border-top: 1px solid rgba(0,0,0,0.05);
         }
 
         .reply-input textarea {
-            flex: 1;
-            padding: 8px 12px;
+            width: 100%;
             border: 1px solid rgba(0,0,0,0.1);
             border-radius: 20px;
-            resize: none;
+            padding: 8px 15px;
             font-family: inherit;
             font-size: 14px;
-            min-height: 36px;
-            max-height: 120px;
+            resize: none;
+            outline: none;
+            margin-bottom: 8px;
         }
 
-        .lightbox {
+        .new-notes-banner {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 90;
         }
 
-        .lightbox img {
-            max-width: 90vw;
-            max-height: 90vh;
-            object-fit: contain;
+        .new-notes-banner.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         @media (max-width: 640px) {
             .container {
-                padding: 0 10px;
+                padding: 10px;
             }
 
             .note-card {
                 border-radius: 0;
                 margin: 0 -10px 20px;
+            }
+
+            .media-container.multiple {
+                grid-template-columns: 1fr;
             }
 
             .replies-container {
@@ -338,10 +301,13 @@
 <body>
     <div class="header">
         <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
+        <div class="header-button">⚡️</div>
         <div id="profile-pic" class="hidden">
             <span>🤖</span>
         </div>
     </div>
+
+    <div id="new-notes-banner" class="new-notes-banner">See new notes</div>
 
     <div class="container">
         <div id="compose" class="compose-card">
@@ -360,24 +326,22 @@
             </div>
         </div>
 
-        <div id="new-notes-banner" class="new-replies-banner">New notes available</div>
         <div id="notes"></div>
     </div>
-<script>
+
+    <script>
         let npub = null;
         let profile = null;
-        let lastSeenNoteTime = 0;
-        let newNotesCount = 0;
         let profileCache = new Map();
-        let relayPool = new Map();
-        let lightboxImage = null;
-        
+        let newNotes = [];
+        let seenNoteIds = new Set();
+        let lastSeenTimestamp = Date.now() / 1000;
+        let wsConnections = new Map();
+
         const RELAYS = [
             'wss://relay.damus.io',
             'wss://nos.lol',
-            'wss://relay.nostrfreaks.com',
-            'wss://nostr.wine',
-            'wss://relay.snort.social'
+            'wss://relay.nostrfreaks.com'
         ];
 
         // Initialize
@@ -388,94 +352,130 @@
                 profile = storedProfile;
                 if (profile.picture) {
                     document.getElementById('compose-avatar').src = profile.picture;
-                    document.getElementById('compose-name').textContent = profile.name || profile.npub.slice(0, 8);
+                    document.getElementById('compose-name').textContent = profile.name || npub.slice(0, 8);
                     document.getElementById('profile-pic').innerHTML = 
                         `<img src="${profile.picture}" alt="Profile" class="avatar">`;
                 }
                 document.getElementById('profile-pic').classList.remove('hidden');
-                setupRealtimeSubscriptions();
-                fetchNotes();
+                connectToRelays();
             }
         });
 
-        // Relay Pool Management
-        function getRelay(url) {
-            if (!relayPool.has(url)) {
-                const ws = new WebSocket(url);
-                relayPool.set(url, ws);
-                
-                ws.onclose = () => {
-                    setTimeout(() => {
-                        relayPool.delete(url);
-                        getRelay(url);
-                    }, 5000);
-                };
+        // WebSocket Connection Management
+        function connectToRelay(url) {
+            if (wsConnections.has(url)) {
+                const ws = wsConnections.get(url);
+                if (ws.readyState === WebSocket.OPEN) return ws;
             }
-            return relayPool.get(url);
+
+            const ws = new WebSocket(url);
+            wsConnections.set(url, ws);
+
+            ws.onopen = () => {
+                // Subscribe to new notes
+                ws.send(JSON.stringify([
+                    "REQ",
+                    "feed",
+                    {
+                        kinds: [1],
+                        "#t": ["puffpuffpaint"],
+                        since: Math.floor(Date.now() / 1000)
+                    }
+                ]));
+
+                // Get initial feed
+                ws.send(JSON.stringify([
+                    "REQ",
+                    "initial",
+                    {
+                        kinds: [1],
+                        "#t": ["puffpuffpaint"],
+                        limit: 50,
+                        until: Math.floor(Date.now() / 1000)
+                    }
+                ]));
+            };
+
+            ws.onmessage = async (e) => {
+                const data = JSON.parse(e.data);
+                if (data[0] === "EVENT") {
+                    handleNewNote(data[2]);
+                }
+            };
+
+            ws.onclose = () => {
+                wsConnections.delete(url);
+                setTimeout(() => connectToRelay(url), 1000);
+            };
+
+            return ws;
         }
 
-        // Image Upload with NIP-98
-        async function handleImageUpload(files) {
-            const preview = document.getElementById('media-preview');
-            const uploadButton = document.querySelector('.upload-button');
-            uploadButton.disabled = true;
+        function connectToRelays() {
+            RELAYS.forEach(url => connectToRelay(url));
+        }
 
+        // Handle Image Upload
+        async function handleImageUpload(file) {
             try {
-                for (let file of files) {
-                    const formData = new FormData();
-                    formData.append('file', file);
+                const formData = new FormData();
+                formData.append('file', file);
 
-                    // NIP-98 auth event
-                    const authEvent = {
-                        kind: 27235,
-                        created_at: Math.floor(Date.now() / 1000),
-                        tags: [
-                            ["u", "https://nostr.build/api/v2/upload/files"],
-                            ["method", "POST"]
-                        ],
-                        content: ""
-                    };
+                const authEvent = {
+                    kind: 27235,
+                    created_at: Math.floor(Date.now() / 1000),
+                    content: "",
+                    tags: [
+                        ["u", "https://nostr.build/api/v2/upload/files"],
+                        ["method", "POST"]
+                    ]
+                };
 
-                    const signedEvent = await window.nostr.signEvent(authEvent);
+                const signedEvent = await window.nostr.signEvent(authEvent);
 
-                    const response = await fetch('https://nostr.build/api/v2/upload/files', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Nostr ${btoa(JSON.stringify(signedEvent))}`
-                        },
-                        body: formData
-                    });
+                const response = await fetch('https://nostr.build/api/v2/upload/files', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Nostr ${btoa(JSON.stringify(signedEvent))}`
+                    },
+                    body: formData
+                });
 
-                    if (!response.ok) throw new Error('Upload failed');
-                    
-                    const data = await response.json();
-                    if (!data.data?.url) throw new Error('Invalid response');
+                if (!response.ok) throw new Error('Upload failed');
+                
+                const data = await response.json();
+                if (!data.data?.url) throw new Error('No URL in response');
 
-                    // Add preview
-                    const img = document.createElement('img');
-                    img.src = data.data.url;
-                    img.dataset.url = data.data.url;
-                    img.onclick = () => showLightbox(data.data.url);
-                    preview.appendChild(img);
-                    
-                    // Update preview layout
-                    const images = preview.getElementsByTagName('img');
-                    preview.className = `media-container ${images.length === 1 ? 'single' : 'multiple'}`;
-                }
+                return data.data.url;
             } catch (error) {
                 console.error('Upload error:', error);
-                alert('Failed to upload image: ' + error.message);
-            } finally {
-                uploadButton.disabled = false;
+                throw error;
             }
         }
 
-        document.getElementById('image-input').addEventListener('change', (e) => {
-            handleImageUpload(e.target.files);
+        document.getElementById('image-input').addEventListener('change', async (e) => {
+            const preview = document.getElementById('media-preview');
+            const files = e.target.files;
+            
+            for (let file of files) {
+                try {
+                    const url = await handleImageUpload(file);
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.dataset.url = url;
+                    preview.appendChild(img);
+                    
+                    // Update preview container class
+                    const images = preview.getElementsByTagName('img');
+                    preview.className = `media-container ${images.length === 1 ? 'single' : 'multiple'}`;
+                } catch (error) {
+                    alert('Failed to upload image: ' + error.message);
+                }
+            }
             e.target.value = '';
         });
 
-        // Note Publishing
+        // Publish Note
         async function publishNote() {
             const content = document.getElementById('content').value;
             const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
@@ -498,95 +498,131 @@
                 };
 
                 const signedEvent = await window.nostr.signEvent(event);
-                await Promise.all(RELAYS.map(relay => publishToRelay(relay, signedEvent)));
+                
+                RELAYS.forEach(url => {
+                    const ws = connectToRelay(url);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify(["EVENT", signedEvent]));
+                    }
+                });
 
                 document.getElementById('content').value = '';
                 document.getElementById('media-preview').innerHTML = '';
-                // Note: We don't need to call fetchNotes() because the realtime subscription will catch it
+                
+                // Add note to UI immediately
+                const element = await createNoteElement({
+                    ...event,
+                    id: signedEvent.id,
+                    pubkey: npub,
+                    sig: signedEvent.sig
+                });
+                
+                if (element) {
+                    const notesDiv = document.getElementById('notes');
+                    notesDiv.insertBefore(element, notesDiv.firstChild);
+                }
             } catch (error) {
                 console.error('Publish error:', error);
                 alert('Failed to publish note: ' + error.message);
             }
         }
 
-        // Realtime Subscriptions
-        function setupRealtimeSubscriptions() {
-            RELAYS.forEach(relay => {
-                const ws = getRelay(relay);
-                
-                if (ws.readyState === WebSocket.OPEN) {
-                    subscribeToNotes(ws);
-                } else {
-                    ws.addEventListener('open', () => subscribeToNotes(ws));
-                }
-            });
-        }
-
-        function subscribeToNotes(ws) {
-            const sub = ["REQ", "feed", {
-                kinds: [1],
-                "#t": ["puffpuffpaint"],
-                since: Math.floor(Date.now() / 1000)
-            }];
-            ws.send(JSON.stringify(sub));
-
-            ws.onmessage = async (e) => {
-                const data = JSON.parse(e.data);
-                if (data[0] === "EVENT") {
-                    const note = data[2];
-                    handleNewNote(note);
-                }
-            };
-        }
-
-        async function handleNewNote(note) {
-            if (note.created_at > lastSeenNoteTime) {
-                newNotesCount++;
-                updateNewNotesBanner();
-                
-                // If this is a reply, update the replies section
-                const replyTo = note.tags.find(t => t[0] === "e")?.[1];
-                if (replyTo) {
-                    const replyContainer = document.querySelector(`#replies-${replyTo}`);
-                    if (replyContainer) {
-                        const replyElement = await createReplyElement(note);
-                        replyContainer.insertBefore(replyElement, replyContainer.firstChild);
-                        
-                        // Show new replies banner for this thread
-                        const banner = document.querySelector(`#new-replies-${replyTo}`);
-                        if (banner) banner.classList.add('visible');
-                    }
-                }
-            }
-        }
-
-        function updateNewNotesBanner() {
-            const banner = document.getElementById('new-notes-banner');
-            if (newNotesCount > 0) {
-                banner.textContent = `${newNotesCount} new note${newNotesCount === 1 ? '' : 's'} available`;
+        // Handle New Notes
+        function handleNewNote(note) {
+            if (note.created_at > lastSeenTimestamp) {
+                newNotes.push(note);
+                const banner = document.getElementById('new-notes-banner');
+                banner.textContent = `${newNotes.length} new note${newNotes.length === 1 ? '' : 's'}`;
                 banner.classList.add('visible');
             } else {
-                banner.classList.remove('visible');
+                createNoteElement(note).then(element => {
+                    if (element) {
+                        document.getElementById('notes').appendChild(element);
+                    }
+                });
             }
         }
 
-        // Profile Fetching
+        // Show New Notes
+        document.getElementById('new-notes-banner').onclick = async () => {
+            const notesDiv = document.getElementById('notes');
+            const fragment = document.createDocumentFragment();
+            
+            // Sort new notes by timestamp, newest first
+            newNotes.sort((a, b) => b.created_at - a.created_at);
+            
+            for (const note of newNotes) {
+                const element = await createNoteElement(note);
+                if (element) fragment.appendChild(element);
+            }
+            
+            notesDiv.insertBefore(fragment, notesDiv.firstChild);
+            newNotes = [];
+            lastSeenTimestamp = Date.now() / 1000;
+            document.getElementById('new-notes-banner').classList.remove('visible');
+        };
+
+        // Create Note Element
+        async function createNoteElement(note) {
+            if (seenNoteIds.has(note.id)) return null;
+            seenNoteIds.add(note.id);
+
+            const authorProfile = await fetchProfile(note.pubkey);
+            const div = document.createElement('div');
+            div.className = 'note-card';
+            
+            const images = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
+            
+            div.innerHTML = `
+                <div class="note-header">
+                    <img src="${authorProfile.picture || '#'}" 
+                         alt="Profile" 
+                         class="avatar"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23ccc\' d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\'/%3E%3C/svg%3E'">
+                    <div class="author-info">
+                        <div class="author-name">${authorProfile.name || note.pubkey.slice(0, 8)}</div>
+                        <div class="timestamp">${formatTimestamp(note.created_at)}</div>
+                    </div>
+                </div>
+                <div class="note-content">${note.content}</div>
+                ${images.length ? `
+                    <div class="media-container ${images.length === 1 ? 'single' : 'multiple'}">
+                        ${images.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                    </div>
+                ` : ''}
+                <div class="note-actions">
+                    <button class="action-button" onclick="toggleReplies('${note.id}')">
+                        💬 <span id="reply-count-${note.id}">0</span>
+                    </button>
+                    <button class="action-button" onclick="sendZap('${note.id}', '${note.pubkey}')">
+                        ⚡️ Zap
+                    </button>
+                </div>
+                <div id="replies-${note.id}" class="replies-container"></div>
+                <div class="reply-input">
+                    <textarea placeholder="Write a reply..." 
+                             onkeydown="handleReplyKeydown(event, '${note.id}')"></textarea>
+                    <button class="publish-button" 
+                            onclick="publishReply('${note.id}', this.previousElementSibling)">
+                        Reply
+                    </button>
+                </div>
+            `;
+
+            // Load existing replies
+            loadReplies(note.id);
+            return div;
+        }
+
+        // Profile Cache Management
         async function fetchProfile(pubkey) {
             if (profileCache.has(pubkey)) {
                 return profileCache.get(pubkey);
             }
 
             return new Promise((resolve) => {
-                const ws = getRelay('wss://relay.damus.io');
+                const ws = connectToRelay('wss://relay.damus.io');
                 const timeoutId = setTimeout(() => resolve({}), 5000);
-
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
-                } else {
-                    ws.addEventListener('open', () => {
-                        ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
-                    });
-                }
 
                 ws.addEventListener('message', (e) => {
                     const data = JSON.parse(e.data);
@@ -601,203 +637,40 @@
                         }
                     }
                 });
+
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
+                } else {
+                    ws.addEventListener('open', () => {
+                        ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
+                    });
+                }
             });
         }
 
-        // NIP-57 Zap Implementation
-        async function sendZap(noteId, pubkey, amount = 1000) {
-            try {
-                const recipientProfile = await fetchProfile(pubkey);
-                const lnurl = recipientProfile.lud16 || recipientProfile.lud06;
-                
-                if (!lnurl) {
-                    alert('Recipient has not set up Lightning address');
-                    return;
-                }
-
-                // 1. Get LNURL pay endpoint
-                const response = await fetch(`https://api.snort.social/api/v1/lnurl/pay/${encodeURIComponent(lnurl)}`);
-                if (!response.ok) throw new Error('Failed to get zap endpoint');
-                
-                const data = await response.json();
-                if (!data.callback || !data.allowsNostr || !data.nostrPubkey) {
-                    throw new Error('Recipient does not support zaps');
-                }
-
-                // 2. Create zap request
-                const zapRequest = {
-                    kind: 9734,
-                    content: "",
-                    created_at: Math.floor(Date.now() / 1000),
-                    tags: [
-                        ["relays", ...RELAYS],
-                        ["amount", amount.toString()],
-                        ["lnurl", lnurl],
-                        ["p", pubkey],
-                        ["e", noteId]
-                    ]
-                };
-
-                // 3. Sign zap request
-                const signedZapRequest = await window.nostr.signEvent(zapRequest);
-
-                // 4. Get invoice
-                const zapResponse = await fetch(`${data.callback}?amount=${amount}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`);
-                if (!zapResponse.ok) throw new Error('Failed to get invoice');
-
-                const { pr: invoice } = await zapResponse.json();
-
-                // 5. Pay invoice
-                if (!window.webln) {
-                    alert('Please install a WebLN provider like Alby!');
-                    return;
-                }
-
-                await window.webln.enable();
-                await window.webln.sendPayment(invoice);
-                alert('Zap sent! ⚡️');
-
-            } catch (error) {
-                console.error('Zap error:', error);
-                alert('Failed to send zap: ' + error.message);
-            }
-        }
-
-        // UI Helpers
-        function showLightbox(url) {
-            if (lightboxImage) return;
-
-            lightboxImage = document.createElement('div');
-            lightboxImage.className = 'lightbox';
-            lightboxImage.innerHTML = `<img src="${url}" alt="Full size">`;
-            lightboxImage.onclick = hideLightbox;
-            document.body.appendChild(lightboxImage);
-            document.body.style.overflow = 'hidden';
-        }
-
-        function hideLightbox() {
-            if (lightboxImage) {
-                lightboxImage.remove();
-                lightboxImage = null;
-                document.body.style.overflow = '';
-            }
-        }
-
-        function formatTimestamp(timestamp) {
-            const date = new Date(timestamp * 1000);
-            const now = new Date();
-            const diff = Math.floor((now - date) / 1000);
-
-            if (diff < 60) return 'just now';
-            if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-            if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-            
-            return date.toLocaleDateString();
-        }
-
-        async function createNoteElement(note) {
-            const authorProfile = await fetchProfile(note.pubkey);
-            const images = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-            
-            const div = document.createElement('div');
-            div.className = 'note-card';
-            div.id = `note-${note.id}`;
-            
-            div.innerHTML = `
-                <div class="note-header">
-                    <img src="${authorProfile.picture || '#'}" 
-                         alt="Profile" 
-                         class="avatar"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23ccc\' d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\'/%3E%3C/svg%3E';">
-                    <div class="author-info">
-                        <div class="author-name">${authorProfile.name || note.pubkey.slice(0, 8)}</div>
-                        <div class="timestamp">${formatTimestamp(note.created_at)}</div>
-                    </div>
-                </div>
-                <div class="note-content">${note.content}</div>
-                ${images.length ? `
-                    <div class="media-container ${images.length === 1 ? 'single' : 'multiple'}">
-                        ${images.map(url => `
-                            <img src="${url}" 
-                                 alt="Attached" 
-                                 loading="lazy"
-                                 onclick="showLightbox('${url}')"
-                            >
-                        `).join('')}
-                    </div>
-                ` : ''}
-                <div class="note-actions">
-                    <button class="action-button" onclick="toggleReplies('${note.id}')">
-                        💬 <span id="reply-count-${note.id}">0</span>
-                    </button>
-                    <button class="action-button" onclick="sendZap('${note.id}', '${note.pubkey}')">
-                        ⚡️ Zap
-                    </button>
-                </div>
-                <div id="new-replies-${note.id}" class="new-replies-banner">
-                    New replies available
-                </div>
-                <div id="replies-${note.id}" class="replies-container"></div>
-               <div class="reply-input">
-                    <img src="${profile?.picture || '#'}" alt="Profile" class="avatar" style="width: 32px; height: 32px;">
-                    <textarea placeholder="Write a reply..." onkeydown="handleReplyKeydown(event, '${note.id}')"></textarea>
-                    <button class="publish-button" onclick="publishReply('${note.id}', this.previousElementSibling)">Reply</button>
-                </div>
-            `;
-
-            // Load existing replies
-            loadReplies(note.id);
-            return div;
-        }
-
-        async function createReplyElement(reply) {
-            const authorProfile = await fetchProfile(reply.pubkey);
-            const div = document.createElement('div');
-            div.className = 'reply-card';
-            div.id = `reply-${reply.id}`;
-            
-            div.innerHTML = `
-                <div class="note-header" style="padding: 0 0 8px 0">
-                    <img src="${authorProfile.picture || '#'}" 
-                         alt="Profile" 
-                         class="avatar"
-                         style="width: 32px; height: 32px;"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23ccc\' d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\'/%3E%3C/svg%3E';">
-                    <div class="author-info">
-                        <div class="author-name">${authorProfile.name || reply.pubkey.slice(0, 8)}</div>
-                        <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
-                    </div>
-                </div>
-                <div class="note-content" style="padding: 0">${reply.content}</div>
-            `;
-            
-            return div;
-        }
-
-        function updateReplyCount(noteId, count) {
-            const countElement = document.getElementById(`reply-count-${noteId}`);
-            if (countElement) {
-                countElement.textContent = count;
-            }
-        }
-
+        // Reply Management
         async function loadReplies(noteId) {
             const replies = new Set();
             const replyContainer = document.getElementById(`replies-${noteId}`);
             
-            RELAYS.forEach(relay => {
-                const ws = getRelay(relay);
-                const sub = ["REQ", `replies-${noteId}`, {
-                    kinds: [1],
-                    "#e": [noteId],
-                    limit: 50
-                }];
+            RELAYS.forEach(url => {
+                const ws = connectToRelay(url);
+                const sendRequest = () => {
+                    ws.send(JSON.stringify([
+                        "REQ",
+                        `replies-${noteId}`,
+                        {
+                            kinds: [1],
+                            "#e": [noteId],
+                            limit: 50
+                        }
+                    ]));
+                };
 
                 if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(sub));
+                    sendRequest();
                 } else {
-                    ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
+                    ws.addEventListener('open', sendRequest);
                 }
 
                 ws.addEventListener('message', async (e) => {
@@ -831,12 +704,16 @@
                 };
 
                 const signedEvent = await window.nostr.signEvent(event);
-                await Promise.all(RELAYS.map(relay => publishToRelay(relay, signedEvent)));
+                
+                RELAYS.forEach(url => {
+                    const ws = connectToRelay(url);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify(["EVENT", signedEvent]));
+                    }
+                });
 
-                // Clear textarea
                 textarea.value = '';
                 
-                // Add reply to UI immediately
                 const replyContainer = document.getElementById(`replies-${parentId}`);
                 const replyElement = await createReplyElement({
                     ...event,
@@ -844,15 +721,44 @@
                     pubkey: npub,
                     sig: signedEvent.sig
                 });
-                replyContainer.insertBefore(replyElement, replyContainer.firstChild);
-                
-                // Update reply count
-                const count = replyContainer.children.length;
-                updateReplyCount(parentId, count);
 
+                replyContainer.insertBefore(replyElement, replyContainer.firstChild);
+                updateReplyCount(parentId);
             } catch (error) {
                 console.error('Reply error:', error);
                 alert('Failed to publish reply: ' + error.message);
+            }
+        }
+
+        async function createReplyElement(reply) {
+            const authorProfile = await fetchProfile(reply.pubkey);
+            const div = document.createElement('div');
+            div.className = 'reply-card';
+            
+            div.innerHTML = `
+                <div class="note-header" style="padding: 0 0 8px 0">
+                    <img src="${authorProfile.picture || '#'}" 
+                         alt="Profile" 
+                         class="avatar"
+                         style="width: 32px; height: 32px;"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath fill=\'%23ccc\' d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z\'/%3E%3C/svg%3E'">
+                    <div class="author-info">
+                        <div class="author-name">${authorProfile.name || reply.pubkey.slice(0, 8)}</div>
+                        <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
+                    </div>
+                </div>
+                <div class="note-content" style="padding: 0">${reply.content}</div>
+            `;
+
+            return div;
+        }
+
+        function updateReplyCount(noteId) {
+            const container = document.getElementById(`replies-${noteId}`);
+            const count = container.children.length;
+            const countElement = document.getElementById(`reply-count-${noteId}`);
+            if (countElement) {
+                countElement.textContent = count;
             }
         }
 
@@ -863,68 +769,77 @@
             }
         }
 
-        function publishToRelay(relay, event) {
-            return new Promise((resolve) => {
-                const ws = getRelay(relay);
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(["EVENT", event]));
-                    setTimeout(resolve, 500);
-                } else {
-                    ws.addEventListener('open', () => {
-                        ws.send(JSON.stringify(["EVENT", event]));
-                        setTimeout(resolve, 500);
-                    });
-                }
-            });
-        }
-
-        async function fetchNotes() {
-            const notesDiv = document.getElementById('notes');
-            const seenNotes = new Set();
-            
-            RELAYS.forEach(relay => {
-                const ws = getRelay(relay);
-                const sub = ["REQ", "initial-feed", {
-                    kinds: [1],
-                    "#t": ["puffpuffpaint"],
-                    limit: 50
-                }];
-
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(sub));
-                } else {
-                    ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
+        // NIP-57 Zap Implementation
+        async function sendZap(noteId, pubkey, amount = 1000) {
+            try {
+                if (!window.webln) {
+                    throw new Error('Please install a WebLN provider (like Alby)');
                 }
 
-                ws.addEventListener('message', async (e) => {
-                    const data = JSON.parse(e.data);
-                    if (data[0] === "EVENT") {
-                        const note = data[2];
-                        if (!seenNotes.has(note.id)) {
-                            seenNotes.add(note.id);
-                            const noteElement = await createNoteElement(note);
-                            notesDiv.appendChild(noteElement);
-                            lastSeenNoteTime = Math.max(lastSeenNoteTime, note.created_at);
-                        }
-                    }
-                });
-            });
-        }
+                // Get recipient's LNURL
+                const profile = await fetchProfile(pubkey);
+                const lnurl = profile.lud16 || profile.lud06;
+                if (!lnurl) throw new Error('User has not set up Lightning address');
 
-        // Event Listeners
-        document.getElementById('new-notes-banner').addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            newNotesCount = 0;
-            lastSeenNoteTime = Math.floor(Date.now() / 1000);
-            updateNewNotesBanner();
-        });
+                // Get LNURL-pay data
+                const response = await fetch(`https://api.snort.social/api/v1/lnurl/pay/${encodeURIComponent(lnurl)}`);
+                if (!response.ok) throw new Error('Failed to get zap endpoint');
+                
+                const lnurlData = await response.json();
+                if (!lnurlData.callback || !lnurlData.allowsNostr || !lnurlData.nostrPubkey) {
+                    throw new Error('Recipient does not support zaps');
+                }
 
-        // Handle escape key for lightbox
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                hideLightbox();
+                // Create zap request
+                const zapRequest = {
+                    kind: 9734,
+                    content: "",
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ["relays", ...RELAYS],
+                        ["amount", amount.toString()],
+                        ["lnurl", lnurl],
+                        ["p", pubkey],
+                        ["e", noteId]
+                    ]
+                };
+
+                const signedZapRequest = await window.nostr.signEvent(zapRequest);
+
+                // Get invoice
+                const callbackResponse = await fetch(
+                    `${lnurlData.callback}?` + 
+                    `amount=${amount}&` +
+                    `nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`
+                );
+
+                if (!callbackResponse.ok) throw new Error('Failed to get invoice');
+                const { pr: invoice } = await callbackResponse.json();
+
+                // Pay invoice
+                await window.webln.enable();
+                await window.webln.sendPayment(invoice);
+                alert('Zap sent! ⚡️');
+            } catch (error) {
+                console.error('Zap error:', error);
+                alert(error.message);
             }
-        });
+        }
+
+        // Utility Functions
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+            
+            return date.toLocaleDateString();
+        }
     </script>
 </body>
 </html>
+                
