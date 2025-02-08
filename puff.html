@@ -1,697 +1,408 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puff Puff Paint</title>
-    <style>
-        body {
-            background-color: #EF8C56;
-            color: #ffffff;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .post-box {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .post-input {
-            width: 100%;
-            min-height: 100px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-            resize: vertical;
-        }
-
-        .post-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .button {
-            background: #1f1f1f;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .button:hover {
-            background: #333;
-        }
-
-        .button:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-
-        .feed {
-            margin-top: 20px;
-        }
-
-        .post {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            color: #1f1f1f;
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .post-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .post-author {
-            font-weight: bold;
-        }
-
-        .post-time {
-            color: #666;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-
-        .post-content {
-            margin-bottom: 15px;
-            word-break: break-word;
-        }
-
-        .post-image {
-            max-width: 100%;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-
-        .post-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .action-button {
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 4px;
-        }
-
-        .action-button:hover {
-            background: #f0f0f0;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            color: #1f1f1f;
-        }
-
-        .replies {
-            margin-left: 50px;
-            border-left: 2px solid #ddd;
-            padding-left: 20px;
-        }
-
-        .reply-input {
-            width: 100%;
-            min-height: 60px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 10px 0;
-            resize: vertical;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .zap-amount {
-            font-size: 12px;
-            color: #F5A623;
-            margin-left: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Puff Puff Paint</h1>
-            <div>
-                <button id="connectNostr" class="button">Connect with Nostr</button>
-                <button id="connectWallet" class="button hidden">Connect Wallet</button>
-            </div>
-        </div>
-
-        <div class="post-box">
-            <textarea id="postInput" class="post-input" placeholder="What's on your mind?"></textarea>
-            <div class="post-actions">
-                <input type="file" id="imageInput" accept="image/*" style="display: none">
-                <button onclick="document.getElementById('imageInput').click()" class="button">Add Image</button>
-                <button id="postButton" class="button">Post</button>
-            </div>
-            <img id="imagePreview" class="post-image hidden">
-        </div>
-
-        <div id="feed" class="feed">
-            <!-- Posts will be inserted here -->
-        </div>
-    </div>
-
-    <!-- NWC Connection Modal -->
-    <div id="walletModal" class="modal">
-        <div class="modal-content">
-            <h2>Connect Lightning Wallet</h2>
-            <p>Enter your Nostr Wallet Connect (NWC) URI:</p>
-            <input type="text" id="nwcUri" style="width: 100%; padding: 8px; margin: 10px 0;" placeholder="nostr+walletconnect://...">
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button onclick="closeWalletModal()" class="button">Cancel</button>
-                <button onclick="connectWallet()" class="button">Connect</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Zap Modal -->
-    <div id="zapModal" class="modal">
-        <div class="modal-content">
-            <h2>Send Zap</h2>
-            <p>Enter amount in sats:</p>
-            <input type="number" id="zapAmount" style="width: 100%; padding: 8px; margin: 10px 0;" value="1000" min="1">
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button onclick="closeZapModal()" class="button">Cancel</button>
-                <button onclick="sendZap()" class="button">Zap!</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Global state
-        let currentUser = null;
-        let nwcUri = null;
+let posts = [];
         let profiles = {};
-        let selectedEventForZap = null;
-        let relayPool = ['wss://relay.damus.io', 'wss://relay.nostr.band'];
-        let relayConnections = [];
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Check for existing connection
-            const savedPubkey = localStorage.getItem('nostr_pubkey');
-            if (savedPubkey) {
-                currentUser = { pubkey: savedPubkey };
-                document.getElementById('connectNostr').style.display = 'none';
-                document.getElementById('connectWallet').style.display = 'inline-block';
-                
-                // Load saved NWC URI
-                nwcUri = localStorage.getItem(`nwc-${savedPubkey}`);
-                
-                // Connect to relays and load feed
-                await connectToRelays();
-                await loadFeed();
-            }
-
-            // Event listeners
-            document.getElementById('connectNostr').addEventListener('click', connectNostr);
-            document.getElementById('connectWallet').addEventListener('click', showWalletModal);
-            document.getElementById('postButton').addEventListener('click', createPost);
-            document.getElementById('imageInput').addEventListener('change', handleImageSelect);
-        });
-
-        // Relay handling
-        async function connectToRelays() {
-            relayConnections = relayPool.map(url => new WebSocket(url));
-            
-            relayConnections.forEach(ws => {
-                ws.addEventListener('open', () => {
-                    console.log(`Connected to ${ws.url}`);
-                });
-                
-                ws.addEventListener('message', handleRelayMessage);
-                
-                ws.addEventListener('error', (error) => {
-                    console.error(`Relay error: ${error}`);
-                });
-            });
+        const relayUrls = ['wss://relay.damus.io', 'wss://relay.nostrfreaks.com'];
+        
+        // Utility Functions
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        function handleRelayMessage(event) {
-            const data = JSON.parse(event.data);
-            if (data[0] === 'EVENT') {
-                const nostrEvent = data[1];
-                handleNewEvent(nostrEvent);
+        function formatDate(timestamp) {
+            const date = new Date(timestamp * 1000);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        async function getEventHash(event) {
+            const eventData = JSON.stringify([
+                0,
+                event.pubkey,
+                event.created_at,
+                event.kind,
+                event.tags,
+                event.content
+            ]);
+            const eventHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(eventData));
+            return Array.from(new Uint8Array(eventHash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // NWC Integration
+        async function connectNWC() {
+            try {
+                const nwcUri = prompt("Enter your Nostr Wallet Connect URI (nostr+walletconnect://)");
+                if (!nwcUri) return;
+
+                if (!nwcUri.startsWith('nostr+walletconnect://')) {
+                    throw new Error('Invalid NWC URI format');
+                }
+
+                const url = new URL(nwcUri);
+                const secret = url.searchParams.get('secret');
+                const relayUrl = url.searchParams.get('relay');
+
+                if (!secret || !relayUrl) {
+                    throw new Error('Missing required NWC parameters');
+                }
+
+                nwcConnection = {
+                    secret,
+                    relayUrl,
+                    pubkey: url.pathname.slice(2),  // Remove // from pathname
+                };
+
+                localStorage.setItem('nwc', JSON.stringify(nwcConnection));
+                
+                document.getElementById('wallet-status').textContent = 'Connected';
+                document.getElementById('connect-nwc').textContent = 'Disconnect';
+                
+                showToast('Wallet connected successfully!');
+            } catch (err) {
+                console.error('NWC connection failed:', err);
+                showToast('Failed to connect wallet: ' + err.message, 'error');
             }
         }
 
-        // Nostr connection
-        async function connectNostr() {
+        // Image Upload with NIP-98
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
             try {
                 if (!window.nostr) {
                     throw new Error('Nostr extension not found');
                 }
 
-                const pubkey = await window.nostr.getPublicKey();
-                currentUser = { pubkey };
-                localStorage.setItem('nostr_pubkey', pubkey);
+                const formData = new FormData();
+                formData.append('file', file);
 
-                document.getElementById('connectNostr').style.display = 'none';
-                document.getElementById('connectWallet').style.display = 'inline-block';
+                // Create NIP-98 event
+                const event = {
+                    kind: 27235,
+                    created_at: Math.floor(Date.now() / 1000),
+                    content: "",
+                    tags: [
+                        ["u", "https://nostr.build/api/v2/upload/files"],
+                        ["method", "POST"],
+                    ],
+                    pubkey: npub
+                };
 
-                await connectToRelays();
-                await loadFeed();
-            } catch (error) {
-                console.error('Failed to connect:', error);
-                alert('Please install a Nostr extension like Alby');
+                event.id = await getEventHash(event);
+                const signedEvent = await window.nostr.signEvent(event);
+                const authToken = btoa(JSON.stringify(signedEvent));
+
+                const response = await fetch('https://nostr.build/api/v2/upload/files', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Nostr ${authToken}`
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed: ' + await response.text());
+                }
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    const imageUrl = result.data[0].url;
+                    document.getElementById('image-preview').src = imageUrl;
+                    document.getElementById('image-preview').classList.remove('hidden');
+                    return imageUrl;
+                } else {
+                    throw new Error(result.message || 'Upload failed');
+                }
+            } catch (err) {
+                console.error('Failed to upload image:', err);
+                showToast('Failed to upload image: ' + err.message, 'error');
+                return null;
             }
         }
 
-        // Profile handling
-        async function loadProfile(pubkey) {
+        // Post and Comment Management
+        async function submitPost() {
+            try {
+                const content = document.getElementById('post-content').value;
+                const imagePreview = document.getElementById('image-preview');
+                const imageUrl = imagePreview.classList.contains('hidden') ? null : imagePreview.src;
+
+                if (!content && !imageUrl) {
+                    showToast('Please add some content to your post', 'error');
+                    return;
+                }
+
+                const event = {
+                    kind: 1,
+                    created_at: Math.floor(Date.now() / 1000),
+                    content,
+                    tags: [],
+                    pubkey: npub
+                };
+
+                if (imageUrl) {
+                    event.tags.push(['r', imageUrl]);
+                }
+
+                event.id = await getEventHash(event);
+                const signedEvent = await window.nostr.signEvent(event);
+
+                // Publish to relays
+                const publishPromises = relayUrls.map(async (relayUrl) => {
+                    const relay = new WebSocket(relayUrl);
+                    return new Promise((resolve, reject) => {
+                        relay.onopen = () => {
+                            relay.send(JSON.stringify(['EVENT', signedEvent]));
+                            resolve();
+                        };
+                        relay.onerror = () => reject(new Error(`Failed to connect to ${relayUrl}`));
+                    });
+                });
+
+                await Promise.any(publishPromises);
+                showToast('Post published successfully!');
+                closeCreatePost();
+                refreshFeed();
+            } catch (err) {
+                console.error('Failed to submit post:', err);
+                showToast('Failed to publish post: ' + err.message, 'error');
+            }
+        }
+
+        async function handleZap(event, amount = 1000) {
+            if (!nwcConnection) {
+                showToast('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            try {
+                const zapRequest = {
+                    method: "pay_invoice",
+                    params: {
+                        amount,
+                        invoice: await createZapInvoice(event, amount)
+                    }
+                };
+
+                const nwcEvent = {
+                    kind: 23194,
+                    created_at: Math.floor(Date.now() / 1000),
+                    content: JSON.stringify(zapRequest),
+                    tags: [['p', event.pubkey]],
+                    pubkey: nwcConnection.pubkey
+                };
+
+                nwcEvent.id = await getEventHash(nwcEvent);
+                const signedEvent = await window.nostr.signEvent(nwcEvent);
+
+                // Send to NWC relay
+                const relay = new WebSocket(nwcConnection.relayUrl);
+                relay.onopen = () => {
+                    relay.send(JSON.stringify(['EVENT', signedEvent]));
+                };
+
+                showToast('Zap sent successfully!');
+            } catch (err) {
+                console.error('Failed to send zap:', err);
+                showToast('Failed to send zap: ' + err.message, 'error');
+            }
+        }
+
+        // Profile Management
+        async function fetchProfile(pubkey) {
             if (profiles[pubkey]) return profiles[pubkey];
 
             try {
-                const response = await fetch(`https://api.nostr.band/v0/profiles/${pubkey}`);
-                const data = await response.json();
-                if (data && data.profile) {
-                    profiles[pubkey] = data.profile;
-                    return data.profile;
-                }
-            } catch (error) {
-                console.error('Failed to load profile:', error);
-            }
-            
-            return { name: 'Anonymous', picture: '/default-avatar.png' };
-        }
+                const profilePromises = relayUrls.map(async (relayUrl) => {
+                    const relay = new WebSocket(relayUrl);
+                    return new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            relay.close();
+                            reject(new Error('Timeout'));
+                        }, 5000);
 
-        // Feed handling
-        async function loadFeed() {
-            const feedContainer = document.getElementById('feed');
-            feedContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Loading...</div>';
+                        relay.onopen = () => {
+                            relay.send(JSON.stringify([
+                                'REQ',
+                                'profile',
+                                {
+                                    kinds: [0],
+                                    authors: [pubkey],
+                                    limit: 1
+                                }
+                            ]));
+                        };
 
-            try {
-                const events = [];
-                const promises = relayConnections.map(ws => new Promise((resolve) => {
-                    const timeout = setTimeout(resolve, 2000); // 2s timeout
-                    
-                    if (ws.readyState === WebSocket.OPEN) {
-                        const sub = ['REQ', 'feed', { kinds: [1], limit: 20 }];
-                        ws.send(JSON.stringify(sub));
-                        
-                        ws.addEventListener('message', function handler(event) {
-                            const data = JSON.parse(event.data);
-                            if (data[0] === 'EVENT') {
-                                events.push(data[1]);
-                            } else if (data[0] === 'EOSE') {
+                        relay.onmessage = (msg) => {
+                            const data = JSON.parse(msg.data);
+                            if (data[0] === 'EVENT' && data[2].kind === 0) {
                                 clearTimeout(timeout);
-                                ws.removeEventListener('message', handler);
-                                resolve();
+                                relay.close();
+                                resolve(JSON.parse(data[2].content));
                             }
-                        });
-                    } else {
-                        resolve();
-                    }
-                }));
+                        };
 
-                await Promise.all(promises);
+                        relay.onerror = () => {
+                            clearTimeout(timeout);
+                            reject(new Error(`Failed to connect to ${relayUrl}`));
+                        };
+                    });
+                });
 
-                // Sort events by timestamp
-                events.sort((a, b) => b.created_at - a.created_at);
-
-                // Render feed
-                feedContainer.innerHTML = '';
-                for (const event of events) {
-                    const profile = await loadProfile(event.pubkey);
-                    feedContainer.appendChild(createPostElement(event, profile));
-                }
-            } catch (error) {
-                console.error('Failed to load feed:', error);
-                feedContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Failed to load feed</div>';
+                const profile = await Promise.any(profilePromises);
+                profiles[pubkey] = profile;
+                return profile;
+            } catch (err) {
+                console.error('Failed to fetch profile:', err);
+                return null;
             }
         }
 
-        function createPostElement(event, profile) {
-            const post = document.createElement('div');
-            post.className = 'post';
-            post.setAttribute('data-event-id', event.id);
-
-            // Find image URL in tags
-            const imageUrl = event.tags.find(t => t[0] === 'r')?.[1];
-
-            post.innerHTML = `
-                <div class="post-header">
-                    <img src="${profile.picture || '/default-avatar.png'}" class="post-avatar" alt="${profile.name || 'Anonymous'}">
-                    <div>
-                        <span class="post-author">${profile.name || 'Anonymous'}</span>
-                        <span class="post-time">${formatDate(event.created_at)}</span>
-                    </div>
-                </div>
-                <div class="post-content">${event.content}</div>
-                ${imageUrl ? `<img src="${imageUrl}" class="post-image" alt="Post image">` : ''}
-                <div class="post-actions">
-                    <button class="action-button" onclick="showReplyForm('${event.id}')">💬 Reply</button>
-                    <button class="action-button" onclick="openZapModal('${event.id}')">⚡ Zap</button>
-                </div>
-                <div id="replies-${event.id}" class="replies"></div>
-                <div id="reply-form-${event.id}" class="hidden">
-                    <textarea class="reply-input" placeholder="Write a reply..."></textarea>
-                    <button class="button" onclick="submitReply('${event.id}')">Reply</button>
-                </div>
-            `;
-
-            return post;
-        }
-
-        // Image handling with NIP-98
-        async function handleImageSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            try {
-                const url = await uploadImage(file);
-                const preview = document.getElementById('imagePreview');
-                preview.src = url;
-                preview.classList.remove('hidden');
-            } catch (error) {
-                console.error('Upload failed:', error);
-                alert('Failed to upload image');
-            }
-        }
-
-        async function uploadImage(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            // Create NIP-98 event
-            const event = {
-                kind: 27235,
-                created_at: Math.floor(Date.now() / 1000),
-                content: "",
-                tags: [
-                    ["u", "https://nostr.build/api/v2/upload/files"],
-                    ["method", "POST"],
-                ],
-                pubkey: currentUser.pubkey
-            };
-
-            // Sign the event
-            const signedEvent = await window.nostr.signEvent(event);
+        // Comment Thread Display
+        function renderComments(comments, parentId = null, level = 0) {
+            const container = document.createElement('div');
+            container.className = 'comment-thread';
             
-            // Base64 encode the signed event
-            const authToken = btoa(JSON.stringify(signedEvent));
+            const relevantComments = comments
+                .filter(c => c.replyTo === parentId)
+                .sort((a, b) => b.created_at - a.created_at);
 
-            const response = await fetch('https://nostr.build/api/v2/upload/files', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Nostr ${authToken}`
-                },
-                body: formData
+            for (const comment of relevantComments) {
+                const commentEl = document.createElement('div');
+                commentEl.className = 'comment';
+                
+                const header = document.createElement('div');
+                header.className = 'comment-header';
+                
+                if (comment.profile?.picture) {
+                    const avatar = document.createElement('img');
+                    avatar.src = comment.profile.picture;
+                    avatar.className = 'comment-avatar';
+                    header.appendChild(avatar);
+                }
+
+                const authorInfo = document.createElement('div');
+                authorInfo.innerHTML = `
+                    <div class="comment-author">${comment.profile?.name || 'Anonymous'}</div>
+                    <div class="comment-time">${formatDate(comment.created_at)}</div>
+                `;
+                header.appendChild(authorInfo);
+                commentEl.appendChild(header);
+
+                const content = document.createElement('div');
+                content.className = 'comment-content';
+                content.textContent = comment.content;
+                commentEl.appendChild(content);
+
+                const actions = document.createElement('div');
+                actions.className = 'comment-actions';
+                actions.innerHTML = `
+                    <button class="action-button" onclick="toggleReply('${comment.id}')">
+                        💬 Reply
+                    </button>
+                    <button class="action-button zap-button" onclick="handleZap(${JSON.stringify(comment)})">
+                        ⚡️ Zap
+                    </button>
+                `;
+                commentEl.appendChild(actions);
+
+                const replyForm = document.createElement('div');
+                replyForm.id = `reply-form-${comment.id}`;
+                replyForm.className = 'reply-form hidden';
+                replyForm.innerHTML = `
+                    <textarea class="modal-input" placeholder="Write your reply..."></textarea>
+                    <button class="modal-button" onclick="submitReply('${comment.id}')">Reply</button>
+                `;
+                commentEl.appendChild(replyForm);
+                
+                container.appendChild(commentEl);
+
+                // Recursively add replies
+                const replies = renderComments(comments, comment.id, level + 1);
+                if (replies.children.length > 0) {
+                    container.appendChild(replies);
+                }
+            }
+
+            return container;
+        }
+
+        // UI Event Handlers
+        function createNewPost() {
+            document.getElementById('create-post-modal').style.display = 'block';
+            document.getElementById('post-content').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
+        }
+
+        function closeCreatePost() {
+            document.getElementById('create-post-modal').style.display = 'none';
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function toggleReply(commentId) {
+            const replyForm = document.getElementById(`reply-form-${commentId}`);
+            replyForm.classList.toggle('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check for existing NWC connection
+            const savedNwc = localStorage.getItem('nwc');
+            if (savedNwc) {
+                nwcConnection = JSON.parse(savedNwc);
+                document.getElementById('wallet-status').textContent = 'Connected';
+                document.getElementById('connect-nwc').textContent = 'Disconnect';
+            }
+
+            // Setup login button
+            document.getElementById('login-button').addEventListener('click', async () => {
+                try {
+                    if (!window.nostr) {
+                        throw new Error('Nostr extension not found');
+                    }
+                    
+                    npub = await window.nostr.getPublicKey();
+                    document.getElementById('login-button').style.display = 'none';
+                    document.getElementById('dashboard').classList.remove('hidden');
+                    document.getElementById('profile-pic').classList.remove('hidden');
+                    
+                    const profile = await fetchProfile(npub);
+                    if (profile?.picture) {
+                        document.getElementById('profile-pic').innerHTML = `
+                            <img src="${profile.picture}" alt="Profile">
+                        `;
+                    }
+
+                    refreshFeed();
+                } catch (err) {
+                    showToast('Failed to connect: ' + err.message, 'error');
+                }
             });
 
-            if (!response.ok) {
-                throw new Error(`Upload failed: ${await response.text()}`);
-            }
-
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                return result.data[0].url;
-            } else {
-                throw new Error(result.message || 'Upload failed');
-            }
-        }
-
-        // Post creation
-        async function createPost() {
-            if (!currentUser) {
-                alert('Please connect with Nostr first');
-                return;
-            }
-
-            const content = document.getElementById('postInput').value;
-            const imagePreview = document.getElementById('imagePreview');
-            
-            if (!content && imagePreview.classList.contains('hidden')) {
-                alert('Please enter some content');
-                return;
-            }
-
-            try {
-                const event = {
-                    kind: 1,
-                    created_at: Math.floor(Date.now() / 1000),
-                    content,
-                    tags: []
-                };
-
-                // Add image if present
-                if (!imagePreview.classList.contains('hidden')) {
-                    event.tags.push(['r', imagePreview.src]);
+            // Close modals when clicking outside
+            window.onclick = (event) => {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
                 }
-
-                const signedEvent = await window.nostr.signEvent(event);
-                await publishEvent(signedEvent);
-
-                // Clear form
-                document.getElementById('postInput').value = '';
-                imagePreview.classList.add('hidden');
-                imagePreview.src = '';
-
-                // Reload feed
-                loadFeed();
-            } catch (error) {
-                console.error('Failed to create post:', error);
-                alert('Failed to create post');
-            }
-        }
-
-        // Event publishing
-        async function publishEvent(event) {
-            const promises = relayConnections.map(ws => new Promise((resolve, reject) => {
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(['EVENT', event]));
-                    resolve();
-                } else {
-                    reject(new Error('Relay not connected'));
-                }
-            }));
-
-            await Promise.allSettled(promises);
-        }
-
-        // Reply handling
-        function showReplyForm(eventId) {
-            const form = document.getElementById(`reply-form-${eventId}`);
-            form.classList.remove('hidden');
-        }
-
-        async function submitReply(eventId) {
-            if (!currentUser) {
-                alert('Please connect with Nostr first');
-                return;
-            }
-
-            const form = document.getElementById(`reply-form-${eventId}`);
-            const content = form.querySelector('textarea').value;
-
-            if (!content) return;
-
-            try {
-                const event = {
-                    kind: 1,
-                    created_at: Math.floor(Date.now() / 1000),
-                    content,
-                    tags: [['e', eventId, '', 'reply']]
-                };
-
-                const signedEvent = await window.nostr.signEvent(event);
-                await publishEvent(signedEvent);
-
-                // Clear form and hide it
-                form.querySelector('textarea').value = '';
-                form.classList.add('hidden');
-
-                // Reload feed
-                loadFeed();
-            } catch (error) {
-                console.error('Failed to submit reply:', error);
-                alert('Failed to submit reply');
-            }
-        }
-
-        // NWC Wallet Integration
-        function showWalletModal() {
-            document.getElementById('walletModal').style.display = 'flex';
-        }
-
-        function closeWalletModal() {
-            document.getElementById('walletModal').style.display = 'none';
-        }
-
-        async function connectWallet() {
-            const uri = document.getElementById('nwcUri').value.trim();
-            if (!uri.startsWith('nostr+walletconnect://')) {
-                alert('Invalid NWC URI');
-                return;
-            }
-
-            try {
-                localStorage.setItem(`nwc-${currentUser.pubkey}`, uri);
-                nwcUri = uri;
-                closeWalletModal();
-                alert('Wallet connected successfully!');
-            } catch (error) {
-                console.error('Failed to connect wallet:', error);
-                alert('Failed to connect wallet');
-            }
-        }
-
-        // Zap handling
-        function openZapModal(eventId) {
-            if (!nwcUri) {
-                alert('Please connect a wallet first');
-                showWalletModal();
-                return;
-            }
-            selectedEventForZap = eventId;
-            document.getElementById('zapModal').style.display = 'flex';
-        }
-
-        function closeZapModal() {
-            document.getElementById('zapModal').style.display = 'none';
-            selectedEventForZap = null;
-        }
-
-        async function sendZap() {
-            if (!selectedEventForZap || !nwcUri) return;
-
-            const amount = parseInt(document.getElementById('zapAmount').value);
-            if (isNaN(amount) || amount < 1) {
-                alert('Please enter a valid amount');
-                return;
-            }
-
-            try {
-                const event = document.querySelector(`[data-event-id="${selectedEventForZap}"]`).__nostr_event;
-                const recipientPubkey = event.pubkey;
-
-                // Parse NWC URI
-                const url = new URL(nwcUri);
-                const relays = url.searchParams.getAll('relay');
-                const secret = url.searchParams.get('secret');
-
-                // Create invoice request
-                const requestEvent = {
-                    kind: 23194,
-                    created_at: Math.floor(Date.now() / 1000),
-                    content: JSON.stringify({
-                        method: "pay_invoice",
-                        params: {
-                            amount: amount * 1000 // convert to msats
-                        }
-                    }),
-                    tags: [['p', recipientPubkey]],
-                    pubkey: currentUser.pubkey
-                };
-
-                const signedRequest = await window.nostr.signEvent(requestEvent);
-                
-                // Send to relays
-                const responses = await Promise.all(
-                    relays.map(async relay => {
-                        const ws = new WebSocket(relay);
-                        return new Promise((resolve, reject) => {
-                            ws.onopen = () => {
-                                ws.send(JSON.stringify(['EVENT', signedRequest]));
-                            };
-                            ws.onmessage = (msg) => {
-                                const data = JSON.parse(msg.data);
-                                if (data[0] === 'OK') {
-                                    resolve(true);
-                                }
-                            };
-                            ws.onerror = reject;
-                        });
-                    })
-                );
-
-                closeZapModal();
-                alert('Zap sent successfully!');
-            } catch (error) {
-                console.error('Failed to send zap:', error);
-                alert('Failed to send zap');
-            }
-        }
-
-        // Utility functions
-        function formatDate(timestamp) {
-            const date = new Date(timestamp * 1000);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) {
-                return 'just now';
-            } else if (diff < 3600000) {
-                return `${Math.floor(diff / 60000)}m ago`;
-            } else if (diff < 86400000) {
-                return `${Math.floor(diff / 3600000)}h ago`;
-            } else {
-                return date.toLocaleDateString();
-            }
-        }
-
-        function handleNewEvent(event) {
-            // Update feed with new event
-            loadFeed();
-        }
+            };
+        });
     </script>
 </body>
 </html>
