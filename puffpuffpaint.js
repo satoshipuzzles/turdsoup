@@ -1,15 +1,17 @@
 const { useState, useEffect, useRef } = React;
-const { Card, CardContent } = {
-    Card: ({ children, className }) => (
-        <div className={`card ${className}`}>{children}</div>
-    ),
-    CardContent: ({ children, className }) => (
-        <div className={`card-content ${className}`}>{children}</div>
-    )
-};
+const { AlertTriangle, MessageCircle, Send, Upload, Zap, AtSign } = lucide;
+
+// Component wrappers
+const Card = ({ children, className }) => (
+    <div className={`card ${className || ''}`}>{children}</div>
+);
+
+const CardContent = ({ children, className }) => (
+    <div className={`card-content ${className || ''}`}>{children}</div>
+);
 
 const Alert = ({ children, className }) => (
-    <div className={`alert ${className}`}>{children}</div>
+    <div className={`alert ${className || ''}`}>{children}</div>
 );
 
 const AlertDescription = ({ children }) => (
@@ -43,6 +45,15 @@ const PuffPuffPaint = () => {
     useEffect(() => {
         checkLogin();
         fetchNotes();
+        return () => {
+            // Cleanup WebSocket connections if needed
+            RELAYS.forEach(relay => {
+                const ws = new WebSocket(relay);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            });
+        };
     }, []);
 
     const checkLogin = async () => {
@@ -56,7 +67,7 @@ const PuffPuffPaint = () => {
                 const userProfile = await fetchProfile(userNpub);
                 if (userProfile) {
                     setNpub(userNpub);
-                    setProfile(userProfile);
+                    setProfile({ ...userProfile, npub: userNpub });
                     localStorage.setItem('profile', JSON.stringify({
                         npub: userNpub,
                         ...userProfile
@@ -71,18 +82,34 @@ const PuffPuffPaint = () => {
     const fetchProfile = async (userNpub) => {
         return new Promise((resolve, reject) => {
             const ws = new WebSocket('wss://relay.damus.io');
+            let timeoutId;
+
             ws.onopen = () => {
                 ws.send(JSON.stringify(["REQ", "1", { kinds: [0], authors: [userNpub] }]));
+                timeoutId = setTimeout(() => {
+                    ws.close();
+                    reject(new Error('Profile fetch timeout'));
+                }, 5000);
             };
+
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data[0] === "EVENT" && data[2].content) {
-                    const profile = JSON.parse(data[2].content);
-                    ws.close();
-                    resolve(profile);
+                    clearTimeout(timeoutId);
+                    try {
+                        const profile = JSON.parse(data[2].content);
+                        ws.close();
+                        resolve(profile);
+                    } catch (error) {
+                        reject(error);
+                    }
                 }
             };
-            ws.onerror = (error) => reject(error);
+
+            ws.onerror = (error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+            };
         });
     };
 
@@ -90,6 +117,11 @@ const PuffPuffPaint = () => {
         const fetchFromRelay = (relay) => {
             return new Promise((resolve) => {
                 const ws = new WebSocket(relay);
+                const timeoutId = setTimeout(() => {
+                    ws.close();
+                    resolve();
+                }, 5000);
+
                 ws.onopen = () => {
                     ws.send(JSON.stringify([
                         "REQ",
@@ -101,6 +133,7 @@ const PuffPuffPaint = () => {
                         }
                     ]));
                 };
+
                 ws.onmessage = async (event) => {
                     const data = JSON.parse(event.data);
                     if (data[0] === "EVENT") {
@@ -109,16 +142,24 @@ const PuffPuffPaint = () => {
                         setNotes(prev => {
                             const exists = prev.some(n => n.id === note.id);
                             if (!exists) {
-                                return [...prev, note].sort((a, b) => b.created_at - a.created_at);
+                                const newNotes = [...prev, note];
+                                return newNotes.sort((a, b) => b.created_at - a.created_at);
                             }
                             return prev;
                         });
                     }
+                    if (data[0] === "EOSE") {
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        resolve();
+                    }
                 };
-                setTimeout(() => {
+
+                ws.onerror = () => {
+                    clearTimeout(timeoutId);
                     ws.close();
                     resolve();
-                }, 3000);
+                };
             });
         };
 
@@ -129,6 +170,11 @@ const PuffPuffPaint = () => {
         const fetchFromRelay = (relay) => {
             return new Promise((resolve) => {
                 const ws = new WebSocket(relay);
+                const timeoutId = setTimeout(() => {
+                    ws.close();
+                    resolve();
+                }, 3000);
+
                 ws.onopen = () => {
                     ws.send(JSON.stringify([
                         "REQ",
@@ -140,6 +186,7 @@ const PuffPuffPaint = () => {
                         }
                     ]));
                 };
+
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data[0] === "EVENT") {
@@ -149,11 +196,18 @@ const PuffPuffPaint = () => {
                             [noteId]: [...(prev[noteId] || []), reply].sort((a, b) => b.created_at - a.created_at)
                         }));
                     }
+                    if (data[0] === "EOSE") {
+                        clearTimeout(timeoutId);
+                        ws.close();
+                        resolve();
+                    }
                 };
-                setTimeout(() => {
+
+                ws.onerror = () => {
+                    clearTimeout(timeoutId);
                     ws.close();
                     resolve();
-                }, 2000);
+                };
             });
         };
 
@@ -161,9 +215,11 @@ const PuffPuffPaint = () => {
     };
 
     const handleMention = async (searchTerm) => {
-        if (searchTerm.length < 2) return;
+        if (!searchTerm || searchTerm.length < 2) return;
 
         const ws = new WebSocket('wss://relay.damus.io');
+        const timeoutId = setTimeout(() => ws.close(), 3000);
+
         ws.onopen = () => {
             ws.send(JSON.stringify([
                 "REQ",
@@ -175,23 +231,37 @@ const PuffPuffPaint = () => {
             ]));
         };
 
-        ws.onmessage = (event) => {
+       ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data[0] === "EVENT" && data[2].content) {
-                const profile = JSON.parse(data[2].content);
-                setMentionSuggestions(prev => {
-                    const exists = prev.some(p => p.pubkey === data[2].pubkey);
-                    if (!exists) {
-                        return [...prev, { ...profile, pubkey: data[2].pubkey }];
-                    }
-                    return prev;
-                });
+                try {
+                    const profile = JSON.parse(data[2].content);
+                    setMentionSuggestions(prev => {
+                        const exists = prev.some(p => p.pubkey === data[2].pubkey);
+                        if (!exists) {
+                            return [...prev, { ...profile, pubkey: data[2].pubkey }];
+                        }
+                        return prev;
+                    });
+                } catch (error) {
+                    console.error('Error parsing profile:', error);
+                }
             }
+            if (data[0] === "EOSE") {
+                clearTimeout(timeoutId);
+                ws.close();
+            }
+        };
+
+        ws.onerror = () => {
+            clearTimeout(timeoutId);
+            ws.close();
         };
     };
 
     const insertMention = (user) => {
-        const mention = `nostr:${user.pubkey}`;
+        if (!mentionRef.current) return;
+
         const beforeCursor = newNote.substring(0, mentionRef.current.selectionStart);
         const afterCursor = newNote.substring(mentionRef.current.selectionStart);
         const lastAtPos = beforeCursor.lastIndexOf('@');
@@ -222,7 +292,7 @@ const PuffPuffPaint = () => {
     };
 
     const publishReply = async (parentId) => {
-        if (!replyContent.trim()) return;
+        if (!replyContent.trim() || !npub) return;
 
         const event = {
             kind: 1,
@@ -236,22 +306,33 @@ const PuffPuffPaint = () => {
 
         try {
             const signedEvent = await window.nostr.signEvent(event);
-            RELAYS.forEach(relay => {
-                const ws = new WebSocket(relay);
-                ws.onopen = () => {
-                    ws.send(JSON.stringify(["EVENT", signedEvent]));
-                    ws.close();
-                };
+            const publishPromises = RELAYS.map(relay => {
+                return new Promise((resolve) => {
+                    const ws = new WebSocket(relay);
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify(["EVENT", signedEvent]));
+                        setTimeout(() => {
+                            ws.close();
+                            resolve();
+                        }, 1000);
+                    };
+                    ws.onerror = () => resolve();
+                });
             });
+
+            await Promise.all(publishPromises);
             setShowReplyFor(null);
             setReplyContent('');
-            fetchReplies(parentId);
+            await fetchReplies(parentId);
         } catch (error) {
             console.error('Error publishing reply:', error);
+            alert('Failed to publish reply');
         }
     };
 
     const uploadImage = async (file) => {
+        if (!file || !npub) return;
+
         setIsLoading(true);
         const formData = new FormData();
         formData.append('image', file);
@@ -275,8 +356,16 @@ const PuffPuffPaint = () => {
                 body: formData
             });
 
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+            }
+
             const data = await response.json();
-            setUploadedImages(prev => [...prev, data.url]);
+            if (data.url) {
+                setUploadedImages(prev => [...prev, data.url]);
+            } else {
+                throw new Error('No URL in response');
+            }
         } catch (error) {
             console.error('Error uploading image:', error);
             alert('Failed to upload image');
@@ -286,7 +375,7 @@ const PuffPuffPaint = () => {
     };
 
     const publishNote = async () => {
-        if (!newNote.trim() && uploadedImages.length === 0) return;
+        if ((!newNote.trim() && uploadedImages.length === 0) || !npub) return;
 
         const event = {
             kind: 1,
@@ -301,53 +390,67 @@ const PuffPuffPaint = () => {
 
         try {
             const signedEvent = await window.nostr.signEvent(event);
-            RELAYS.forEach(relay => {
-                const ws = new WebSocket(relay);
-                ws.onopen = () => {
-                    ws.send(JSON.stringify(["EVENT", signedEvent]));
-                    ws.close();
-                };
+            const publishPromises = RELAYS.map(relay => {
+                return new Promise((resolve) => {
+                    const ws = new WebSocket(relay);
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify(["EVENT", signedEvent]));
+                        setTimeout(() => {
+                            ws.close();
+                            resolve();
+                        }, 1000);
+                    };
+                    ws.onerror = () => resolve();
+                });
             });
 
+            await Promise.all(publishPromises);
             setNewNote('');
             setUploadedImages([]);
             setContentWarning(false);
             setCwReason('');
-            fetchNotes();
+            await fetchNotes();
         } catch (error) {
             console.error('Error publishing note:', error);
+            alert('Failed to publish note');
         }
     };
 
     const renderNote = (note) => {
         const hasContentWarning = note.tags.some(tag => tag[0] === 'content-warning');
-        const [_, cwReason] = note.tags.find(tag => tag[0] === 'content-warning') || [];
+        const cwTag = note.tags.find(tag => tag[0] === 'content-warning');
+        const cwReason = cwTag ? cwTag[1] : '';
         const images = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
+        const authorProfile = note.pubkey === npub ? profile : null;
 
         return (
             <Card key={note.id} className="bg-white mb-4">
                 <CardContent className="p-4">
                     <div className="flex items-start gap-4">
-                        <img
-                            src={profile?.picture}
-                            alt="Author"
-                            className="w-12 h-12 rounded-full"
-                        />
+                        {authorProfile && authorProfile.picture && (
+                            <img
+                                src={authorProfile.picture}
+                                alt="Author"
+                                className="w-12 h-12 rounded-full"
+                            />
+                        )}
                         <div className="flex-1">
                             <div className="font-bold text-black">
-                                {profile?.name || note.pubkey.substring(0, 8)}
+                                {authorProfile && authorProfile.name || note.pubkey.substring(0, 8)}
                             </div>
 
                             {hasContentWarning ? (
                                 <Alert className="my-2">
-                                    <lucide.AlertTriangle className="h-4 w-4" />
+                                    <AlertTriangle className="h-4 w-4" />
                                     <AlertDescription>
                                         Content Warning: {cwReason}
                                         <button
                                             className="ml-2 text-blue-500 hover:underline"
                                             onClick={() => {
                                                 const element = document.getElementById(`content-${note.id}`);
-                                                element.classList.toggle('hidden');
+                                                if (element) {
+                                                    element.classList.toggle('hidden');
+                                                }
                                             }}
                                         >
                                             Show/Hide
@@ -378,15 +481,15 @@ const PuffPuffPaint = () => {
                                     onClick={() => setShowReplyFor(showReplyFor === note.id ? null : note.id)}
                                     className="flex items-center gap-1 text-gray-500 hover:text-gray-700"
                                 >
-                                    <lucide.MessageCircle className="w-4 h-4" />
-                                    {replies[note.id]?.length || 0}
+                                    <MessageCircle className="w-4 h-4" />
+                                    {(replies[note.id] || []).length}
                                 </button>
 
                                 <button
                                     onClick={() => sendZap(note.id)}
                                     className="flex items-center gap-1 text-gray-500 hover:text-gray-700"
                                 >
-                                    <lucide.Zap className="w-4 h-4" />
+                                    <Zap className="w-4 h-4" />
                                     Zap
                                 </button>
                             </div>
@@ -402,27 +505,29 @@ const PuffPuffPaint = () => {
                                     />
                                     <button
                                         onClick={() => publishReply(note.id)}
-                                        className="mt-2 bg-[#4CAF50] text-white px-4 py-2 rounded-lg hover
-                                          className="mt-2 bg-[#4CAF50] text-white px-4 py-2 rounded-lg hover:bg-[#45a049]"
+                                        className="mt-2 bg-[#4CAF50] text-white px-4 py-2 rounded-lg hover:bg-[#45a049]"
+                                        disabled={!replyContent.trim()}
                                     >
                                         Reply
                                     </button>
                                 </div>
                             )}
 
-                            {replies[note.id]?.length > 0 && (
+                            {(replies[note.id] || []).length > 0 && (
                                 <div className="mt-4 pl-4 border-l-2 border-gray-200">
                                     {replies[note.id].map(reply => (
                                         <div key={reply.id} className="mt-2">
                                             <div className="flex items-start gap-2">
-                                                <img
-                                                    src={profile?.picture}
-                                                    alt="Reply Author"
-                                                    className="w-8 h-8 rounded-full"
-                                                />
+                                                {authorProfile && authorProfile.picture && (
+                                                    <img
+                                                        src={authorProfile.picture}
+                                                        alt="Reply Author"
+                                                        className="w-8 h-8 rounded-full"
+                                                    />
+                                                )}
                                                 <div>
                                                     <div className="font-bold text-sm text-black">
-                                                        {profile?.name || reply.pubkey.substring(0, 8)}
+                                                        {authorProfile && authorProfile.name || reply.pubkey.substring(0, 8)}
                                                     </div>
                                                     <p className="text-gray-700 text-sm">{reply.content}</p>
                                                 </div>
@@ -458,7 +563,7 @@ const PuffPuffPaint = () => {
                 <Card className="mb-6 bg-white">
                     <CardContent className="p-4">
                         <div className="flex items-start gap-4">
-                            {profile?.picture && (
+                            {profile && profile.picture && (
                                 <img
                                     src={profile.picture}
                                     alt="Profile"
@@ -473,7 +578,7 @@ const PuffPuffPaint = () => {
                                             contentWarning ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700'
                                         }`}
                                     >
-                                        <lucide.AlertTriangle className="w-4 h-4" />
+                                        <AlertTriangle className="w-4 h-4" />
                                         CW
                                     </button>
                                 </div>
@@ -510,14 +615,14 @@ const PuffPuffPaint = () => {
                                 />
 
                                 {showMentions && mentionSuggestions.length > 0 && (
-                                    <div className="absolute bg-white border rounded-lg shadow-lg p-2 max-h-40 overflow-y-auto">
+                                    <div className="mention-suggestions">
                                         {mentionSuggestions.map(user => (
                                             <div
                                                 key={user.pubkey}
                                                 className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer"
                                                 onClick={() => insertMention(user)}
                                             >
-                                                {user.picture && (
+                                               {user.picture && (
                                                     <img src={user.picture} alt="" className="w-6 h-6 rounded-full" />
                                                 )}
                                                 <span>{user.name || user.pubkey.substring(0, 8)}</span>
@@ -546,21 +651,28 @@ const PuffPuffPaint = () => {
                                                 type="file"
                                                 accept="image/*"
                                                 className="hidden"
-                                                onChange={(e) => uploadImage(e.target.files[0])}
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        uploadImage(e.target.files[0]);
+                                                    }
+                                                }}
                                                 disabled={isLoading}
                                             />
-                                            <lucide.Upload className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                                            <Upload className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                                         </label>
-                                        <button onClick={() => mentionRef.current.focus()}>
-                                            <lucide.AtSign className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+                                        <button 
+                                            onClick={() => mentionRef.current && mentionRef.current.focus()}
+                                            type="button"
+                                        >
+                                            <AtSign className="w-6 h-6 text-gray-500 hover:text-gray-700" />
                                         </button>
                                     </div>
                                     <button
                                         onClick={publishNote}
-                                        disabled={isLoading}
+                                        disabled={isLoading || (!newNote.trim() && uploadedImages.length === 0)}
                                         className="bg-[#4CAF50] text-white px-4 py-2 rounded-lg hover:bg-[#45a049] disabled:opacity-50"
                                     >
-                                        <lucide.Send className="w-5 h-5" />
+                                        <Send className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
@@ -576,4 +688,5 @@ const PuffPuffPaint = () => {
     );
 };
 
+// Make the component available globally
 window.PuffPuffPaint = PuffPuffPaint;
