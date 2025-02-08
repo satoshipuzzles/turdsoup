@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puff Puff Paint - TurdSoup</title>
-    <meta property="og:title" content="Puff Puff Paint - TurdSoup" />
-    <meta property="og:description" content="Create and share your art on Nostr!" />
-    <meta property="og:image" content="logo.png" />
-    <meta property="og:url" content="https://TurdSoup.com/puff.html" />
     
-    <!-- Dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
+    <!-- React and Dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <!-- Include Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
 
     <style>
         body {
@@ -23,7 +23,6 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            min-height: 100vh;
         }
         
         .header {
@@ -35,7 +34,6 @@
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            padding: 0 20px;
         }
         
         .header-button {
@@ -44,7 +42,6 @@
             background: none;
             border: none;
             color: #ffffff;
-            padding: 8px;
         }
 
         #profile-pic {
@@ -52,7 +49,6 @@
             height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            background: #ffffff;
         }
 
         #profile-pic img {
@@ -81,7 +77,6 @@
         .iframe-container iframe {
             width: 80%;
             height: 80%;
-            border-radius: 10px;
         }
 
         .iframe-close {
@@ -100,32 +95,45 @@
             min-height: calc(100vh - 60px);
         }
 
-        /* Alert Component Styles */
-        .alert {
-            background-color: #ffffff;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin: 1rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .alert-description {
-            color: #1f2937;
-            font-size: 0.875rem;
-        }
-
-        /* Card Component Styles */
+        /* Card Styles */
         .card {
-            background-color: #ffffff;
+            background: white;
             border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
         }
 
         .card-content {
             padding: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            background-color: #FEF3C7;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        .alert-description {
+            color: #92400E;
+            font-size: 0.875rem;
+        }
+
+        /* Debug styles to see WebSocket activity */
+        #debug {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -139,14 +147,30 @@
     </div>
     
     <div id="root"></div>
+    <div id="debug" class="hidden"></div>
 
     <div id="iframeContainer" class="iframe-container">
         <iframe id="iframe" src="about:blank" frameborder="0"></iframe>
         <button class="iframe-close" onclick="closeIframe()">✖️</button>
     </div>
 
-    <!-- Navigation Functions -->
     <script>
+        // Debug helper
+        const debug = {
+            log: function(msg) {
+                const debugEl = document.getElementById('debug');
+                debugEl.innerHTML += msg + '<br>';
+                debugEl.scrollTop = debugEl.scrollHeight;
+            },
+            clear: function() {
+                document.getElementById('debug').innerHTML = '';
+            },
+            show: function() {
+                document.getElementById('debug').classList.remove('hidden');
+            }
+        };
+
+        // Navigation functions
         function goHome() {
             window.location.href = 'index.html';
         }
@@ -161,35 +185,29 @@
             document.getElementById('iframe').src = 'about:blank';
         }
 
-        // Check login status on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const profilePic = document.getElementById('profile-pic');
-            const storedProfile = JSON.parse(localStorage.getItem('profile'));
-
-            if (storedProfile) {
-                if (storedProfile.picture) {
-                    profilePic.innerHTML = `<img src="${storedProfile.picture}" alt="Profile Picture">`;
-                }
-                profilePic.classList.remove('hidden');
-            }
-        });
-
         // Error handling
         window.onerror = function(msg, url, lineNo, columnNo, error) {
-            console.error('Error:', msg, '\nURL:', url, '\nLine:', lineNo, '\nColumn:', columnNo, '\nError object:', error);
+            debug.log(`Error: ${msg}\nURL: ${url}\nLine: ${lineNo}\nColumn: ${columnNo}`);
+            debug.show();
             return false;
         };
+
+        // Initialize debug mode for development
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.search.includes('debug')) {
+                debug.show();
+            }
+        });
     </script>
 
-    <!-- React Component -->
+    <!-- Include the React component -->
     <script type="text/babel" src="puffpuffpaint.js"></script>
 
-    <!-- Mount React Component -->
+    <!-- Mount the component -->
     <script type="text/babel">
-        ReactDOM.render(
-            React.createElement(PuffPuffPaint),
-            document.getElementById('root')
-        );
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(React.createElement(PuffPuffPaint));
     </script>
 </body>
 </html>
