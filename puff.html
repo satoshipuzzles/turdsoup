@@ -4,34 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint – TurdSoup</title>
-  <!-- Import Bitcoin Connect from a CDN -->
+  <!-- Import Bitcoin Connect via ESM (adjust version as needed) -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-    // Initialize Bitcoin Connect with our app name.
+    // Initialize Bitcoin Connect
     init({ appName: 'Turd Soup' });
     onConnected(async (provider) => {
-      console.log("[Bitcoin Connect] Provider connected:", provider);
-      let balanceText = "(balance unavailable)";
+      console.log("[Bitcoin Connect] Connected:", provider);
+      let balanceText = "N/A";
       if (provider.getBalance) {
         try {
           const bal = await provider.getBalance();
           balanceText = bal + " sats";
         } catch (e) {
-          console.error("[Bitcoin Connect] Error fetching balance:", e);
+          console.error("Error fetching balance:", e);
           balanceText = "error";
         }
       }
-      const walletDiv = document.getElementById('wallet-info');
-      if (walletDiv) {
-        walletDiv.innerText = "Connected: " + (provider.connectorName || 'Wallet') + " | Balance: " + balanceText;
-      }
-      // Expose the provider globally
+      updateWalletUI({ walletAddress: provider.connectorName || 'Wallet', balance: balanceText });
       window.webln = provider;
     });
     onDisconnected(() => {
-      console.log("[Bitcoin Connect] Provider disconnected");
-      const walletDiv = document.getElementById('wallet-info');
-      if (walletDiv) walletDiv.innerText = "Not connected";
+      console.log("[Bitcoin Connect] Disconnected");
+      updateWalletUI({ walletAddress: "", balance: "" });
       window.webln = null;
     });
   </script>
@@ -42,6 +37,8 @@
       --background: #ffffff;
       --text: #1f1f1f;
       --text-light: #666666;
+      --toast-bg: rgba(0, 0, 0, 0.8);
+      --toast-color: #fff;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -50,9 +47,9 @@
       font-family: -apple-system, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      padding-bottom: 60px; /* space for wallet info */
+      padding-bottom: 60px; /* for wallet info */
     }
-    /* Header: three zones using flex layout */
+    /* Header with three zones */
     .header {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -81,13 +78,19 @@
       transition: background-color 0.2s;
     }
     .header-button:hover { background-color: rgba(255,255,255,0.1); }
-    #profile-pic { cursor: pointer; }
-    /* Wallet info fixed at bottom left */
+    #profile-pic img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    /* Wallet info: fixed at bottom left */
     #wallet-info {
       position: fixed;
       bottom: 10px;
       left: 10px;
-      background-color: #fff;
+      background: #fff;
       color: var(--text);
       padding: 5px 10px;
       border-radius: 5px;
@@ -188,16 +191,14 @@
       gap: 15px;
       border-top: 1px solid rgba(0,0,0,0.05);
     }
-    /* Badges next to the icon text */
+    /* Minimal badge styling similar to Twitter */
     .badge {
-      display: inline-block;
-      background: var(--primary);
-      color: #fff;
       font-size: 12px;
-      border-radius: 12px;
-      padding: 2px 6px;
-      margin-left: 5px;
+      margin-left: 4px;
+      vertical-align: middle;
     }
+    .badge-zap { color: var(--primary); }
+    .badge-comment { color: var(--text-light); }
     .compose-text {
       width: 100%;
       border: 1px solid rgba(0,0,0,0.1);
@@ -253,38 +254,25 @@
     }
     .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    /* Replies and Zap details dropdowns (minimal styling) */
     .replies-container, .zap-details-container {
       margin-left: 40px;
-      padding: 10px 15px;
+      padding: 8px 12px;
       border-left: 2px solid rgba(0,0,0,0.05);
       display: none;
     }
     .reply-card, .zap-card {
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
-      transition: transform 0.2s;
-    }
-    .reply-card:hover, .zap-card:hover { transform: translateY(-1px); }
-    .reply-input {
-      padding: 10px 15px;
-      border-top: 1px solid rgba(0,0,0,0.05);
       display: flex;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
     }
-    .reply-input textarea {
-      flex: 1;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 20px;
-      padding: 8px 15px;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-      min-height: 36px;
-      max-height: 120px;
+    .reply-card img, .zap-card img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
     }
-    .reply-input textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
     /* Modal styles */
     .modal, .modal-overlay {
       display: none;
@@ -295,7 +283,7 @@
       background-color: rgba(0,0,0,0.4);
     }
     .modal-content, .zap-modal {
-      background-color: var(--background);
+      background: var(--background);
       margin: 10% auto;
       padding: 20px;
       width: 90%;
@@ -311,6 +299,58 @@
       font-weight: bold;
       cursor: pointer;
     }
+    /* New Zap Modal: modern zap amount selector */
+    .zap-modal-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .zap-amount-options {
+      display: flex;
+      gap: 10px;
+      justify-content: space-around;
+    }
+    .zap-amount-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .zap-amount-btn:hover { background: var(--primary-dark); }
+    .zap-slider-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #zap-slider { flex: 1; }
+    .zap-custom-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #zap-custom {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--toast-bg);
+      color: var(--toast-color);
+      padding: 10px 20px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: 300;
+    }
   </style>
 </head>
 <body>
@@ -323,17 +363,20 @@
       <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
     </div>
     <div class="header-right" id="profile-pic" onclick="openSettingsModal()">
-      <!-- Fallback profile image using correct SVG attribute values -->
-      <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E" alt="Profile" class="avatar" />
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E" alt="Profile" />
     </div>
   </div>
 
-  <!-- Container for compose area and feed -->
+  <!-- Wallet connection info (bottom left) -->
+  <div id="wallet-info">Not connected</div>
+
+  <!-- Main container -->
   <div class="container">
+    <!-- Compose card -->
     <div id="compose" class="compose-card">
       <div class="note-header">
         <img id="compose-avatar" class="avatar" src="" alt="Profile"
-             onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'48\'%20height=\'48\'%20viewBox=\'0%200%2024%2024\'%3E%3Ccircle%20cx=\'12\'%20cy=\'12\'%20r=\'10\'%20fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -346,6 +389,7 @@
         <button id="publish-button" class="publish-button" onclick="publishNote()">Paint</button>
       </div>
     </div>
+    <!-- Notes feed -->
     <div id="notes"></div>
   </div>
 
@@ -361,12 +405,27 @@
     </div>
   </div>
 
-  <!-- Zap Modal (for sending a zap) -->
+  <!-- Zap Modal -->
   <div id="zapModal" class="modal-overlay">
     <div class="zap-modal">
       <span class="close-modal" onclick="closeZapModal()">&times;</span>
       <h3>Send Zap</h3>
-      <input type="number" id="zap-amount" class="zap-input" placeholder="Amount in sats" min="1" />
+      <div class="zap-modal-container">
+        <div class="zap-amount-options">
+          <button class="zap-amount-btn" data-amount="100">100 sats</button>
+          <button class="zap-amount-btn" data-amount="250">250 sats</button>
+          <button class="zap-amount-btn" data-amount="500">500 sats</button>
+          <button class="zap-amount-btn" data-amount="1000">1000 sats</button>
+        </div>
+        <div class="zap-slider-container">
+          <input type="range" id="zap-slider" min="1" max="10000" value="1000" />
+          <span id="zap-slider-value">1000 sats</span>
+        </div>
+        <div class="zap-custom-container">
+          <input type="number" id="zap-custom" placeholder="Custom amount" min="1" />
+          <button class="zap-amount-btn" id="zap-custom-btn">Set</button>
+        </div>
+      </div>
       <div style="display: flex; justify-content: space-between; margin-top: 10px;">
         <button class="publish-button" onclick="closeZapModal()">Cancel</button>
         <button class="publish-button" onclick="confirmZap()">Send Zap</button>
@@ -374,14 +433,8 @@
     </div>
   </div>
 
-  <!-- Zap Details Modal -->
-  <div id="zapDetailsModal" class="modal-overlay">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeZapDetailsModal()">&times;</span>
-      <h3>Zap Details</h3>
-      <div id="zap-details-container"></div>
-    </div>
-  </div>
+  <!-- Toast container (dynamically created by JS) -->
+  <div id="toast-container"></div>
 
   <script>
     /***** Global Variables *****/
@@ -393,16 +446,32 @@
       'wss://nos.lol',
       'wss://relay.nostrfreaks.com'
     ];
-    let currentZapNote = null; // { noteId, pubkey }
-    // For each note id, store an array of zap events.
+    let currentZapNote = null;
+    // Store zap events per note id
     const zapDetails = {};
 
-    // Helper logging function
+    /***** Toast Notifications *****/
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      // Force reflow so the transition works
+      getComputedStyle(toast).opacity;
+      toast.style.opacity = 1;
+      setTimeout(() => {
+        toast.style.opacity = 0;
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+      console.log("[Toast] " + message);
+    }
+
+    /***** Global Event Logging *****/
     function logEvent(type, details) {
       console.log(`[Event] ${type}:`, details);
     }
 
-    /***** Global Functions (attached to window) *****/
+    /***** Modal Functions *****/
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'block';
       logEvent("Settings Modal Opened", {});
@@ -418,7 +487,9 @@
     };
     window.openZapModal = function(noteId, pubkey) {
       currentZapNote = { noteId, pubkey };
-      document.getElementById('zap-amount').value = '1000';
+      document.getElementById('zap-slider').value = 1000;
+      document.getElementById('zap-slider-value').textContent = "1000 sats";
+      document.getElementById('zap-custom').value = "";
       document.getElementById('zapModal').style.display = 'block';
       logEvent("Zap Modal Opened", { noteId, pubkey });
     };
@@ -427,25 +498,8 @@
       currentZapNote = null;
       logEvent("Zap Modal Closed", {});
     };
-    window.closeZapDetailsModal = function() {
-      document.getElementById('zapDetailsModal').style.display = 'none';
-      logEvent("Zap Details Modal Closed", {});
-    };
-    window.confirmZap = async function() {
-      if (!currentZapNote) return;
-      const amount = parseInt(document.getElementById('zap-amount').value);
-      if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
-      try {
-        logEvent("Confirm Zap Initiated", { noteId: currentZapNote.noteId, pubkey: currentZapNote.pubkey, amount });
-        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-        alert('Zap sent successfully!');
-        logEvent("Zap Sent", { noteId: currentZapNote.noteId, amount });
-        closeZapModal();
-      } catch (error) {
-        console.error("Error sending zap:", error);
-        alert(error.message);
-      }
-    };
+
+    /***** Bitcoin Connect & Wallet UI *****/
     window.connectBitcoin = async function() {
       try {
         if (window.webln) {
@@ -458,14 +512,14 @@
             } catch (e) { balanceText = "error"; }
           }
           updateWalletUI({ walletAddress: window.webln.connectorName || 'Wallet', balance: balanceText });
-          alert('Bitcoin wallet connected via WebLN!');
+          showToast("Bitcoin wallet connected!");
           logEvent("Bitcoin Wallet Connected", { connector: window.webln.connectorName, balance: balanceText });
         } else {
-          alert('No Bitcoin Connect provider available. Please install a compatible wallet.');
+          showToast("No Bitcoin Connect provider available.");
         }
       } catch (err) {
         console.error("Bitcoin connect error:", err);
-        alert('Bitcoin connect error: ' + err.message);
+        showToast("Bitcoin connect error: " + err.message);
       }
     };
     window.updateWalletUI = function(result) {
@@ -475,57 +529,55 @@
       }
       logEvent("Wallet UI Updated", result);
     };
-    window.toggleZapDetails = function(noteId) {
-      const container = document.getElementById('zap-details-' + noteId);
-      if (container) {
-        container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+
+    /***** Zap Confirmation *****/
+    window.confirmZap = async function() {
+      if (!currentZapNote) return;
+      const amount = parseInt(document.getElementById('zap-slider').value);
+      if (!amount || amount < 1) { showToast("Enter a valid amount"); return; }
+      try {
+        logEvent("Confirm Zap Initiated", { noteId: currentZapNote.noteId, pubkey: currentZapNote.pubkey, amount });
+        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
+        showToast("Zap sent successfully!");
+        logEvent("Zap Sent", { noteId: currentZapNote.noteId, amount });
+        closeZapModal();
+      } catch (error) {
+        console.error("Error sending zap:", error);
+        showToast("Error sending zap: " + error.message);
       }
-    };
-    window.viewZapDetails = function(noteId) {
-      const container = document.getElementById('zap-details-container');
-      container.innerHTML = '';
-      if (zapDetails[noteId] && zapDetails[noteId].length > 0) {
-        zapDetails[noteId].forEach(async (zapEvent) => {
-          let zapProfile = await fetchProfile(zapEvent.pubkey);
-          if (!zapProfile.picture) {
-            zapProfile.picture = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E";
-          }
-          const amountTag = zapEvent.tags.find(tag => tag[0] === "amount");
-          const amt = amountTag ? amountTag[1] : "N/A";
-          const div = document.createElement('div');
-          div.className = 'zap-card';
-          div.innerHTML = `
-            <img src="${zapProfile.picture}" alt="Zap" class="avatar" style="width:32px; height:32px; border-radius:50%;">
-            <span>${amt} sats</span>
-          `;
-          container.appendChild(div);
-        });
-      } else {
-        container.innerHTML = "<p>No zap events yet.</p>";
-      }
-      document.getElementById('zapDetailsModal').style.display = 'block';
-      logEvent("View Zap Details", { noteId, count: (zapDetails[noteId] ? zapDetails[noteId].length : 0) });
     };
 
-    /***** Initialization *****/
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Load stored profile if available.
-      const storedProfile = JSON.parse(localStorage.getItem('profile'));
-      if (storedProfile) {
-        npub = storedProfile.npub;
-        profile = storedProfile;
-        if (profile.picture) {
-          document.getElementById('compose-avatar').src = profile.picture;
-          document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
-          document.getElementById('profile-pic').innerHTML =
-            `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />`;
+    /***** Zap Module Interactivity *****/
+    document.addEventListener('DOMContentLoaded', () => {
+      // Preselected zap amount buttons
+      document.querySelectorAll('.zap-amount-btn').forEach(btn => {
+        if (btn.hasAttribute('data-amount')) {
+          btn.addEventListener('click', () => {
+            const amt = btn.getAttribute('data-amount');
+            document.getElementById('zap-slider').value = amt;
+            document.getElementById('zap-slider-value').textContent = amt + " sats";
+            logEvent("Zap Amount Selected", { amount: amt });
+          });
         }
-      }
-      connectToRelays();
-      logEvent("DOM Loaded", {});
+      });
+      // Slider interactivity
+      document.getElementById('zap-slider').addEventListener('input', (e) => {
+        const val = e.target.value;
+        document.getElementById('zap-slider-value').textContent = val + " sats";
+        logEvent("Zap Slider Moved", { amount: val });
+      });
+      // Custom zap amount button
+      document.getElementById('zap-custom-btn').addEventListener('click', () => {
+        const customVal = document.getElementById('zap-custom').value;
+        if (customVal && parseInt(customVal) > 0) {
+          document.getElementById('zap-slider').value = customVal;
+          document.getElementById('zap-slider-value').textContent = customVal + " sats";
+          logEvent("Zap Custom Amount Set", { amount: customVal });
+        }
+      });
     });
 
-    /***** WebSocket Pool & Relay Connection *****/
+    /***** Relay Subscriptions and Event Handling *****/
     const wsPool = new Map();
     function getWebSocket(url) {
       if (wsPool.has(url)) {
@@ -545,7 +597,7 @@
       });
     }
     function subscribeToFeed(ws) {
-      // Subscribe to main feed (non-reply notes)
+      // Subscribe to main feed (notes with tag "puffpuffpaint")
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
@@ -560,6 +612,7 @@
                 const noteId = refTag[1];
                 if (!zapDetails[noteId]) zapDetails[noteId] = [];
                 zapDetails[noteId].push(event);
+                // Update zap count badge if exists
                 const zapBadge = document.getElementById('zap-badge-' + noteId);
                 if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
               }
@@ -594,8 +647,8 @@
               const prof = JSON.parse(data[2].content);
               clearTimeout(timeoutId);
               profileCache.set(pubkey, prof);
-              resolve(prof);
               logEvent("Profile Fetched", { pubkey, profile: prof });
+              resolve(prof);
             }
           } catch (err) {
             resolve({});
@@ -611,14 +664,14 @@
       });
     }
 
-    /***** Note & Reply Management *****/
+    /***** Note and Reply Management *****/
     async function createNoteElement(note) {
-      // Skip if note is a reply (nested replies appear only in threads)
+      // Skip replies in main feed (handled in threads)
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
-      if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
+      if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0, 8);
       if (!authorProfile.picture)
         authorProfile.picture = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E";
       const div = document.createElement('div');
@@ -627,7 +680,7 @@
       div.dataset.timestamp = note.created_at;
       div.innerHTML = `
         <div class="note-header">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -645,16 +698,18 @@
         })()}
         <div class="note-actions">
           <button class="action-button" onclick="toggleReplies('${note.id}')">
-            💬 <span class="badge" id="reply-badge-${note.id}">0</span>
+            💬 <span class="badge badge-comment" id="reply-badge-${note.id}">0</span>
           </button>
           <button class="action-button" onclick="openZapModal('${note.id}', '${note.pubkey}')">
-            ⚡️ <span class="badge" id="zap-badge-${note.id}">0</span>
+            ⚡️ <span class="badge badge-zap" id="zap-badge-${note.id}">0</span>
           </button>
+          <!-- Clicking the zap count will show a dropdown of zap details -->
           <button class="action-button" onclick="viewZapDetails('${note.id}')">
-            👁️
+            ⬇
           </button>
         </div>
         <div id="replies-${note.id}" class="replies-container"></div>
+        <div id="zap-details-${note.id}" class="zap-details-container"></div>
       `;
       loadReplies(note.id);
       logEvent("Note Created", { noteId: note.id });
@@ -670,7 +725,7 @@
       const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
                           .map(img => img.dataset.url);
       if (!content.trim() && images.length === 0) {
-        alert('Please add some content or images');
+        showToast("Please add some content or images");
         return;
       }
       try {
@@ -691,9 +746,10 @@
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
         if (el) document.getElementById('notes').insertBefore(el, document.getElementById('notes').firstChild);
         logEvent("Note Published", signedEvent);
+        showToast("Note published!");
       } catch (error) {
         console.error("Failed to publish note:", error);
-        alert('Failed to publish note: ' + error.message);
+        showToast("Failed to publish note: " + error.message);
       }
     }
     function toggleReplies(noteId) {
@@ -735,20 +791,18 @@
     }
     async function createReplyElement(reply) {
       let authorProfile = await fetchProfile(reply.pubkey);
-      if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
+      if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0, 8);
       if (!authorProfile.picture)
         authorProfile.picture = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
-        <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px; border-radius:50%;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />
-          <div class="author-info">
-            <div class="author-name">${authorProfile.name}</div>
-            <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
-          </div>
+        <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+        <div>
+          <strong>${authorProfile.name}</strong>
+          <span class="timestamp">${formatTimestamp(reply.created_at)}</span>
+          <div>${reply.content}</div>
         </div>
-        <div class="note-content" style="padding: 0">${reply.content}</div>
       `;
       logEvent("Reply Element Created", { replyId: reply.id });
       return div;
@@ -762,7 +816,7 @@
       return d.toLocaleDateString();
     }
 
-    /***** Image Upload (NIP-98 via nostr.build) *****/
+    /***** Image Upload via Nostr.build API (NIP-98) *****/
     async function getEventHash(event) {
       const serialized = JSON.stringify([0, event.pubkey, event.created_at, event.kind, event.tags, event.content]);
       const encoder = new TextEncoder();
@@ -823,7 +877,7 @@
         }
       } catch (error) {
         console.error("Image upload error:", error);
-        alert('Image upload error: ' + error.message);
+        showToast("Image upload error: " + error.message);
         return null;
       }
     }
@@ -832,7 +886,7 @@
       e.target.value = '';
     });
 
-    /***** Zap Functionality using Bitcoin Connect and NIP-44 *****/
+    /***** Zap Functionality using Bitcoin Connect & LNURL (NIP-44) *****/
     async function sendZap(noteId, pubkey, amount) {
       try {
         if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
@@ -871,6 +925,24 @@
         throw error;
       }
     }
+
+    /***** Initialization *****/
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Load stored profile if available.
+      const storedProfile = JSON.parse(localStorage.getItem('profile'));
+      if (storedProfile) {
+        npub = storedProfile.npub;
+        profile = storedProfile;
+        if (profile.picture) {
+          document.getElementById('compose-avatar').src = profile.picture;
+          document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
+          document.getElementById('profile-pic').innerHTML =
+            `<img src="${profile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />`;
+        }
+      }
+      connectToRelays();
+      logEvent("DOM Loaded", {});
+    });
   </script>
 </body>
 </html>
