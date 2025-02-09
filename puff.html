@@ -3,142 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Puff Puff Paint – TurdSoup</title>
-  <!-- Import Bitcoin Connect API (for wallet connection) -->
+  <title>Puff Puff Paint – Modern Edition</title>
+  <!-- Import Bitcoin Connect API via ES module -->
   <script type="module">
-    import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-    // Initialize Bitcoin Connect
-    init({ appName: 'Turd Soup' });
+    import {
+      init,
+      launchModal,
+      requestProvider,
+      onConnected,
+      onDisconnected
+    } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
+    // Initialize Bitcoin Connect with full options (including showBalance)
+    init({ appName: 'Puff Puff Paint', showBalance: true });
     onConnected(async (provider) => {
-      console.log("[Bitcoin Connect] Connected:", provider);
-      // Try to get the balance if the provider supports it.
-      let balance = "N/A";
+      console.log('[Bitcoin Connect] Connected:', provider);
+      updateWalletUI({
+        walletAddress: provider.connectorName || 'Wallet',
+        balance: 'Fetching...'
+      });
+      window.webln = provider;
       if (provider.getBalance) {
         try {
-          balance = await provider.getBalance();
-        } catch (e) {
-          console.error("Error fetching balance:", e);
+          const bal = await provider.getBalance();
+          updateWalletUI({
+            walletAddress: provider.connectorName || 'Wallet',
+            balance: bal + ' sats'
+          });
+        } catch (err) {
+          console.error('Error fetching balance:', err);
         }
       }
-      updateWalletUI({ walletAddress: provider.connectorName || 'Wallet', balance: balance + " sats" });
-      window.webln = provider;
     });
     onDisconnected(() => {
-      console.log("[Bitcoin Connect] Disconnected");
-      updateWalletUI({ walletAddress: "", balance: "" });
+      console.log('[Bitcoin Connect] Disconnected');
+      updateWalletUI({ walletAddress: '', balance: '' });
       window.webln = null;
     });
   </script>
   <style>
-    :root {
-      --primary: #EF8C56;
-      --primary-dark: #D97B45;
-      --background: #ffffff;
-      --text: #1f1f1f;
-      --text-light: #666666;
-      --toast-bg: rgba(0,0,0,0.8);
-      --toast-color: #fff;
-    }
+    /* Reset and basic fonts */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background-color: var(--primary);
-      color: var(--text);
       font-family: -apple-system, system-ui, sans-serif;
-      min-height: 100vh;
-      padding-bottom: 70px; /* for wallet info */
+      background-color: #F2F2F2;
+      color: #333;
+      padding-bottom: 70px; /* space for wallet info */
     }
-    /* Header: three zones */
+    /* Header */
     .header {
       position: fixed;
       top: 0; left: 0; right: 0;
       height: 60px;
-      background: var(--primary);
+      background: #EF8C56;
+      color: #fff;
       display: flex;
       align-items: center;
       padding: 0 20px;
       z-index: 100;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .header-left, .header-center, .header-right {
-      flex: 1;
-    }
-    .header-left { text-align: left; }
-    .header-center { text-align: center; }
-    .header-right { text-align: right; }
-    .header-button {
-      font-size: 24px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: white;
-      padding: 10px;
-      border-radius: 50%;
-      transition: background-color 0.2s;
-    }
-    .header-button:hover { background-color: rgba(255,255,255,0.1); }
+    .header .left, .header .center, .header .right { flex: 1; }
+    .header .center { text-align: center; }
+    .header .right { text-align: right; }
+    .header button { background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
     #profile-pic img {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      object-fit: cover;
       cursor: pointer;
+      object-fit: cover;
     }
-    /* Wallet info – bottom left */
+    /* Wallet Info – bottom left */
     #wallet-info {
       position: fixed;
       bottom: 10px;
       left: 10px;
       background: #fff;
-      color: var(--text);
-      padding: 5px 10px;
+      color: #333;
+      padding: 8px 12px;
       border-radius: 5px;
       font-size: 14px;
       z-index: 200;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    .container { max-width: 600px; margin: 80px auto 0; padding: 20px; }
+    /* Main container */
+    .container {
+      max-width: 600px;
+      margin: 80px auto 20px;
+      padding: 0 10px;
+    }
+    /* Compose Card */
     .compose-card {
-      background: var(--background);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .note-card {
-      background: var(--background);
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transition: transform 0.2s;
-    }
-    .note-card:hover { transform: translateY(-2px); }
-    .note-header {
+      background: #fff;
+      border-radius: 10px;
       padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .compose-card .note-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      gap: 10px;
     }
-    .avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #f5f5f5;
+    .compose-card .note-header img { width: 48px; height: 48px; border-radius: 50%; }
+    .compose-card textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      resize: vertical;
     }
-    .author-info { flex: 1; }
-    .author-name {
-      font-weight: 600;
-      white-space: nowrap;
+    .compose-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .upload-button { background: none; border: none; font-size: 24px; cursor: pointer; }
+    .publish-button {
+      background: #EF8C56;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .publish-button:hover { background: #D97B45; transform: translateY(-1px); }
+    /* Notes Feed */
+    .note-card {
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       overflow: hidden;
-      text-overflow: ellipsis;
     }
-    .timestamp { font-size: 14px; color: var(--text-light); }
-    .note-content {
-      padding: 15px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.5;
+    .note-card .note-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
     }
+    .note-card .note-header img { width: 48px; height: 48px; border-radius: 50%; }
+    .author-info { flex: 1; }
+    .author-name { font-weight: 600; }
+    .timestamp { font-size: 12px; color: #999; }
+    .note-content { padding: 10px; font-size: 16px; }
     .media-container {
       width: 100%;
       display: grid;
@@ -146,12 +158,7 @@
       background: #f5f5f5;
     }
     .media-container.single { max-height: 500px; }
-    .media-container.single img {
-      width: 100%;
-      height: 100%;
-      max-height: 500px;
-      object-fit: contain;
-    }
+    .media-container.single img { width: 100%; height: auto; max-height: 500px; object-fit: contain; }
     .media-container.multiple { grid-template-columns: repeat(2, 1fr); }
     .media-container.multiple img { width: 100%; aspect-ratio: 1; object-fit: cover; }
     .media-preview {
@@ -175,48 +182,89 @@
       border-top-right-radius: 8px;
       border-bottom-left-radius: 8px;
     }
-    /* Action buttons – minimalist style similar to Twitter */
     .note-actions {
-      padding: 10px 15px;
       display: flex;
+      gap: 20px;
+      padding: 10px;
+      border-top: 1px solid #eee;
       align-items: center;
-      gap: 15px;
-      border-top: 1px solid rgba(0,0,0,0.05);
     }
-    .action-button {
+    .note-actions button {
       background: none;
       border: none;
-      color: var(--text-light);
-      font-size: 18px;
+      color: #666;
+      font-size: 20px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
     }
-    .badge {
-      font-size: 12px;
+    .note-actions .badge {
       margin-left: 4px;
+      font-size: 14px;
+      color: #333;
     }
-    /* Compose text area */
-    .compose-text {
-      width: 100%;
-      border: 1px solid rgba(0,0,0,0.1);
+    /* Nested Replies */
+    .replies-container { margin-left: 50px; padding: 5px 0; display: none; }
+    .reply-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+    }
+    .reply-card img { width: 32px; height: 32px; border-radius: 50%; }
+    .reply-content { font-size: 14px; }
+    /* Zap Details (dropdown) */
+    .zap-details-container { margin-left: 50px; padding: 5px 0; display: none; }
+    .zap-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    .zap-card img { width: 32px; height: 32px; border-radius: 50%; }
+    /* Modal styles */
+    .modal, .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 300;
+    }
+    .modal-content, .zap-modal {
+      background: #fff;
+      padding: 20px;
       border-radius: 8px;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      resize: none;
-      outline: none;
-      line-height: 1.5;
+      width: 90%;
+      max-width: 400px;
+      margin: 15% auto;
+      position: relative;
     }
-    .compose-text:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
-    .compose-actions { display: flex; justify-content: space-between; align-items: center; }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    /* Zap Modal – Mobile First */
+    .zap-modal-container { display: flex; flex-direction: column; gap: 15px; }
+    .zap-amount-options { display: flex; gap: 10px; justify-content: space-around; }
+    .zap-amount-btn { background: #EF8C56; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+    .zap-slider-container { display: flex; align-items: center; gap: 10px; }
+    #zap-slider { flex: 1; }
+    .zap-slider-value { font-size: 16px; }
+    .zap-custom-container { display: flex; gap: 10px; align-items: center; }
+    #zap-custom { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    /* Floating Compose Button */
     .floating-compose {
       position: fixed;
       bottom: 20px;
       right: 20px;
       width: 60px;
       height: 60px;
-      background: var(--primary);
+      background: #EF8C56;
       color: #fff;
       border: none;
       border-radius: 50%;
@@ -229,150 +277,46 @@
       align-items: center;
       justify-content: center;
     }
-    .floating-compose:hover { transform: scale(1.1); background: var(--primary-dark); }
-    .upload-button {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
-      transition: background-color 0.2s;
-    }
-    .upload-button:hover { background: rgba(0,0,0,0.05); }
-    .publish-button {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-    }
-    .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    /* Replies and Zap details (dropdowns) – minimalist, no extra boxes */
-    .replies-container, .zap-details-container {
-      margin-left: 40px;
-      padding: 8px 0;
-      display: none;
-    }
-    .reply-card, .zap-card {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 0;
-    }
-    .reply-card img, .zap-card img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    /* Modal styles */
-    .modal, .modal-overlay {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content, .zap-modal {
-      background: var(--background);
-      margin: 10% auto;
-      padding: 20px;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 8px;
-      position: relative;
-    }
-    .close-modal {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 24px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    /* New Zap Modal – mobile first and interactive */
-    .zap-modal-container {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .zap-amount-options {
-      display: flex;
-      gap: 10px;
-      justify-content: space-around;
-    }
-    .zap-amount-btn {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .zap-amount-btn:hover { background: var(--primary-dark); }
-    .zap-slider-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #zap-slider { flex: 1; }
-    .zap-custom-container {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    #zap-custom {
-      flex: 1;
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    /* Toast notifications */
+    .floating-compose:hover { transform: scale(1.1); background: #D97B45; }
+    /* Toast Notifications */
     .toast {
       position: fixed;
       bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--toast-bg);
-      color: var(--toast-color);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
       padding: 10px 20px;
       border-radius: 4px;
       opacity: 0;
       transition: opacity 0.5s ease;
-      z-index: 300;
+      z-index: 400;
     }
   </style>
 </head>
 <body>
   <!-- Header -->
   <div class="header">
-    <div class="header-left">
-      <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
+    <div class="left">
+      <button onclick="window.location.href='index.html'">🏡</button>
     </div>
-    <div class="header-center">
-      <button class="header-button" onclick="window.location.href='puff.html'">Feed</button>
+    <div class="center">
+      <button onclick="window.location.href='feed.html'">Feed</button>
     </div>
-    <div class="header-right" id="profile-pic" onclick="openSettingsModal()">
+    <div class="right" id="profile-pic" onclick="openSettingsModal()">
       <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E" alt="Profile">
     </div>
   </div>
 
-  <!-- Wallet Info (Bottom Left) -->
+  <!-- Wallet Info (updated by Bitcoin Connect events) -->
   <div id="wallet-info">Not connected</div>
 
-  <!-- Main Content Container -->
+  <!-- Main Content -->
   <div class="container">
     <!-- Compose Card -->
     <div id="compose" class="compose-card">
       <div class="note-header">
-        <img id="compose-avatar" class="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E" alt="Profile" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
+        <img id="compose-avatar" class="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E" alt="Profile">
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -380,28 +324,29 @@
       <textarea id="content" class="compose-text" placeholder="What's on your mind?" rows="3"></textarea>
       <div id="media-preview" class="media-preview"></div>
       <div class="compose-actions">
-        <input type="file" accept="image/*" id="image-input" style="display: none" multiple>
+        <input type="file" accept="image/*" id="image-input" style="display: none;" multiple>
         <button class="upload-button" onclick="document.getElementById('image-input').click()">📷</button>
-        <button id="publish-button" class="publish-button" onclick="publishNote()">Paint</button>
+        <button class="publish-button" onclick="publishNote()">Post</button>
       </div>
     </div>
-    <!-- Notes Feed -->
+    <!-- Feed of Notes -->
     <div id="notes"></div>
   </div>
 
   <!-- Floating Compose Button -->
   <button class="floating-compose" onclick="scrollToCompose()">+</button>
 
-  <!-- Settings Modal (Wallet Connect) -->
+  <!-- Settings Modal (Bitcoin Connect integration) -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
       <h2>User Settings</h2>
-      <button id="bitcoinConnectButton" class="publish-button" onclick="launchModal()">Connect Bitcoin Wallet</button>
+      <!-- Bitcoin Connect Web Component -->
+      <bc-button title="Connect Bitcoin Wallet" onclick="launchModal()"></bc-button>
     </div>
   </div>
 
-  <!-- Zap Modal -->
+  <!-- Zap Modal (Mobile-first interactive) -->
   <div id="zapModal" class="modal-overlay">
     <div class="zap-modal">
       <span class="close-modal" onclick="closeZapModal()">&times;</span>
@@ -415,7 +360,7 @@
         </div>
         <div class="zap-slider-container">
           <input type="range" id="zap-slider" min="1" max="10000" value="1000">
-          <span id="zap-slider-value">1000 sats</span>
+          <span id="zap-slider-value" class="zap-slider-value">1000 sats</span>
         </div>
         <div class="zap-custom-container">
           <input type="number" id="zap-custom" placeholder="Custom amount" min="1">
@@ -429,7 +374,7 @@
     </div>
   </div>
 
-  <!-- Toast Notifications Container -->
+  <!-- Toast Notifications -->
   <div id="toast-container"></div>
 
   <script>
@@ -443,7 +388,7 @@
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null;
-    const zapDetails = {}; // Stores zap events per note id
+    const zapDetails = {};  // For each note ID, store an array of zap events
     let oldestTimestamp = Math.floor(Date.now() / 1000);
 
     /***** Toast Notifications *****/
@@ -459,7 +404,7 @@
         toast.style.opacity = 0;
         setTimeout(() => toast.remove(), 500);
       }, 3000);
-      console.log("[Toast]", message);
+      console.log('[Toast]', message);
     }
 
     /***** Event Logging *****/
@@ -470,40 +415,40 @@
     /***** Modal Functions *****/
     function openSettingsModal() {
       document.getElementById('settingsModal').style.display = 'block';
-      logEvent("Settings Modal Opened", {});
+      logEvent('Settings Modal Opened', {});
     }
     function closeSettingsModal() {
       document.getElementById('settingsModal').style.display = 'none';
-      logEvent("Settings Modal Closed", {});
+      logEvent('Settings Modal Closed', {});
     }
     function scrollToCompose() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       document.getElementById('content').focus();
-      logEvent("Scrolled to Compose", {});
+      logEvent('Scrolled to Compose', {});
     }
     function openZapModal(noteId, pubkey) {
       currentZapNote = { noteId, pubkey };
       document.getElementById('zap-slider').value = 1000;
-      document.getElementById('zap-slider-value').textContent = "1000 sats";
-      document.getElementById('zap-custom').value = "";
+      document.getElementById('zap-slider-value').textContent = '1000 sats';
+      document.getElementById('zap-custom').value = '';
       document.getElementById('zapModal').style.display = 'block';
-      logEvent("Zap Modal Opened", { noteId, pubkey });
+      logEvent('Zap Modal Opened', { noteId, pubkey });
     }
     function closeZapModal() {
       document.getElementById('zapModal').style.display = 'none';
       currentZapNote = null;
-      logEvent("Zap Modal Closed", {});
+      logEvent('Zap Modal Closed', {});
     }
 
-    /***** Bitcoin Connect & Wallet UI *****/
+    /***** Wallet UI Update *****/
     function updateWalletUI(result) {
       const walletDiv = document.getElementById('wallet-info');
       if (walletDiv) {
         walletDiv.innerText = result.walletAddress
-          ? "Connected: " + result.walletAddress + " | Balance: " + result.balance
-          : "Not connected";
+          ? 'Connected: ' + result.walletAddress + ' | Balance: ' + result.balance
+          : 'Not connected';
       }
-      logEvent("Wallet UI Updated", result);
+      logEvent('Wallet UI Updated', result);
     }
 
     /***** Zap Confirmation *****/
@@ -511,18 +456,18 @@
       if (!currentZapNote) return;
       const amount = parseInt(document.getElementById('zap-slider').value);
       if (!amount || amount < 1) {
-        showToast("Enter a valid amount");
+        showToast('Enter a valid amount');
         return;
       }
       try {
-        logEvent("Confirm Zap Initiated", { noteId: currentZapNote.noteId, pubkey: currentZapNote.pubkey, amount });
+        logEvent('Confirm Zap Initiated', { noteId: currentZapNote.noteId, pubkey: currentZapNote.pubkey, amount });
         await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-        showToast("Zap sent successfully!");
-        logEvent("Zap Sent", { noteId: currentZapNote.noteId, amount });
+        showToast('Zap sent successfully!');
+        logEvent('Zap Sent', { noteId: currentZapNote.noteId, amount });
         closeZapModal();
       } catch (error) {
-        console.error("Error sending zap:", error);
-        showToast("Error sending zap: " + error.message);
+        console.error('Error sending zap:', error);
+        showToast('Error sending zap: ' + error.message);
       }
     }
 
@@ -534,29 +479,29 @@
           btn.addEventListener('click', () => {
             const amt = btn.getAttribute('data-amount');
             document.getElementById('zap-slider').value = amt;
-            document.getElementById('zap-slider-value').textContent = amt + " sats";
-            logEvent("Zap Amount Selected", { amount: amt });
+            document.getElementById('zap-slider-value').textContent = amt + ' sats';
+            logEvent('Zap Amount Selected', { amount: amt });
           });
         }
       });
       // Slider interactivity
       document.getElementById('zap-slider').addEventListener('input', (e) => {
         const val = e.target.value;
-        document.getElementById('zap-slider-value').textContent = val + " sats";
-        logEvent("Zap Slider Moved", { amount: val });
+        document.getElementById('zap-slider-value').textContent = val + ' sats';
+        logEvent('Zap Slider Moved', { amount: val });
       });
       // Custom zap amount button
       document.getElementById('zap-custom-btn').addEventListener('click', () => {
         const customVal = document.getElementById('zap-custom').value;
         if (customVal && parseInt(customVal) > 0) {
           document.getElementById('zap-slider').value = customVal;
-          document.getElementById('zap-slider-value').textContent = customVal + " sats";
-          logEvent("Zap Custom Amount Set", { amount: customVal });
+          document.getElementById('zap-slider-value').textContent = customVal + ' sats';
+          logEvent('Zap Custom Amount Set', { amount: customVal });
         }
       });
     });
 
-    /***** Relay Subscriptions & Infinite Scroll *****/
+    /***** Relay Connections & Infinite Scroll *****/
     const wsPool = new Map();
     function getWebSocket(url) {
       if (wsPool.has(url)) {
@@ -576,7 +521,7 @@
       });
     }
     function subscribeToFeed(ws) {
-      // Subscribe to main notes feed (kind 1 with tag "puffpuffpaint")
+      // Subscribe to main notes feed (kind 1 events with tag "puffpuffpaint")
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: oldestTimestamp }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: oldestTimestamp }]));
       ws.addEventListener('message', async (e) => {
@@ -584,17 +529,15 @@
           const data = JSON.parse(e.data);
           if (data[0] === "EVENT") {
             const event = data[2];
-            logEvent("Relay Event Received", event);
+            logEvent('Relay Event Received', event);
             if (event.kind === 9734) { // Zap event
               const refTag = event.tags.find(t => t[0] === "e");
               if (refTag) {
                 const noteId = refTag[1];
                 if (!zapDetails[noteId]) zapDetails[noteId] = [];
                 zapDetails[noteId].push(event);
-                // Update zap badge
                 const zapBadge = document.getElementById('zap-badge-' + noteId);
                 if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
-                // Update total zap sats
                 const totalMillis = zapDetails[noteId].reduce((sum, e) => {
                   const amtTag = e.tags.find(t => t[0] === "amount");
                   return sum + (amtTag ? parseInt(amtTag[1] || "0") : 0);
@@ -613,7 +556,6 @@
       });
     }
     function loadMoreNotes() {
-      // Load older notes than oldestTimestamp
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
         const sub = ["REQ", "loadMore", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: oldestTimestamp - 1 }];
@@ -666,7 +608,7 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip replies (they are handled in nested threads)
+      // Skip replies (nested replies are handled separately)
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
@@ -691,8 +633,8 @@
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
           return imgs.length
             ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
-                ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
-              </div>`
+                 ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+               </div>`
             : '';
         })()}
         <div class="note-actions">
@@ -702,9 +644,9 @@
           <button class="action-button" onclick="openZapModal('${note.id}', '${note.pubkey}')">
             ⚡️ <span class="badge" id="zap-badge-${note.id}">0</span>
           </button>
-          <span class="action-button" onclick="viewZapDetails('${note.id}')">
+          <button class="action-button" onclick="viewZapDetails('${note.id}')">
             <span id="zap-total-${note.id}">0 sats</span>
-          </span>
+          </button>
         </div>
         <div id="replies-${note.id}" class="replies-container"></div>
         <div id="zap-details-${note.id}" class="zap-details-container"></div>
@@ -725,7 +667,7 @@
     async function publishNote() {
       const content = document.getElementById('content').value;
       const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
-                          .map(img => img.dataset.url);
+        .map(img => img.dataset.url);
       if (!content.trim() && images.length === 0) {
         showToast("Please add some content or images");
         return;
@@ -800,7 +742,7 @@
       div.className = 'reply-card';
       div.innerHTML = `
         <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
-        <div>
+        <div class="reply-content">
           <strong>${authorProfile.name}</strong> <span class="timestamp">${formatTimestamp(reply.created_at)}</span>
           <div>${reply.content}</div>
         </div>
@@ -844,7 +786,6 @@
         publishReply(noteId, event.target);
       }
     }
-    // When zap total is clicked, show breakdown details.
     function viewZapDetails(noteId) {
       const container = document.getElementById('zap-details-' + noteId);
       if (!container) return;
@@ -863,7 +804,7 @@
           const amt = zap.tags.find(t => t[0] === "amount")[1];
           div.innerHTML = `
             <img src="${zapProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
-            <div><strong>${zapProfile.name}</strong> – ${Math.floor(parseInt(amt)/1000)} sats</div>
+            <div><strong>${zapProfile.name}</strong> – ${Math.floor(parseInt(amt) / 1000)} sats</div>
           `;
           container.appendChild(div);
         });
@@ -874,10 +815,10 @@
       const d = new Date(ts * 1000),
             now = new Date(),
             diff = Math.floor((now - d) / 1000);
-      if(diff < 60) return 'just now';
-      if(diff < 3600) return `${Math.floor(diff/60)}m`;
-      if(diff < 86400) return `${Math.floor(diff/3600)}h`;
-      if(diff < 604800) return `${Math.floor(diff/86400)}d`;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
       return d.toLocaleDateString();
     }
 
@@ -897,7 +838,7 @@
         formData.append('file', file);
         const event = {
           kind: 27235,
-          created_at: Math.floor(Date.now()/1000),
+          created_at: Math.floor(Date.now() / 1000),
           content: "",
           tags: [
             ["u", "https://nostr.build/api/v2/upload/files"],
@@ -968,7 +909,7 @@
           throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
         const zapRequest = {
           kind: 9734,
-          created_at: Math.floor(Date.now()/1000),
+          created_at: Math.floor(Date.now() / 1000),
           content: "",
           tags: [
             ["relays", ...RELAYS],
@@ -986,7 +927,6 @@
         await window.webln.enable();
         await window.webln.sendPayment(invoice);
         logEvent("Zap Payment Successful", { noteId, invoice });
-        // Update zap total display if needed (this may be updated by relay events as well)
         return true;
       } catch (error) {
         console.error("Error in sendZap:", error);
