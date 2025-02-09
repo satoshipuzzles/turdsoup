@@ -9,14 +9,14 @@
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
     // Initialize Bitcoin Connect with your app name
     init({ appName: 'Turd Soup' });
-    // Set up callbacks to update the wallet status element
+    // When a wallet connects, update the wallet status element
     onConnected((provider) => {
       const walletStatus = document.getElementById('wallet-status');
       if (walletStatus) {
-        // In a real application, you would call provider methods to fetch the balance, etc.
+        // In a full implementation, you might fetch the balance here
         walletStatus.textContent = 'Wallet Connected';
       }
-      window.webln = provider; // assign the provider globally if needed
+      window.webln = provider;
     });
     onDisconnected(() => {
       const walletStatus = document.getElementById('wallet-status');
@@ -95,7 +95,7 @@
       font-size: 14px;
       z-index: 200;
     }
-    /* Main container for the feed */
+    /* Main container */
     .container {
       max-width: 600px;
       margin: 80px auto 20px;
@@ -104,7 +104,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    /* Compose card styling */
+    /* Compose card */
     .compose-card {
       background-color: var(--background);
       border-radius: 12px;
@@ -242,7 +242,7 @@
       background: rgba(239,140,86,0.1);
       color: var(--primary);
     }
-    /* Modal styles for settings and zap */
+    /* Modal styles */
     .modal,
     .modal-overlay {
       display: none;
@@ -294,16 +294,16 @@
       <button class="header-button" onclick="openSettingsModal()">👤</button>
     </div>
   </div>
-
-  <!-- Wallet status displayed in the bottom left -->
+  
+  <!-- Wallet status (displayed at the bottom left) -->
   <div id="wallet-status">Not connected</div>
-
-  <!-- Main content: Compose card and notes feed -->
+  
+  <!-- Main container: Compose area and Feed -->
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
         <img id="compose-avatar" class="avatar" src="" alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+          onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/></svg>'">
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -311,18 +311,18 @@
       <textarea id="content" class="compose-text" placeholder="What's on your mind?" rows="3"></textarea>
       <div id="media-preview" class="media-preview"></div>
       <div class="compose-actions">
-        <input type="file" accept="image/*" id="image-input" style="display: none" multiple />
+        <input type="file" accept="image/*" id="image-input" style="display: none" multiple>
         <button class="upload-button" onclick="document.getElementById('image-input').click()">📷</button>
         <button id="publish-button" class="publish-button" onclick="publishNote()">Paint</button>
       </div>
     </div>
     <div id="notes"></div>
   </div>
-
-  <!-- Floating button to scroll to compose area -->
+  
+  <!-- Floating Compose Button -->
   <button class="floating-compose" onclick="scrollToCompose()">+</button>
-
-  <!-- Settings Modal (for wallet connect and other settings) -->
+  
+  <!-- Settings Modal -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
@@ -330,20 +330,20 @@
       <button id="bitcoinConnectButton" class="publish-button" onclick="connectBitcoin()">Connect Bitcoin Wallet</button>
     </div>
   </div>
-
+  
   <!-- Zap Modal -->
   <div id="zapModal" class="modal-overlay">
     <div class="zap-modal">
       <span class="close-modal" onclick="closeZapModal()">&times;</span>
       <h3>Send Zap</h3>
-      <input type="number" id="zap-amount" class="zap-input" placeholder="Amount in sats" min="1" />
+      <input type="number" id="zap-amount" class="zap-input" placeholder="Amount in sats" min="1">
       <div style="display: flex; justify-content: space-between; margin-top: 10px;">
         <button class="publish-button" onclick="closeZapModal()">Cancel</button>
         <button class="publish-button" onclick="confirmZap()">Send Zap</button>
       </div>
     </div>
   </div>
-
+  
   <!-- Main Script -->
   <script type="module">
     /***** Global Variables *****/
@@ -357,10 +357,35 @@
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null; // { noteId, pubkey }
-
+    
+    /***** Global Function Definitions *****/
+    window.openSettingsModal = function() {
+      document.getElementById('settingsModal').style.display = 'block';
+    };
+    window.closeSettingsModal = function() {
+      document.getElementById('settingsModal').style.display = 'none';
+    };
+    window.openZapModal = function(noteId, pubkey) {
+      currentZapNote = { noteId, pubkey };
+      document.getElementById('zap-amount').value = '1000';
+      document.getElementById('zapModal').style.display = 'block';
+    };
+    window.closeZapModal = function() {
+      document.getElementById('zapModal').style.display = 'none';
+      currentZapNote = null;
+    };
+    window.connectBitcoin = async function() {
+      try {
+        const { launchModal } = await import('https://esm.sh/@getalby/bitcoin-connect@3.6.3');
+        await launchModal();
+      } catch (err) {
+        alert("Bitcoin connect error: " + err.message);
+      }
+    };
+    
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
-      // Retrieve stored profile data if available
+      // If there is stored profile info in localStorage, load it
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
@@ -372,36 +397,7 @@
       }
       connectToRelays();
     });
-
-    /***** Modal Functions *****/
-    function openSettingsModal() {
-      document.getElementById('settingsModal').style.display = 'block';
-    }
-    function closeSettingsModal() {
-      document.getElementById('settingsModal').style.display = 'none';
-    }
-    function openZapModal(noteId, pubkey) {
-      currentZapNote = { noteId, pubkey };
-      document.getElementById('zap-amount').value = '1000';
-      document.getElementById('zapModal').style.display = 'block';
-    }
-    function closeZapModal() {
-      document.getElementById('zapModal').style.display = 'none';
-      currentZapNote = null;
-    }
-
-    /***** Bitcoin Connect Integration *****/
-    async function connectBitcoin() {
-      try {
-        // Import and call launchModal from Bitcoin Connect to open the wallet chooser
-        import { launchModal } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-        await launchModal();
-        // The onConnected callback (set in the head) will update the #wallet-status element.
-      } catch (err) {
-        alert("Bitcoin connect error: " + err.message);
-      }
-    }
-
+    
     /***** WebSocket Pool & Relay Connection *****/
     const wsPool = new Map();
     function getWebSocket(url) {
@@ -450,7 +446,7 @@
         subscribeToRelays(ws, ["EVENT", event]);
       });
     }
-
+    
     /***** Profile Management *****/
     async function fetchProfile(pubkey) {
       if (profileCache.has(pubkey)) return profileCache.get(pubkey);
@@ -479,22 +475,23 @@
         }
       });
     }
-
+    
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
       if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0, 8);
-      if (!authorProfile.picture)
-        authorProfile.picture = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23ccc"/%3E%3C/svg%3E';
+      if (!authorProfile.picture) {
+        authorProfile.picture = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ccc"/></svg>';
+      }
       const div = document.createElement('div');
       div.className = 'note-card';
       div.dataset.timestamp = note.created_at;
       div.innerHTML = `
         <div class="note-header">
           <img src="${authorProfile.picture}" alt="Profile" class="avatar"
-            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
+            onerror="this.src='data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"48\\" height=\\"48\\" viewBox=\\"0 0 24 24\\"><circle cx=\\"12\\" cy=\\"12\\" r=\\"10\\" fill=\\"%23ccc\\"/></svg>'">
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -503,11 +500,9 @@
         <div class="note-content">${note.content}</div>
         ${(() => {
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-          return imgs.length
-            ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
-                 ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
-               </div>`
-            : '';
+          return imgs.length ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
+            ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+          </div>` : '';
         })()}
         <div class="note-actions">
           <button class="action-button" onclick="toggleReplies('${note.id}')">
@@ -529,7 +524,9 @@
     function handleNewNote(note) {
       createNoteElement(note).then(el => {
         const notesEl = document.getElementById('notes');
-        if (el && notesEl) { notesEl.appendChild(el); }
+        if (el && notesEl) {
+          notesEl.appendChild(el);
+        }
       });
     }
     async function publishNote() {
@@ -556,7 +553,9 @@
         document.getElementById('media-preview').innerHTML = '';
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
         const notesEl = document.getElementById('notes');
-        if (el && notesEl) { notesEl.insertBefore(el, notesEl.firstChild); }
+        if (el && notesEl) {
+          notesEl.insertBefore(el, notesEl.firstChild);
+        }
       } catch (error) {
         alert('Failed to publish note: ' + error.message);
       }
@@ -574,8 +573,11 @@
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
         const sub = ["REQ", `replies-${noteId}`, { kinds: [1], "#e": [noteId], limit: 50 }];
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(sub));
-        else ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(sub));
+        } else {
+          ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
+        }
         ws.addEventListener('message', async (e) => {
           const data = JSON.parse(e.data);
           if (data[0] === "EVENT") {
@@ -595,13 +597,14 @@
     async function createReplyElement(reply) {
       let authorProfile = await fetchProfile(reply.pubkey);
       if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0, 8);
-      if (!authorProfile.picture)
-        authorProfile.picture = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23ccc"/%3E%3C/svg%3E';
+      if (!authorProfile.picture) {
+        authorProfile.picture = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ccc"/></svg>';
+      }
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" onerror="this.src='data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"32\\" height=\\"32\\" viewBox=\\"0 0 24 24\\"><circle cx=\\"12\\" cy=\\"12\\" r=\\"10\\" fill=\\"%23ccc\\"/></svg>'">
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -661,7 +664,7 @@
       if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
       return d.toLocaleDateString();
     }
-
+    
     /***** Image Upload via Nostr.build API (NIP-98) *****/
     async function getEventHash(event) {
       const serialized = JSON.stringify([0, event.pubkey, event.created_at, event.kind, event.tags, event.content]);
@@ -733,65 +736,6 @@
       }
       e.target.value = '';
     });
-
-    /***** Zap Modal & Zap Functionality *****/
-    function openZapModal(noteId, pubkey) {
-      currentZapNote = { noteId, pubkey };
-      document.getElementById('zap-amount').value = '1000';
-      document.getElementById('zapModal').style.display = 'block';
-    }
-    function closeZapModal() {
-      document.getElementById('zapModal').style.display = 'none';
-      currentZapNote = null;
-    }
-    async function confirmZap() {
-      if (!currentZapNote) return;
-      const amount = parseInt(document.getElementById('zap-amount').value);
-      if (!amount || amount < 1) {
-        alert('Enter a valid amount');
-        return;
-      }
-      try {
-        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-        closeZapModal();
-      } catch (error) {
-        alert(error.message);
-      }
-    }
-    async function sendZap(noteId, pubkey, amount) {
-      try {
-        if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
-        const authorProfile = await fetchProfile(pubkey);
-        if (!authorProfile.lud16) throw new Error('User has not set up a Lightning address');
-        const [name, domain] = authorProfile.lud16.split('@');
-        const resp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
-        if (!resp.ok) throw new Error('Failed to get LNURL info');
-        const lnurlData = await resp.json();
-        const millisats = amount * 1000;
-        if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable)
-          throw new Error(`Amount must be between ${lnurlData.minSendable / 1000} and ${lnurlData.maxSendable / 1000} sats`);
-        const zapRequest = {
-          kind: 9734,
-          created_at: Math.floor(Date.now() / 1000),
-          content: "",
-          tags: [
-            ["relays", ...RELAYS],
-            ["amount", millisats.toString()],
-            ["p", pubkey],
-            ["e", noteId]
-          ]
-        };
-        const signedZapRequest = await window.nostr.signEvent(zapRequest);
-        const callbackResp = await fetch(`${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`);
-        if (!callbackResp.ok) throw new Error('Failed to get invoice');
-        const { pr: invoice } = await callbackResp.json();
-        await window.webln.enable();
-        await window.webln.sendPayment(invoice);
-        alert('Zap sent successfully! ⚡️');
-      } catch (error) {
-        throw error;
-      }
-    }
   </script>
 </body>
 </html>
