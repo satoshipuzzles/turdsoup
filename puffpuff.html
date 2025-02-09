@@ -9,14 +9,14 @@
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
     // Initialize Bitcoin Connect with your app name
     init({ appName: 'Turd Soup' });
-    // When a wallet connects, update the wallet status element
+    // Set up callbacks to update the wallet status element
     onConnected((provider) => {
       const walletStatus = document.getElementById('wallet-status');
       if (walletStatus) {
-        // Here you could use provider APIs to fetch real balance info.
+        // In a real application, you would call provider methods to fetch the balance, etc.
         walletStatus.textContent = 'Wallet Connected';
       }
-      window.webln = provider;
+      window.webln = provider; // assign the provider globally if needed
     });
     onDisconnected(() => {
       const walletStatus = document.getElementById('wallet-status');
@@ -33,17 +33,23 @@
       --text: #1f1f1f;
       --text-light: #666666;
     }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
       font-family: -apple-system, system-ui, sans-serif;
       background-color: var(--primary);
       color: var(--text);
       min-height: 100vh;
     }
-    /* Header: three sections (left, center, right) */
+    /* Header: three sections */
     .header {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 60px;
       background-color: var(--primary);
       display: flex;
@@ -73,8 +79,10 @@
       border-radius: 50%;
       transition: background-color 0.2s;
     }
-    .header-button:hover { background-color: rgba(255,255,255,0.2); }
-    /* Wallet status (displayed at bottom left) */
+    .header-button:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+    /* Wallet status (bottom left) */
     #wallet-status {
       position: fixed;
       bottom: 10px;
@@ -87,7 +95,7 @@
       font-size: 14px;
       z-index: 200;
     }
-    /* Main container styling */
+    /* Main container for the feed */
     .container {
       max-width: 600px;
       margin: 80px auto 20px;
@@ -96,7 +104,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    /* Compose card */
+    /* Compose card styling */
     .compose-card {
       background-color: var(--background);
       border-radius: 12px;
@@ -153,8 +161,10 @@
       align-items: center;
       justify-content: center;
     }
-    .floating-compose:hover { transform: scale(1.1); }
-    /* Note card */
+    .floating-compose:hover {
+      transform: scale(1.1);
+    }
+    /* Note card styling */
     .note-card {
       background-color: var(--background);
       border-radius: 12px;
@@ -232,8 +242,9 @@
       background: rgba(239,140,86,0.1);
       color: var(--primary);
     }
-    /* Modal styles */
-    .modal, .modal-overlay {
+    /* Modal styles for settings and zap */
+    .modal,
+    .modal-overlay {
       display: none;
       position: fixed;
       z-index: 300;
@@ -243,7 +254,8 @@
       height: 100%;
       background-color: rgba(0,0,0,0.4);
     }
-    .modal-content, .zap-modal {
+    .modal-content,
+    .zap-modal {
       background-color: var(--background);
       margin: 15% auto;
       padding: 20px;
@@ -283,14 +295,15 @@
     </div>
   </div>
 
-  <!-- Wallet status feedback in the bottom left -->
+  <!-- Wallet status displayed in the bottom left -->
   <div id="wallet-status">Not connected</div>
 
-  <!-- Main Content -->
+  <!-- Main content: Compose card and notes feed -->
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
-        <img id="compose-avatar" class="avatar" src="" alt="Profile" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/></svg>'" />
+        <img id="compose-avatar" class="avatar" src="" alt="Profile"
+          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -306,9 +319,10 @@
     <div id="notes"></div>
   </div>
 
+  <!-- Floating button to scroll to compose area -->
   <button class="floating-compose" onclick="scrollToCompose()">+</button>
 
-  <!-- Settings Modal -->
+  <!-- Settings Modal (for wallet connect and other settings) -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
@@ -346,6 +360,7 @@
 
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
+      // Retrieve stored profile data if available
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
@@ -375,13 +390,13 @@
       currentZapNote = null;
     }
 
-    /***** Bitcoin Connect *****/
+    /***** Bitcoin Connect Integration *****/
     async function connectBitcoin() {
       try {
-        // Use the full Bitcoin Connect API to launch the wallet chooser modal.
+        // Import and call launchModal from Bitcoin Connect to open the wallet chooser
         import { launchModal } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
         await launchModal();
-        // When the user connects, the onConnected handler (in the head) will update the wallet-status element.
+        // The onConnected callback (set in the head) will update the #wallet-status element.
       } catch (err) {
         alert("Bitcoin connect error: " + err.message);
       }
@@ -396,7 +411,10 @@
       }
       const ws = new WebSocket(url);
       wsPool.set(url, ws);
-      ws.onclose = () => { wsPool.delete(url); setTimeout(() => getWebSocket(url), 1000); };
+      ws.onclose = () => {
+        wsPool.delete(url);
+        setTimeout(() => getWebSocket(url), 1000);
+      };
       return ws;
     }
     function connectToRelays() {
@@ -417,8 +435,8 @@
       }
     }
     function subscribeToFeed(ws) {
-      subscribeToRelays(ws, ["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]);
-      subscribeToRelays(ws, ["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]);
+      subscribeToRelays(ws, ["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now() / 1000) }]);
+      subscribeToRelays(ws, ["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now() / 1000) }]);
       ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
         if (data[0] === "EVENT") {
@@ -447,7 +465,9 @@
               clearTimeout(timeoutId);
               profileCache.set(pubkey, prof);
               resolve(prof);
-            } catch (err) { resolve({}); }
+            } catch (err) {
+              resolve({});
+            }
           }
         });
         if (ws.readyState === WebSocket.OPEN) {
@@ -485,7 +505,7 @@
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
           return imgs.length
             ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
-                  ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                 ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
                </div>`
             : '';
         })()}
@@ -713,6 +733,65 @@
       }
       e.target.value = '';
     });
+
+    /***** Zap Modal & Zap Functionality *****/
+    function openZapModal(noteId, pubkey) {
+      currentZapNote = { noteId, pubkey };
+      document.getElementById('zap-amount').value = '1000';
+      document.getElementById('zapModal').style.display = 'block';
+    }
+    function closeZapModal() {
+      document.getElementById('zapModal').style.display = 'none';
+      currentZapNote = null;
+    }
+    async function confirmZap() {
+      if (!currentZapNote) return;
+      const amount = parseInt(document.getElementById('zap-amount').value);
+      if (!amount || amount < 1) {
+        alert('Enter a valid amount');
+        return;
+      }
+      try {
+        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
+        closeZapModal();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+    async function sendZap(noteId, pubkey, amount) {
+      try {
+        if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
+        const authorProfile = await fetchProfile(pubkey);
+        if (!authorProfile.lud16) throw new Error('User has not set up a Lightning address');
+        const [name, domain] = authorProfile.lud16.split('@');
+        const resp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
+        if (!resp.ok) throw new Error('Failed to get LNURL info');
+        const lnurlData = await resp.json();
+        const millisats = amount * 1000;
+        if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable)
+          throw new Error(`Amount must be between ${lnurlData.minSendable / 1000} and ${lnurlData.maxSendable / 1000} sats`);
+        const zapRequest = {
+          kind: 9734,
+          created_at: Math.floor(Date.now() / 1000),
+          content: "",
+          tags: [
+            ["relays", ...RELAYS],
+            ["amount", millisats.toString()],
+            ["p", pubkey],
+            ["e", noteId]
+          ]
+        };
+        const signedZapRequest = await window.nostr.signEvent(zapRequest);
+        const callbackResp = await fetch(`${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`);
+        if (!callbackResp.ok) throw new Error('Failed to get invoice');
+        const { pr: invoice } = await callbackResp.json();
+        await window.webln.enable();
+        await window.webln.sendPayment(invoice);
+        alert('Zap sent successfully! ⚡️');
+      } catch (error) {
+        throw error;
+      }
+    }
   </script>
 </body>
 </html>
