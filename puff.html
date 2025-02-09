@@ -95,11 +95,29 @@
       gap: 8px;
       margin: 10px 0;
     }
+    /* Each image preview is wrapped in a container so we can add a remove ("×") button */
+    .media-preview div {
+      position: relative;
+      display: inline-block;
+    }
     .media-preview img {
       width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
+      display: block;
       border-radius: 8px;
+    }
+    .remove-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 6px;
+      border-top-right-radius: 8px;
+      border-bottom-left-radius: 8px;
     }
     .note-actions {
       padding: 10px 15px;
@@ -179,7 +197,6 @@
     }
     .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    /* Replies are hidden by default and appear nested */
     .replies-container {
       margin-left: 40px;
       padding: 10px 15px;
@@ -296,7 +313,7 @@
 
   <button class="floating-compose" onclick="scrollToCompose()">+</button>
 
-  <!-- Settings Modal (opens when profile image is clicked) -->
+  <!-- Settings Modal -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
@@ -323,7 +340,6 @@
     let npub = null, profile = null;
     const profileCache = new Map();
     const seenNoteIds = new Set();
-    let newNotes = [];
     let lastSeenTimestamp = Math.floor(Date.now()/1000);
     const RELAYS = [
       'wss://relay.damus.io',
@@ -352,15 +368,15 @@
     function openSettingsModal() { document.getElementById('settingsModal').style.display = 'block'; }
     function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
     async function connectBitcoin() {
-      if (window.bitcoin && window.bitcoin.connect) {
-        try {
-          await window.bitcoin.connect();
-          alert('Bitcoin wallet connected!');
-        } catch (error) {
-          alert('Failed to connect Bitcoin wallet: ' + error.message);
+      try {
+        if (window.webln) {
+          await window.webln.enable();
+          alert('Bitcoin wallet connected via WebLN!');
+        } else {
+          alert('WebLN not available. Please install a compatible wallet.');
         }
-      } else {
-        alert('Bitcoin Connect not available.');
+      } catch (err) {
+        alert('Bitcoin connect error: ' + err.message);
       }
     }
 
@@ -384,6 +400,7 @@
       });
     }
     function subscribeToFeed(ws) {
+      // Only subscribe to notes that are not replies.
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
@@ -428,6 +445,8 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
+      // Skip notes that are replies (they will be rendered nested)
+      if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
@@ -470,15 +489,13 @@
       return div;
     }
     function handleNewNote(note) {
-      if (note.created_at > lastSeenTimestamp) {
-        newNotes.push(note);
-        // (You could implement a “new notes” banner here if desired)
-      } else {
-        createNoteElement(note).then(el => { if (el) document.getElementById('notes').appendChild(el); });
-      }
+      // Skip replies in the main feed
+      if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
+      createNoteElement(note).then(el => { if (el) document.getElementById('notes').appendChild(el); });
     }
     async function publishNote() {
       const content = document.getElementById('content').value;
+      // Gather URLs only from images currently visible in media-preview
       const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
                         .map(img => img.dataset.url);
       if (!content.trim() && images.length === 0) {
@@ -530,16 +547,17 @@
       });
     }
     async function createReplyElement(reply) {
-      const authorProfile = await fetchProfile(reply.pubkey);
+      let authorProfile = await fetchProfile(reply.pubkey);
+      if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
+      if (!authorProfile.picture)
+        authorProfile.picture = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23ccc"/%3E%3C/svg%3E';
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23ccc"/%3E%3C/svg%3E'}" 
-               alt="Profile" class="avatar" style="width: 32px; height: 32px;" 
-               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
           <div class="author-info">
-            <div class="author-name">${authorProfile.name || reply.pubkey.slice(0,8)}</div>
+            <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
           </div>
         </div>
@@ -632,10 +650,19 @@
         const result = await response.json();
         if (result.status === 'success' && result.data && result.data.length > 0 && result.data[0].url) {
           const preview = document.getElementById('media-preview');
+          const container = document.createElement('div');
+          container.style.position = 'relative';
           const img = document.createElement('img');
           img.src = result.data[0].url;
           img.dataset.url = result.data[0].url;
-          preview.appendChild(img);
+          container.appendChild(img);
+          const removeBtn = document.createElement('button');
+          removeBtn.innerText = '×';
+          removeBtn.className = 'remove-btn';
+          removeBtn.addEventListener('click', () => { container.remove(); });
+          container.appendChild(removeBtn);
+          preview.appendChild(container);
+          // Update the preview container’s class (single vs. multiple)
           const imgs = preview.getElementsByTagName('img');
           preview.className = `media-preview ${imgs.length === 1 ? 'single' : 'multiple'}`;
           return result.data[0].url;
