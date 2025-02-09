@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint – TurdSoup</title>
-  <!-- Import Bitcoin Connect (using ES module) -->
+  <!-- Import Bitcoin Connect API -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-    // Initialize Bitcoin Connect with our app name
+    // Initialize Bitcoin Connect with our app name.
     init({ appName: 'Turd Soup' });
     onConnected(async (provider) => {
       console.log("[Bitcoin Connect] Connected:", provider);
+      // If available, get balance from provider.
       let balance = "N/A";
       if (provider.getBalance) {
         try {
@@ -20,6 +21,7 @@
         }
       }
       updateWalletUI({ walletAddress: provider.connectorName || 'Wallet', balance: balance + " sats" });
+      // Set global provider for later use.
       window.webln = provider;
     });
     onDisconnected(() => {
@@ -45,9 +47,9 @@
       font-family: -apple-system, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      padding-bottom: 70px; /* room for wallet info */
+      padding-bottom: 70px; /* leave room for wallet info */
     }
-    /* Header: three zones (left, center, right) */
+    /* Header split into three sections: left (home), center (feed), right (profile) */
     .header {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -83,7 +85,7 @@
       object-fit: cover;
       cursor: pointer;
     }
-    /* Wallet info (bottom left) */
+    /* Wallet info displayed in bottom left */
     #wallet-info {
       position: fixed;
       bottom: 10px;
@@ -175,7 +177,7 @@
       border-top-right-radius: 8px;
       border-bottom-left-radius: 8px;
     }
-    /* Note action buttons (minimal style like Twitter) */
+    /* Note action buttons (minimal styling similar to Twitter) */
     .note-actions {
       padding: 10px 15px;
       display: flex;
@@ -254,7 +256,7 @@
     }
     .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    /* Replies and Zap details dropdowns (minimal styling) */
+    /* Replies & Zap details dropdowns (minimal styling) */
     .replies-container, .zap-details-container {
       margin-left: 40px;
       padding: 8px 12px;
@@ -367,7 +369,7 @@
     </div>
   </div>
 
-  <!-- Wallet Info (shown when connected) -->
+  <!-- Wallet Info (displayed when connected) -->
   <div id="wallet-info">Not connected</div>
 
   <!-- Main Container -->
@@ -400,7 +402,7 @@
     <div class="modal-content">
       <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
       <h2>User Settings</h2>
-      <!-- Launch the Bitcoin Connect dark‑themed popup -->
+      <!-- Launch Bitcoin Connect popup (dark-themed) -->
       <button id="bitcoinConnectButton" class="publish-button" onclick="launchModal()">Connect Bitcoin Wallet</button>
     </div>
   </div>
@@ -443,7 +445,7 @@
     const seenNoteIds = new Set();
     const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.nostrfreaks.com'];
     let currentZapNote = null;
-    const zapDetails = {}; // { noteId: [zapEvent, ...] }
+    const zapDetails = {}; // will store zap events by note id
     let oldestTimestamp = Math.floor(Date.now() / 1000);
 
     /***** Toast Notifications *****/
@@ -452,6 +454,7 @@
       toast.className = 'toast';
       toast.textContent = message;
       document.body.appendChild(toast);
+      // Trigger reflow
       getComputedStyle(toast).opacity;
       toast.style.opacity = 1;
       setTimeout(() => {
@@ -480,6 +483,7 @@
       document.getElementById('content').focus();
       logEvent("Scrolled to Compose", {});
     }
+    // The lightning (zap) button opens the zap modal for initiating a zap.
     function openZapModal(noteId, pubkey) {
       currentZapNote = { noteId, pubkey };
       document.getElementById('zap-slider').value = 1000;
@@ -498,7 +502,9 @@
     function updateWalletUI(result) {
       const walletDiv = document.getElementById('wallet-info');
       if (walletDiv) {
-        walletDiv.innerText = result.walletAddress ? "Connected: " + result.walletAddress + " | Balance: " + result.balance : "Not connected";
+        walletDiv.innerText = result.walletAddress
+          ? "Connected: " + result.walletAddress + " | Balance: " + result.balance
+          : "Not connected";
       }
       logEvent("Wallet UI Updated", result);
     }
@@ -507,7 +513,10 @@
     async function confirmZap() {
       if (!currentZapNote) return;
       const amount = parseInt(document.getElementById('zap-slider').value);
-      if (!amount || amount < 1) { showToast("Enter a valid amount"); return; }
+      if (!amount || amount < 1) {
+        showToast("Enter a valid amount");
+        return;
+      }
       try {
         logEvent("Confirm Zap Initiated", { noteId: currentZapNote.noteId, pubkey: currentZapNote.pubkey, amount });
         await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
@@ -522,7 +531,7 @@
 
     /***** Zap Module Interactivity *****/
     document.addEventListener('DOMContentLoaded', () => {
-      // Preselected zap amount buttons (if they have data-amount)
+      // Preselected zap amount buttons
       document.querySelectorAll('.zap-amount-btn').forEach(btn => {
         if (btn.hasAttribute('data-amount')) {
           btn.addEventListener('click', () => {
@@ -585,10 +594,14 @@
                 const noteId = refTag[1];
                 if (!zapDetails[noteId]) zapDetails[noteId] = [];
                 zapDetails[noteId].push(event);
+                // Update zap badge (count of zap events)
                 const zapBadge = document.getElementById('zap-badge-' + noteId);
                 if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
                 // Also update total zap sats (sum amounts)
-                const totalMillis = zapDetails[noteId].reduce((sum, e) => sum + parseInt(e.tags.find(t => t[0] === "amount")[1] || "0"), 0);
+                const totalMillis = zapDetails[noteId].reduce((sum, e) => {
+                  const amtTag = e.tags.find(t => t[0] === "amount");
+                  return sum + (amtTag ? parseInt(amtTag[1] || "0") : 0);
+                }, 0);
                 const zapTotalSpan = document.getElementById('zap-total-' + noteId);
                 if (zapTotalSpan) zapTotalSpan.textContent = Math.floor(totalMillis / 1000) + " sats";
               }
@@ -658,7 +671,7 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip replies (handled in threads)
+      // Skip replies (they’ll be loaded nested)
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
@@ -681,17 +694,21 @@
         <div class="note-content">${note.content}</div>
         ${(() => {
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-          return imgs.length ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
-                                  ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
-                                </div>` : '';
+          return imgs.length
+            ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
+                ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+              </div>`
+            : '';
         })()}
         <div class="note-actions">
           <button class="action-button" onclick="toggleReplies('${note.id}')">
             💬 <span class="badge badge-comment" id="reply-badge-${note.id}">0</span>
           </button>
+          <!-- The lightning emoji initiates a zap -->
           <button class="action-button" onclick="openZapModal('${note.id}', '${note.pubkey}')">
             ⚡️ <span class="badge badge-zap" id="zap-badge-${note.id}">0</span>
           </button>
+          <!-- The zap total (number) is clickable to view the breakdown -->
           <span class="action-button" onclick="viewZapDetails('${note.id}')">
             <span id="zap-total-${note.id}">0 sats</span>
           </span>
@@ -795,6 +812,7 @@
       logEvent("Reply Element Created", { replyId: reply.id });
       return div;
     }
+    // When the zap total (number) is clicked, show a breakdown of all zap events for this note.
     function viewZapDetails(noteId) {
       const container = document.getElementById('zap-details-' + noteId);
       if (!container) return;
@@ -822,10 +840,10 @@
     }
     function formatTimestamp(ts) {
       const d = new Date(ts * 1000), now = new Date(), diff = Math.floor((now - d) / 1000);
-      if (diff < 60) return 'just now';
-      if (diff < 3600) return `${Math.floor(diff/60)}m`;
-      if (diff < 86400) return `${Math.floor(diff/3600)}h`;
-      if (diff < 604800) return `${Math.floor(diff/86400)}d`;
+      if(diff < 60) return 'just now';
+      if(diff < 3600) return `${Math.floor(diff/60)}m`;
+      if(diff < 86400) return `${Math.floor(diff/3600)}h`;
+      if(diff < 604800) return `${Math.floor(diff/86400)}d`;
       return d.toLocaleDateString();
     }
 
@@ -932,8 +950,10 @@
         await window.webln.enable();
         await window.webln.sendPayment(invoice);
         logEvent("Zap Payment Successful", { noteId, invoice });
-        // Update total zap sats for the note
-        const totalMillis = zapDetails[noteId] ? zapDetails[noteId].reduce((sum, e) => sum + parseInt(e.tags.find(t => t[0] === "amount")[1] || "0"), 0) : 0;
+        // Update zap total (if any zap details already exist, recalc total)
+        const totalMillis = zapDetails[noteId]
+          ? zapDetails[noteId].reduce((sum, e) => sum + parseInt(e.tags.find(t => t[0] === "amount")[1] || "0"), 0)
+          : 0;
         const zapTotalSpan = document.getElementById('zap-total-' + noteId);
         if (zapTotalSpan) zapTotalSpan.textContent = Math.floor(totalMillis / 1000) + " sats";
         return true;
@@ -945,7 +965,7 @@
 
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
-      // Load stored profile if available
+      // Load stored profile (if available)
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
