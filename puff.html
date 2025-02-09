@@ -41,13 +41,14 @@
     });
   </script>
   <style>
-    /* Reset and basic fonts */
+    /* Basic Reset & Font */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
+      background-color: #EF8C56; /* Primary color */
+      color: #1f1f1f;
       font-family: -apple-system, system-ui, sans-serif;
-      background-color: #F2F2F2;
-      color: #333;
-      padding-bottom: 70px; /* space for wallet info */
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 70px; /* For wallet info at bottom */
     }
     /* Header */
     .header {
@@ -70,23 +71,23 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      cursor: pointer;
       object-fit: cover;
+      cursor: pointer;
     }
-    /* Wallet Info – bottom left */
+    /* Wallet Info – Bottom Left */
     #wallet-info {
       position: fixed;
       bottom: 10px;
       left: 10px;
       background: #fff;
-      color: #333;
+      color: #1f1f1f;
       padding: 8px 12px;
       border-radius: 5px;
       font-size: 14px;
       z-index: 200;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    /* Main container */
+    /* Container */
     .container {
       max-width: 600px;
       margin: 80px auto 20px;
@@ -149,7 +150,7 @@
     .note-card .note-header img { width: 48px; height: 48px; border-radius: 50%; }
     .author-info { flex: 1; }
     .author-name { font-weight: 600; }
-    .timestamp { font-size: 12px; color: #999; }
+    .timestamp { font-size: 12px; color: #666; }
     .note-content { padding: 10px; font-size: 16px; }
     .media-container {
       width: 100%;
@@ -203,7 +204,17 @@
       font-size: 14px;
       color: #333;
     }
-    /* Nested Replies */
+    /* For Comments/Replies */
+    .reply-input textarea {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+      margin-top: 5px;
+    }
     .replies-container { margin-left: 50px; padding: 5px 0; display: none; }
     .reply-card {
       display: flex;
@@ -213,7 +224,7 @@
     }
     .reply-card img { width: 32px; height: 32px; border-radius: 50%; }
     .reply-content { font-size: 14px; }
-    /* Zap Details (dropdown) */
+    /* Zap Details (Dropdown) */
     .zap-details-container { margin-left: 50px; padding: 5px 0; display: none; }
     .zap-card {
       display: flex;
@@ -341,12 +352,12 @@
     <div class="modal-content">
       <span class="close-modal" onclick="closeSettingsModal()">&times;</span>
       <h2>User Settings</h2>
-      <!-- Bitcoin Connect Web Component -->
+      <!-- Bitcoin Connect Web Component (full modal experience) -->
       <bc-button title="Connect Bitcoin Wallet" onclick="launchModal()"></bc-button>
     </div>
   </div>
 
-  <!-- Zap Modal (Mobile-first interactive) -->
+  <!-- Zap Modal (Mobile-first interactive zap module) -->
   <div id="zapModal" class="modal-overlay">
     <div class="zap-modal">
       <span class="close-modal" onclick="closeZapModal()">&times;</span>
@@ -374,7 +385,7 @@
     </div>
   </div>
 
-  <!-- Toast Notifications -->
+  <!-- Toast Notifications Container -->
   <div id="toast-container"></div>
 
   <script>
@@ -387,7 +398,7 @@
       'wss://nos.lol',
       'wss://relay.nostrfreaks.com'
     ];
-    let currentZapNote = null;
+    let currentZapNote = null; // { noteId, pubkey }
     const zapDetails = {};  // For each note ID, store an array of zap events
     let oldestTimestamp = Math.floor(Date.now() / 1000);
 
@@ -397,7 +408,7 @@
       toast.className = 'toast';
       toast.textContent = message;
       document.body.appendChild(toast);
-      // Force reflow
+      // Force reflow for transition
       getComputedStyle(toast).opacity;
       toast.style.opacity = 1;
       setTimeout(() => {
@@ -536,14 +547,9 @@
                 const noteId = refTag[1];
                 if (!zapDetails[noteId]) zapDetails[noteId] = [];
                 zapDetails[noteId].push(event);
+                // Only one zap button with one count:
                 const zapBadge = document.getElementById('zap-badge-' + noteId);
                 if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
-                const totalMillis = zapDetails[noteId].reduce((sum, e) => {
-                  const amtTag = e.tags.find(t => t[0] === "amount");
-                  return sum + (amtTag ? parseInt(amtTag[1] || "0") : 0);
-                }, 0);
-                const zapTotalSpan = document.getElementById('zap-total-' + noteId);
-                if (zapTotalSpan) zapTotalSpan.textContent = Math.floor(totalMillis / 1000) + " sats";
               }
             } else if (event.kind === 1) {
               if (event.created_at < oldestTimestamp) oldestTimestamp = event.created_at;
@@ -608,7 +614,7 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip replies (nested replies are handled separately)
+      // Skip replies (nested replies handled separately)
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
@@ -641,11 +647,8 @@
           <button class="action-button" onclick="toggleReplies('${note.id}')">
             💬 <span class="badge" id="reply-badge-${note.id}">0</span>
           </button>
-          <button class="action-button" onclick="openZapModal('${note.id}', '${note.pubkey}')">
-            ⚡️ <span class="badge" id="zap-badge-${note.id}">0</span>
-          </button>
           <button class="action-button" onclick="viewZapDetails('${note.id}')">
-            <span id="zap-total-${note.id}">0 sats</span>
+            ⚡️ <span class="badge" id="zap-badge-${note.id}">0</span>
           </button>
         </div>
         <div id="replies-${note.id}" class="replies-container"></div>
@@ -794,7 +797,7 @@
       } else {
         container.innerHTML = "";
         const zaps = zapDetails[noteId] || [];
-        zaps.forEach(async (zap) => {
+        for (const zap of zaps) {
           let zapProfile = await fetchProfile(zap.pubkey);
           if (!zapProfile.name) zapProfile.name = zap.pubkey.slice(0, 8);
           if (!zapProfile.picture)
@@ -807,7 +810,7 @@
             <div><strong>${zapProfile.name}</strong> – ${Math.floor(parseInt(amt) / 1000)} sats</div>
           `;
           container.appendChild(div);
-        });
+        }
         container.style.display = 'block';
       }
     }
@@ -815,10 +818,10 @@
       const d = new Date(ts * 1000),
             now = new Date(),
             diff = Math.floor((now - d) / 1000);
-      if (diff < 60) return 'just now';
-      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-      if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+      if(diff < 60) return 'just now';
+      if(diff < 3600) return `${Math.floor(diff/60)}m`;
+      if(diff < 86400) return `${Math.floor(diff/3600)}h`;
+      if(diff < 604800) return `${Math.floor(diff/86400)}d`;
       return d.toLocaleDateString();
     }
 
@@ -888,9 +891,7 @@
       }
     }
     document.getElementById('image-input').addEventListener('change', async (e) => {
-      for (let file of e.target.files) {
-        await handleImageUpload(file);
-      }
+      for (let file of e.target.files) { await handleImageUpload(file); }
       e.target.value = '';
     });
 
