@@ -7,10 +7,10 @@
   <!-- Import Bitcoin Connect (web components and API) -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-    // Initialize Bitcoin Connect with your app name.
+    // Initialize Bitcoin Connect
     init({ appName: 'Turd Soup' });
     onConnected(async (provider) => {
-      // Try to get balance if supported.
+      // Try to get balance if available
       let balanceText = "(balance unavailable)";
       if (provider.getBalance) {
         try {
@@ -22,7 +22,7 @@
       }
       const walletDiv = document.getElementById('wallet-info');
       if (walletDiv) {
-        walletDiv.innerText = "Connected: " + provider.connectorName + " | Balance: " + balanceText;
+        walletDiv.innerText = "Connected: " + (provider.connectorName || 'Wallet') + " | Balance: " + balanceText;
       }
       window.webln = provider;
     });
@@ -47,7 +47,7 @@
       font-family: -apple-system, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      padding-bottom: 60px; /* leave space for fixed wallet info */
+      padding-bottom: 60px; /* leave space for wallet info */
     }
     /* Header – three zones */
     .header {
@@ -78,7 +78,7 @@
       transition: background-color 0.2s;
     }
     .header-button:hover { background-color: rgba(255,255,255,0.1); }
-    #profile-pic { cursor: pointer; display: inline-block; }
+    #profile-pic { cursor: pointer; }
     /* Wallet info fixed in bottom left */
     #wallet-info {
       position: fixed;
@@ -185,26 +185,15 @@
       gap: 15px;
       border-top: 1px solid rgba(0,0,0,0.05);
     }
-    .action-button {
-      background: none;
-      border: none;
-      color: var(--text-light);
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      position: relative;
-    }
+    /* Badge now is inline */
     .badge {
+      display: inline-block;
       background: var(--primary);
       color: #fff;
       font-size: 12px;
-      border-radius: 50%;
+      border-radius: 12px;
       padding: 2px 6px;
-      position: absolute;
-      top: -4px;
-      right: -4px;
+      margin-left: 5px;
     }
     .compose-text {
       width: 100%;
@@ -331,8 +320,8 @@
       <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
     </div>
     <div class="header-right" id="profile-pic" onclick="openSettingsModal()">
-      <!-- Default profile fallback SVG (properly encoded) -->
-      <img src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E" alt="Profile" class="avatar" />
+      <!-- Fallback profile image using single quotes in the data URL -->
+      <img src="data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E" alt="Profile" class="avatar" />
     </div>
   </div>
 
@@ -342,7 +331,7 @@
       <div class="note-header">
         <img id="compose-avatar" class="avatar" src=""
           alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
+          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -383,7 +372,7 @@
     </div>
   </div>
 
-  <!-- Optional: A modal to view detailed zap events for a note -->
+  <!-- Zap Details Modal -->
   <div id="zapDetailsModal" class="modal-overlay">
     <div class="modal-content">
       <span class="close-modal" onclick="closeZapDetailsModal()">&times;</span>
@@ -403,10 +392,9 @@
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null; // { noteId, pubkey }
-    // For each note id, store an array of zap events
+    // Global zap details: for each note id, store an array of zap events.
     const zapDetails = {};
-    // For comment count, we use reply count (already updated)
-    
+
     /***** Global Functions (attached to window) *****/
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'block';
@@ -430,7 +418,6 @@
     window.closeZapDetailsModal = function() {
       document.getElementById('zapDetailsModal').style.display = 'none';
     };
-    // When zap is confirmed, send zap via Bitcoin Connect and update zap details.
     window.confirmZap = async function() {
       if (!currentZapNote) return;
       const amount = parseInt(document.getElementById('zap-amount').value);
@@ -438,7 +425,6 @@
       try {
         await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
         alert('Zap sent successfully!');
-        // (The incoming zap event from the relay should update the UI automatically.)
         closeZapModal();
       } catch (error) {
         alert(error.message);
@@ -470,14 +456,12 @@
         walletDiv.innerText = "Connected: " + (result.walletAddress || 'Wallet') + " | Balance: " + (result.balance || '0 sats');
       }
     };
-    // When a user clicks the zap icon, also allow viewing zap details.
     window.toggleZapDetails = function(noteId) {
       const container = document.getElementById('zap-details-' + noteId);
       if (container) {
         container.style.display = (container.style.display === 'block') ? 'none' : 'block';
       }
     };
-    // Alternatively, open a modal to view zap details.
     window.viewZapDetails = function(noteId) {
       const container = document.getElementById('zap-details-container');
       container.innerHTML = '';
@@ -485,9 +469,8 @@
         zapDetails[noteId].forEach(async (zapEvent) => {
           let zapProfile = await fetchProfile(zapEvent.pubkey);
           if (!zapProfile.picture) {
-            zapProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E";
+            zapProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2732%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E";
           }
-          // Extract zap amount from tag ["amount", "..."]
           const amountTag = zapEvent.tags.find(tag => tag[0] === "amount");
           const amt = amountTag ? amountTag[1] : "N/A";
           const div = document.createElement('div');
@@ -506,7 +489,7 @@
 
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
-      // Load stored profile (if any)
+      // Load stored profile if available.
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
@@ -514,7 +497,7 @@
         if (profile.picture) {
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
-          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />`;
+          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />`;
         }
       }
       connectToRelays();
@@ -540,22 +523,20 @@
       });
     }
     function subscribeToFeed(ws) {
-      // Subscribe to main feed (notes)
+      // Subscribe to main feed (non-reply notes)
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
         if (data[0] === "EVENT") {
           const event = data[2];
-          if (event.kind === 9734) {
-            // Zap event: record it
+          if (event.kind === 9734) { // Zap event
             const refTag = event.tags.find(t => t[0] === "e");
             if (refTag) {
               const noteId = refTag[1];
               if (!zapDetails[noteId]) zapDetails[noteId] = [];
               zapDetails[noteId].push(event);
-              // Also update any visible zap count badge
-              const zapBadge = document.querySelector(`#note-${noteId} .zap-badge`);
+              const zapBadge = document.getElementById('zap-badge-' + noteId);
               if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
             }
           } else if (event.kind === 1) {
@@ -568,7 +549,7 @@
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(["EVENT", event]));
-        else ws.addEventListener('open', () => { ws.send(JSON.stringify(["EVENT", event])); });
+        else ws.addEventListener('open', () => ws.send(JSON.stringify(["EVENT", event])));
       });
     }
 
@@ -601,22 +582,21 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip if this is a reply (it will be loaded nested)
+      // Skip if note is a reply
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
       if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E";
+        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'note-card';
       div.id = "note-" + note.id;
       div.dataset.timestamp = note.created_at;
       div.innerHTML = `
         <div class="note-header">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar"
-               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -649,7 +629,6 @@
       return div;
     }
     function handleNewNote(note) {
-      // Skip replies in main feed.
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
       createNoteElement(note).then(el => { if (el) document.getElementById('notes').appendChild(el); });
     }
@@ -705,7 +684,6 @@
               const el = await createReplyElement(reply);
               if (replyContainer) {
                 replyContainer.insertBefore(el, replyContainer.firstChild);
-                // Update reply badge
                 document.getElementById('reply-badge-' + noteId).textContent = replyContainer.children.length;
               }
             }
@@ -717,13 +695,12 @@
       let authorProfile = await fetchProfile(reply.pubkey);
       if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E";
+        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2732%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px; border-radius:50%;" 
-               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px; border-radius:50%;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2732%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -742,7 +719,7 @@
       return d.toLocaleDateString();
     }
 
-    /***** Image Upload (using nostr.build API, NIP-98) *****/
+    /***** Image Upload (NIP-98 via nostr.build) *****/
     async function getEventHash(event) {
       const serialized = JSON.stringify([0, event.pubkey, event.created_at, event.kind, event.tags, event.content]);
       const encoder = new TextEncoder();
@@ -808,7 +785,7 @@
       e.target.value = '';
     });
 
-    /***** Zap Functionality (using Bitcoin Connect and NIP-44) *****/
+    /***** Zap Functionality using Bitcoin Connect and NIP-44 *****/
     async function sendZap(noteId, pubkey, amount) {
       try {
         if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
