@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Puff Puff Paint – Final Version</title>
-    <!-- Bitcoin Connect Integration -->
+    <title>Puff Puff Paint – Enhanced Version</title>
+    <!-- Import Bitcoin Connect API (v3.6.3) -->
     <script type="module">
       import {
         init,
@@ -14,7 +14,7 @@
         onConnected,
         onDisconnected
       } from "https://esm.sh/@getalby/bitcoin-connect@3.6.3";
-      // Initialize Bitcoin Connect with full options (showBalance true gives a dark‐themed popup)
+      // Initialize Bitcoin Connect (we enable balance display, dark theme is auto‐detected)
       init({ appName: "Puff Puff Paint", showBalance: true });
       onConnected((provider) => {
         console.log("[Bitcoin Connect] Connected:", provider);
@@ -26,7 +26,7 @@
       });
     </script>
     <style>
-      /* --- Reset & Base --- */
+      /* --------------------- Base & Reset --------------------- */
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
         background-color: #EF8C56; /* original primary background */
@@ -34,7 +34,7 @@
         font-family: -apple-system, system-ui, sans-serif;
         padding-bottom: 70px;
       }
-      /* --- Header --- */
+      /* --------------------- Header --------------------- */
       .header {
         position: fixed;
         top: 0;
@@ -70,13 +70,13 @@
         object-fit: cover;
         cursor: pointer;
       }
-      /* --- Main Container --- */
+      /* --------------------- Main Container --------------------- */
       .container {
         max-width: 600px;
         margin: 80px auto 20px;
         padding: 0 10px;
       }
-      /* --- Compose Card --- */
+      /* --------------------- Compose Card --------------------- */
       .compose-card {
         background: #fff;
         border-radius: 10px;
@@ -128,7 +128,7 @@
         background: #D97B45;
         transform: translateY(-1px);
       }
-      /* --- Note Card --- */
+      /* --------------------- Note Card --------------------- */
       .note-card {
         background: #fff;
         border-radius: 10px;
@@ -195,7 +195,7 @@
         border-top-right-radius: 8px;
         border-bottom-left-radius: 8px;
       }
-      /* --- Note Actions (Icons & Numeric Badge) --- */
+      /* --------------------- Note Actions --------------------- */
       .note-actions {
         display: flex;
         gap: 20px;
@@ -211,8 +211,11 @@
         color: #666;
         cursor: pointer;
       }
-      .note-actions .action span { font-size: 14px; color: #333; }
-      /* --- Replies & Zap Details (Dropdown Threads) --- */
+      .note-actions .action span {
+        font-size: 14px;
+        color: #333;
+      }
+      /* --------------------- Replies & Zap Details (Dropdown Threads) --------------------- */
       .replies-container,
       .zap-details-container {
         margin-left: 50px;
@@ -260,7 +263,7 @@
         height: 32px;
         border-radius: 50%;
       }
-      /* --- Modals --- */
+      /* --------------------- Modals --------------------- */
       .modal, .modal-overlay {
         display: none;
         position: fixed;
@@ -269,7 +272,7 @@
         background: rgba(0,0,0,0.5);
         z-index: 300;
       }
-      .modal-content, .zap-modal {
+      .modal-content {
         background: #fff;
         padding: 20px;
         border-radius: 8px;
@@ -280,22 +283,59 @@
       }
       .close-modal {
         position: absolute;
-        top: 10px; right: 15px;
+        top: 10px;
+        right: 15px;
         font-size: 24px;
         cursor: pointer;
       }
-      /* Zap Modal – Mobile-first */
-      .zap-modal-container {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+      /* --------------------- Zap Modal (Circular Slider) --------------------- */
+      .zap-modal {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        margin: 15% auto;
+        position: relative;
       }
-      .zap-amount-options {
+      .zap-modal h3 { text-align: center; margin-bottom: 15px; }
+      .circular-slider-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 15px;
+      }
+      .circular-slider-container svg {
+        transform: rotate(-90deg);
+      }
+      .circular-slider-container circle {
+        fill: none;
+        stroke-width: 10;
+      }
+      .circular-slider-bg {
+        stroke: #eee;
+      }
+      .circular-slider-fg {
+        stroke: #EF8C56;
+        stroke-linecap: round;
+        stroke-dasharray: 440;
+        stroke-dashoffset: 440;
+        transition: stroke-dashoffset 0.2s ease;
+      }
+      .circular-slider-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .zap-presets {
         display: flex;
-        gap: 10px;
         justify-content: space-around;
+        margin-bottom: 15px;
       }
-      .zap-amount-btn {
+      .zap-presets button {
         background: #EF8C56;
         color: #fff;
         border: none;
@@ -303,25 +343,7 @@
         border-radius: 4px;
         cursor: pointer;
       }
-      .zap-slider-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      #zap-slider { flex: 1; }
-      .zap-slider-value { font-size: 16px; }
-      .zap-custom-container {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-      #zap-custom {
-        flex: 1;
-        padding: 6px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-      /* --- Floating Compose Button --- */
+      /* --------------------- Floating Compose Button --------------------- */
       .floating-compose {
         position: fixed;
         bottom: 20px;
@@ -345,7 +367,7 @@
         transform: scale(1.1);
         background: #D97B45;
       }
-      /* --- Toast Notifications --- */
+      /* --------------------- Toast Notifications --------------------- */
       .toast {
         position: fixed;
         bottom: 30px;
@@ -359,7 +381,7 @@
         transition: opacity 0.5s ease;
         z-index: 400;
       }
-      /* --- Responsive Adjustments --- */
+      /* --------------------- Responsive --------------------- */
       @media (max-width: 480px) {
         .note-actions { gap: 10px; }
         .reply-input textarea { font-size: 16px; }
@@ -415,28 +437,27 @@
       </div>
     </div>
 
-    <!-- ZAP MODAL (Mobile-first Zap Amount Selector) -->
+    <!-- ZAP MODAL (Circular Slider) -->
     <div id="zapModal" class="modal-overlay">
       <div class="zap-modal">
         <span class="close-modal" onclick="closeZapModal()">&times;</span>
         <h3>Send Zap</h3>
-        <div class="zap-modal-container">
-          <div class="zap-amount-options">
-            <button class="zap-amount-btn" data-amount="100" onclick="setZapAmount(100)">100</button>
-            <button class="zap-amount-btn" data-amount="250" onclick="setZapAmount(250)">250</button>
-            <button class="zap-amount-btn" data-amount="500" onclick="setZapAmount(500)">500</button>
-            <button class="zap-amount-btn" data-amount="1000" onclick="setZapAmount(1000)">1000</button>
-          </div>
-          <div class="zap-slider-container">
-            <input type="range" id="zap-slider" min="1" max="10000" value="1000" onchange="updateZapSlider(this.value)" />
-            <span id="zap-slider-value" class="zap-slider-value">1000 sats</span>
-          </div>
-          <div class="zap-custom-container">
-            <input type="number" id="zap-custom" placeholder="Custom amount" min="1" />
-            <button class="zap-amount-btn" id="zap-custom-btn" onclick="setZapCustom()">Set</button>
-          </div>
+        <div class="zap-presets">
+          <button class="zap-amount-btn" onclick="setZapAmount(100)">100</button>
+          <button class="zap-amount-btn" onclick="setZapAmount(250)">250</button>
+          <button class="zap-amount-btn" onclick="setZapAmount(500)">500</button>
+          <button class="zap-amount-btn" onclick="setZapAmount(1000)">1000</button>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+        <div class="circular-slider-container" id="circular-slider">
+          <svg width="150" height="150">
+            <!-- Background circle -->
+            <circle class="circular-slider-bg" cx="75" cy="75" r="70"></circle>
+            <!-- Foreground progress circle -->
+            <circle class="circular-slider-fg" cx="75" cy="75" r="70"></circle>
+          </svg>
+          <div class="circular-slider-value" id="zap-amount-display">1000 sats</div>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
           <button class="publish-button" onclick="closeZapModal()">Cancel</button>
           <button class="publish-button" onclick="confirmZap()">Send Zap</button>
         </div>
@@ -459,6 +480,7 @@
       let currentZapNote = null; // { noteId, pubkey }
       const zapDetails = {}; // noteId -> array of zap events
       let oldestTimestamp = Math.floor(Date.now() / 1000);
+      let currentZapAmount = 1000;
 
       /***** Toast Notifications *****/
       function showToast(message) {
@@ -466,7 +488,8 @@
         toast.className = "toast";
         toast.textContent = message;
         document.body.appendChild(toast);
-        getComputedStyle(toast).opacity; // force reflow
+        // force reflow
+        getComputedStyle(toast).opacity;
         toast.style.opacity = 1;
         setTimeout(() => {
           toast.style.opacity = 0;
@@ -491,9 +514,8 @@
       }
       function openZapModal(noteId, pubkey) {
         currentZapNote = { noteId, pubkey };
-        document.getElementById("zap-slider").value = 1000;
-        document.getElementById("zap-slider-value").textContent = "1000 sats";
-        document.getElementById("zap-custom").value = "";
+        // Reset circular slider to default 1000 sats
+        setZapAmount(1000);
         document.getElementById("zapModal").style.display = "block";
         console.log("[Modal] Zap opened for note", noteId);
       }
@@ -503,18 +525,49 @@
         console.log("[Modal] Zap closed");
       }
       function setZapAmount(amount) {
-        document.getElementById("zap-slider").value = amount;
-        updateZapSlider(amount);
+        currentZapAmount = amount;
+        updateCircularSlider(amount);
       }
-      function updateZapSlider(value) {
-        document.getElementById("zap-slider-value").textContent = value + " sats";
+
+      /***** Circular Slider (Zap Amount) Implementation *****/
+      const sliderCircle = document.querySelector(".circular-slider-fg");
+      const sliderValueDisplay = document.getElementById("zap-amount-display");
+      const circleRadius = 70;
+      const circleCircumference = 2 * Math.PI * circleRadius;
+      // Set maximum zap amount (in sats)
+      const MAX_ZAP = 10000;
+      function updateCircularSlider(amount) {
+        currentZapAmount = amount;
+        sliderValueDisplay.textContent = amount + " sats";
+        // Calculate percentage of MAX_ZAP
+        const pct = Math.min(amount / MAX_ZAP, 1);
+        // Set dashoffset to reveal corresponding arc
+        sliderCircle.style.strokeDashoffset = circleCircumference * (1 - pct);
       }
-      function setZapCustom() {
-        const custom = document.getElementById("zap-custom").value;
-        if (custom && parseInt(custom) > 0) {
-          document.getElementById("zap-slider").value = custom;
-          updateZapSlider(custom);
-        }
+      // Handle pointer events on the circular slider container
+      const circularSlider = document.getElementById("circular-slider");
+      circularSlider.addEventListener("pointerdown", startSliderDrag);
+      function startSliderDrag(e) {
+        circularSlider.setPointerCapture(e.pointerId);
+        circularSlider.addEventListener("pointermove", sliderDrag);
+        circularSlider.addEventListener("pointerup", stopSliderDrag);
+        sliderDrag(e);
+      }
+      function sliderDrag(e) {
+        const rect = circularSlider.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = e.clientX - centerX;
+        const dy = e.clientY - centerY;
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+        if (angle < 0) angle += 360;
+        // Map angle (0-360) to zap amount (0-MAX_ZAP)
+        const amount = Math.round((angle / 360) * MAX_ZAP);
+        updateCircularSlider(amount);
+      }
+      function stopSliderDrag(e) {
+        circularSlider.removeEventListener("pointermove", sliderDrag);
+        circularSlider.removeEventListener("pointerup", stopSliderDrag);
       }
 
       /***** Relay Connections & Infinite Scroll *****/
@@ -562,7 +615,6 @@
                 }
               } else if (event.kind === 1) {
                 // Note event (or reply)
-                // Only add main notes (skip replies in main feed)
                 if (event.tags && event.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
                 if (!seenNoteIds.has(event.id)) {
                   if (event.created_at < oldestTimestamp)
@@ -603,16 +655,17 @@
         });
       }
 
-      /***** Profile Management (with HTTP fallback) *****/
+      /***** Profile Management (using purplepage.es fallback) *****/
       async function fetchProfile(pubkey) {
         if (profileCache.has(pubkey)) return profileCache.get(pubkey);
+        // Try WebSocket subscription via damus.io relay
         return new Promise((resolve) => {
           let resolved = false;
-          // Set timeout to try HTTP fallback if WS doesn't respond in 5s
           const timeout = setTimeout(async () => {
             if (!resolved) {
+              // HTTP fallback via purplepage.es
               try {
-                const resp = await fetch(`https://api.nostr.band/v0/profile?pubkey=${pubkey}`);
+                const resp = await fetch(`https://purplepage.es/api/profile?pubkey=${pubkey}`);
                 if (resp.ok) {
                   const data = await resp.json();
                   if (data && data.profile) {
@@ -623,13 +676,12 @@
                   }
                 }
               } catch (e) {
-                console.error("[Profile] HTTP fallback error:", e);
+                console.error("[Profile] Purplepage.es fallback error:", e);
               }
               resolved = true;
               resolve({});
             }
           }, 5000);
-
           const ws = getWebSocket("wss://relay.damus.io");
           const handler = (e) => {
             try {
@@ -662,7 +714,6 @@
 
       /***** Note & Reply Management *****/
       async function createNoteElement(note) {
-        // Do not show replies as main notes.
         if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply"))
           return null;
         if (seenNoteIds.has(note.id)) return null;
@@ -677,7 +728,7 @@
         div.dataset.timestamp = note.created_at;
         div.innerHTML = `
           <div class="note-header">
-            <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+            <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />
             <div class="author-info">
               <div class="author-name">${authorProfile.name}</div>
               <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -822,7 +873,7 @@
         const div = document.createElement("div");
         div.className = "reply-card";
         div.innerHTML = `
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />
           <div class="reply-content">
             <strong>${authorProfile.name}</strong> <span class="timestamp">${formatTimestamp(reply.created_at)}</span>
             <div>${reply.content}</div>
@@ -862,10 +913,11 @@
           showToast("Failed to post comment: " + error.message);
         }
       }
+
       /***** Zap Functionality *****/
       async function confirmZap() {
         if (!currentZapNote) return;
-        const amount = parseInt(document.getElementById("zap-slider").value);
+        const amount = currentZapAmount;
         if (!amount || amount < 1) {
           showToast("Enter a valid amount");
           return;
@@ -897,7 +949,7 @@
             throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
           const zapRequest = {
             kind: 9734,
-            created_at: Math.floor(Date.now()/1000),
+            created_at: Math.floor(Date.now() / 1000),
             content: "",
             tags: [
               ["relays", ...RELAYS],
@@ -927,10 +979,10 @@
         const d = new Date(ts * 1000),
               now = new Date(),
               diff = Math.floor((now - d) / 1000);
-        if(diff < 60) return "just now";
-        if(diff < 3600) return `${Math.floor(diff / 60)}m`;
-        if(diff < 86400) return `${Math.floor(diff / 3600)}h`;
-        if(diff < 604800) return `${Math.floor(diff / 86400)}d`;
+        if (diff < 60) return "just now";
+        if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
         return d.toLocaleDateString();
       }
 
