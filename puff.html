@@ -4,6 +4,36 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint - TurdSoup</title>
+  <!-- Import Bitcoin Connect via ES module -->
+  <script type="module">
+    import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
+    // Initialize Bitcoin Connect with your app name.
+    init({ appName: 'Turd Soup' });
+    onConnected(async (provider) => {
+      // When a wallet connects, update the wallet info.
+      let balanceText = "(balance unavailable)";
+      if (provider.getBalance) {
+        try {
+          const bal = await provider.getBalance();
+          balanceText = bal + " sats";
+        } catch (err) {
+          balanceText = "error fetching balance";
+        }
+      }
+      const walletDiv = document.getElementById('wallet-info');
+      if (walletDiv) {
+        walletDiv.innerText = "Connected: " + provider.connectorName + " | Balance: " + balanceText;
+      }
+      window.webln = provider;
+    });
+    onDisconnected(() => {
+      const walletDiv = document.getElementById('wallet-info');
+      if (walletDiv) {
+        walletDiv.innerText = "Not connected";
+      }
+      window.webln = null;
+    });
+  </script>
   <style>
     :root {
       --primary: #EF8C56;
@@ -19,18 +49,30 @@
       font-family: -apple-system, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
+      position: relative;
+      padding-bottom: 40px; /* for bottom fixed wallet info */
     }
+    /* Header: three zones */
     .header {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 60px;
       background: var(--primary);
       display: flex;
+      justify-content: space-between;
       align-items: center;
       padding: 0 20px;
       z-index: 100;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    /* Left zone: home button */
+    .header-left { flex: 1; text-align: left; }
+    /* Center zone: feed button */
+    .header-center { flex: 1; text-align: center; }
+    /* Right zone: profile picture */
+    .header-right { flex: 1; text-align: right; }
     .header-button {
       font-size: 24px;
       cursor: pointer;
@@ -42,15 +84,18 @@
       transition: background-color 0.2s;
     }
     .header-button:hover { background-color: rgba(255,255,255,0.1); }
-    #profile-pic { cursor: pointer; }
-    /* A container in the header to display wallet connection info */
+    #profile-pic { cursor: pointer; display: inline-block; }
+    /* Fixed wallet info at bottom left */
     #wallet-info {
-      margin-left: auto;
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
       padding: 5px 10px;
       background-color: #fff;
       color: var(--text);
       border-radius: 5px;
       font-size: 14px;
+      z-index: 200;
     }
     .container { max-width: 600px; margin: 80px auto 0; padding: 20px; }
     .compose-card {
@@ -83,8 +128,13 @@
       object-fit: cover;
       background: #f5f5f5;
     }
-    .author-info { flex: 1; min-width: 0; }
-    .author-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .author-info { flex: 1; }
+    .author-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .timestamp { font-size: 14px; color: var(--text-light); }
     .note-content {
       padding: 15px;
@@ -92,9 +142,19 @@
       word-break: break-word;
       line-height: 1.5;
     }
-    .media-container { width: 100%; display: grid; gap: 2px; background: #f5f5f5; }
+    .media-container {
+      width: 100%;
+      display: grid;
+      gap: 2px;
+      background: #f5f5f5;
+    }
     .media-container.single { max-height: 500px; }
-    .media-container.single img { width: 100%; height: 100%; max-height: 500px; object-fit: contain; }
+    .media-container.single img {
+      width: 100%;
+      height: 100%;
+      max-height: 500px;
+      object-fit: contain;
+    }
     .media-container.multiple { grid-template-columns: repeat(2, 1fr); }
     .media-container.multiple img { width: 100%; aspect-ratio: 1; object-fit: cover; }
     .media-preview {
@@ -103,7 +163,6 @@
       gap: 8px;
       margin: 10px 0;
     }
-    /* Wrap each preview in a container with a remove button */
     .media-preview div {
       position: relative;
       display: inline-block;
@@ -236,7 +295,7 @@
       max-height: 120px;
     }
     .reply-input textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
-    /* Settings modal */
+    /* Modal styles */
     .modal {
       display: none;
       position: fixed;
@@ -256,17 +315,19 @@
     }
     .close-modal {
       position: absolute;
-      top: 10px; right: 15px;
+      top: 10px;
+      right: 15px;
       font-size: 24px;
       font-weight: bold;
       cursor: pointer;
     }
-    /* Zap modal */
+    /* Zap Modal styles */
     .modal-overlay {
       display: none;
       position: fixed;
       z-index: 1100;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.5);
     }
@@ -291,20 +352,27 @@
   </style>
 </head>
 <body>
+  <!-- Header with three zones: Home (left), Feed (center), Profile (right) -->
   <div class="header">
-    <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
-    <div class="header-button">⚡️</div>
-    <div id="profile-pic" class="hidden" onclick="openSettingsModal()">
-      <span>🤖</span>
+    <div class="header-left">
+      <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
     </div>
-    <!-- This element will display wallet connection info once connected -->
-    <div id="wallet-info"></div>
+    <div class="header-center">
+      <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
+    </div>
+    <div class="header-right" id="profile-pic" onclick="openSettingsModal()">
+      <!-- Default fallback profile icon (SVG with proper encoding) -->
+      <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E" alt="Profile" class="avatar" />
+    </div>
   </div>
 
+  <!-- Container for compose area and feed -->
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
-        <img id="compose-avatar" class="avatar" src="" alt="Profile" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+        <img id="compose-avatar" class="avatar" src=""
+          alt="Profile"
+          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%271%27%20height=%271%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -320,6 +388,7 @@
     <div id="notes"></div>
   </div>
 
+  <!-- Floating compose button -->
   <button class="floating-compose" onclick="scrollToCompose()">+</button>
 
   <!-- Settings Modal -->
@@ -344,6 +413,7 @@
     </div>
   </div>
 
+  <!-- Global Script -->
   <script>
     /***** Global Variables *****/
     let npub = null, profile = null;
@@ -356,6 +426,69 @@
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null; // { noteId, pubkey }
+    const zapCounts = {}; // mapping note id -> zap count
+
+    /***** Global Functions (attached to window) *****/
+    window.openSettingsModal = function() {
+      document.getElementById('settingsModal').style.display = 'block';
+    };
+    window.closeSettingsModal = function() {
+      document.getElementById('settingsModal').style.display = 'none';
+    };
+    window.scrollToCompose = function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('content').focus();
+    };
+    window.openZapModal = function(noteId, pubkey) {
+      currentZapNote = { noteId, pubkey };
+      document.getElementById('zap-amount').value = '1000';
+      document.getElementById('zapModal').style.display = 'block';
+    };
+    window.closeZapModal = function() {
+      document.getElementById('zapModal').style.display = 'none';
+      currentZapNote = null;
+    };
+    window.confirmZap = async function() {
+      if (!currentZapNote) return;
+      const amount = parseInt(document.getElementById('zap-amount').value);
+      if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
+      try {
+        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
+        // Update zap count UI
+        zapCounts[currentZapNote.noteId] = (zapCounts[currentZapNote.noteId] || 0) + 1;
+        const statsEl = document.getElementById('stats-' + currentZapNote.noteId);
+        if (statsEl) { statsEl.innerText = "Comments: " + statsEl.dataset.comments + " | Zaps: " + zapCounts[currentZapNote.noteId]; }
+        alert('Zap sent successfully!');
+        closeZapModal();
+      } catch (error) { alert(error.message); }
+    };
+    window.connectBitcoin = async function() {
+      try {
+        if (window.webln) {
+          await window.webln.enable();
+          // Optionally fetch balance if supported
+          let balanceText = "N/A";
+          if (window.webln.getBalance) {
+            try {
+              const bal = await window.webln.getBalance();
+              balanceText = bal + " sats";
+            } catch(e){ balanceText = "error"; }
+          }
+          updateWalletUI({ walletAddress: 'myWallet123', balance: balanceText });
+          alert('Bitcoin wallet connected via WebLN!');
+        } else {
+          alert('No Bitcoin Connect provider available. Please install a compatible wallet.');
+        }
+      } catch (err) {
+        alert('Bitcoin connect error: ' + err.message);
+      }
+    };
+    window.updateWalletUI = function(result) {
+      const walletDiv = document.getElementById('wallet-info');
+      if (walletDiv) {
+        walletDiv.innerText = "Connected: " + (result.walletAddress || 'Wallet') + " | Balance: " + (result.balance || '0 sats');
+      }
+    };
 
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
@@ -366,37 +499,11 @@
         if (profile.picture) {
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
-          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">`;
-          document.getElementById('profile-pic').classList.remove('hidden');
+          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%271%27%20height=%271%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />`;
         }
       }
       connectToRelays();
     });
-
-    /***** Settings & Bitcoin Connect *****/
-    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'block'; }
-    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
-    async function connectBitcoin() {
-      try {
-        // Try to use a Bitcoin Connect provider (for example, via WebLN)
-        if (window.webln) {
-          await window.webln.enable();
-          // For demonstration, we call a dummy function to update the header.
-          updateWalletUI({ walletAddress: 'myWallet123', balance: '5000 sats' });
-          alert('Bitcoin wallet connected via WebLN!');
-        } else {
-          alert('No Bitcoin Connect provider available. Please install a compatible wallet.');
-        }
-      } catch (err) {
-        alert('Bitcoin connect error: ' + err.message);
-      }
-    }
-    function updateWalletUI(result) {
-      const walletDiv = document.getElementById('wallet-info');
-      if (walletDiv) {
-        walletDiv.innerText = "Connected: " + (result.walletAddress || 'Wallet') + " | Balance: " + (result.balance || '0 sats');
-      }
-    }
 
     /***** WebSocket Pool & Relay Connection *****/
     const wsPool = new Map();
@@ -418,12 +525,27 @@
       });
     }
     function subscribeToFeed(ws) {
-      // Subscribe to non‐reply notes only.
+      // Subscribe to main feed (non-replies)
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
-        if (data[0] === "EVENT") { handleNewNote(data[2]); }
+        // If event kind is 9734, it is a zap event.
+        if (data[0] === "EVENT") {
+          const event = data[2];
+          if (event.kind === 9734) {
+            // Find the note id referenced in tag "e"
+            const refTag = event.tags.find(t => t[0] === "e");
+            if (refTag) {
+              const noteId = refTag[1];
+              zapCounts[noteId] = (zapCounts[noteId] || 0) + 1;
+              const statsEl = document.getElementById('stats-' + noteId);
+              if (statsEl) { statsEl.innerText = "Comments: " + statsEl.dataset.comments + " | Zaps: " + zapCounts[noteId]; }
+            }
+          } else if (event.kind === 1) {
+            handleNewNote(event);
+          }
+        }
       });
     }
     function publishToRelays(event) {
@@ -463,20 +585,22 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip notes that are replies (they’ll be loaded nested)
+      // Skip replies – they will be loaded nested.
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
       if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23ccc"/%3E%3C/svg%3E';
+        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'note-card';
       div.dataset.timestamp = note.created_at;
+      // We include a small stats element (for comments and zaps) in the header.
       div.innerHTML = `
         <div class="note-header">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar"
+            onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0 0 24 24'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -485,9 +609,12 @@
         <div class="note-content">${note.content}</div>
         ${(() => {
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-          return imgs.length ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
-                                   ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
-                                 </div>` : '';
+          if (imgs.length) {
+            return `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
+                      ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                    </div>`;
+          }
+          return '';
         })()}
         <div class="note-actions">
           <button class="action-button" onclick="toggleReplies('${note.id}')">
@@ -496,6 +623,7 @@
           <button class="action-button" onclick="openZapModal('${note.id}', '${note.pubkey}')">
             ⚡️ Zap
           </button>
+          <div id="stats-${note.id}" data-comments="0">Comments: 0 | Zaps: 0</div>
         </div>
         <div id="replies-${note.id}" class="replies-container"></div>
         <div class="reply-input">
@@ -507,14 +635,14 @@
       return div;
     }
     function handleNewNote(note) {
-      // Skip replies in the main feed.
+      // Skip replies in main feed.
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
       createNoteElement(note).then(el => { if (el) document.getElementById('notes').appendChild(el); });
     }
     async function publishNote() {
       const content = document.getElementById('content').value;
       const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
-                        .map(img => img.dataset.url);
+                          .map(img => img.dataset.url);
       if (!content.trim() && images.length === 0) {
         alert('Please add some content or images');
         return;
@@ -535,15 +663,19 @@
         document.getElementById('media-preview').innerHTML = '';
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
         if (el) document.getElementById('notes').insertBefore(el, document.getElementById('notes').firstChild);
-      } catch (error) { alert('Failed to publish note: ' + error.message); }
+      } catch (error) {
+        alert('Failed to publish note: ' + error.message);
+      }
     }
     function toggleReplies(noteId) {
       const container = document.getElementById('replies-' + noteId);
-      container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+      if (container) {
+        container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+      }
     }
     async function loadReplies(noteId) {
       const replyContainer = document.getElementById(`replies-${noteId}`);
-      if (!replyContainer) return; // Avoid error if container not found.
+      if (!replyContainer) return;
       const replies = new Set();
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
@@ -570,12 +702,13 @@
       let authorProfile = await fetchProfile(reply.pubkey);
       if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"%3E%3Ccircle cx="12" cy="12" r="10" fill="%23ccc"/%3E%3C/svg%3E';
+        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px;"
+               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -607,7 +740,9 @@
           replyContainer.insertBefore(el, replyContainer.firstChild);
           updateReplyCount(parentId, replyContainer.children.length);
         }
-      } catch (error) { alert('Failed to publish reply: ' + error.message); }
+      } catch (error) {
+        alert('Failed to publish reply: ' + error.message);
+      }
     }
     function handleReplyKeydown(event, noteId) {
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
@@ -618,13 +753,16 @@
     function updateReplyCount(noteId, count) {
       const el = document.getElementById(`reply-count-${noteId}`);
       if (el) el.textContent = count;
-    }
-    function scrollToCompose() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      document.getElementById('content').focus();
+      // Also update stats if present.
+      const statsEl = document.getElementById('stats-' + noteId);
+      if (statsEl) {
+        // Assume comments total equals reply count (for simplicity)
+        statsEl.dataset.comments = count;
+        statsEl.innerText = "Comments: " + count + " | Zaps: " + (zapCounts[noteId] || 0);
+      }
     }
     function formatTimestamp(ts) {
-      const d = new Date(ts*1000), now = new Date(), diff = Math.floor((now - d)/1000);
+      const d = new Date(ts * 1000), now = new Date(), diff = Math.floor((now - d) / 1000);
       if(diff < 60) return 'just now';
       if(diff < 3600) return `${Math.floor(diff/60)}m`;
       if(diff < 86400) return `${Math.floor(diff/3600)}h`;
@@ -632,13 +770,13 @@
       return d.toLocaleDateString();
     }
 
-    /***** Image Upload via Nostr.build API (NIP-98) *****/
+    /***** Image Upload via nostr.build API (NIP-98) *****/
     async function getEventHash(event) {
       const serialized = JSON.stringify([0, event.pubkey, event.created_at, event.kind, event.tags, event.content]);
       const encoder = new TextEncoder();
       const data = encoder.encode(serialized);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
     async function handleImageUpload(file) {
       try {
@@ -687,9 +825,7 @@
           const imgs = preview.getElementsByTagName('img');
           preview.className = `media-preview ${imgs.length === 1 ? 'single' : 'multiple'}`;
           return result.data[0].url;
-        } else {
-          throw new Error(result.message || 'Upload failed');
-        }
+        } else { throw new Error(result.message || 'Upload failed'); }
       } catch (error) {
         alert('Image upload error: ' + error.message);
         return null;
@@ -700,34 +836,16 @@
       e.target.value = '';
     });
 
-    /***** Zap Modal & Zap Functionality *****/
-    function openZapModal(noteId, pubkey) {
-      currentZapNote = { noteId, pubkey };
-      document.getElementById('zap-amount').value = '1000';
-      document.getElementById('zapModal').style.display = 'block';
-    }
-    function closeZapModal() {
-      document.getElementById('zapModal').style.display = 'none';
-      currentZapNote = null;
-    }
-    async function confirmZap() {
-      if (!currentZapNote) return;
-      const amount = parseInt(document.getElementById('zap-amount').value);
-      if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
-      try {
-        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-        closeZapModal();
-      } catch (error) { alert(error.message); }
-    }
+    /***** Zap Functionality *****/
     async function sendZap(noteId, pubkey, amount) {
       try {
         if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
         const authorProfile = await fetchProfile(pubkey);
         if (!authorProfile.lud16) throw new Error('User has not set up a Lightning address');
         const [name, domain] = authorProfile.lud16.split('@');
-        const resp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
-        if (!resp.ok) throw new Error('Failed to get LNURL info');
-        const lnurlData = await resp.json();
+        const lnurlResp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
+        if (!lnurlResp.ok) throw new Error('Failed to get LNURL info');
+        const lnurlData = await lnurlResp.json();
         const millisats = amount * 1000;
         if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable)
           throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
@@ -743,12 +861,13 @@
           ]
         };
         const signedZapRequest = await window.nostr.signEvent(zapRequest);
-        const callbackResp = await fetch(`${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`);
+        const callbackUrl = `${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`;
+        const callbackResp = await fetch(callbackUrl);
         if (!callbackResp.ok) throw new Error('Failed to get invoice');
         const { pr: invoice } = await callbackResp.json();
         await window.webln.enable();
         await window.webln.sendPayment(invoice);
-        alert('Zap sent successfully! ⚡️');
+        return true;
       } catch (error) { throw error; }
     }
   </script>
