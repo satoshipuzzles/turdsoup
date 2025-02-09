@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Puff Puff Paint - TurdSoup</title>
-  <!-- Import Bitcoin Connect via ES module -->
+  <title>Puff Puff Paint – TurdSoup</title>
+  <!-- Import Bitcoin Connect (web components and API) -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
     // Initialize Bitcoin Connect with your app name.
     init({ appName: 'Turd Soup' });
     onConnected(async (provider) => {
-      // When a wallet connects, update the wallet info.
+      // Try to get balance if supported.
       let balanceText = "(balance unavailable)";
       if (provider.getBalance) {
         try {
           const bal = await provider.getBalance();
           balanceText = bal + " sats";
-        } catch (err) {
-          balanceText = "error fetching balance";
+        } catch (e) {
+          balanceText = "error";
         }
       }
       const walletDiv = document.getElementById('wallet-info');
@@ -28,9 +28,7 @@
     });
     onDisconnected(() => {
       const walletDiv = document.getElementById('wallet-info');
-      if (walletDiv) {
-        walletDiv.innerText = "Not connected";
-      }
+      if (walletDiv) walletDiv.innerText = "Not connected";
       window.webln = null;
     });
   </script>
@@ -49,30 +47,26 @@
       font-family: -apple-system, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      position: relative;
-      padding-bottom: 40px; /* for bottom fixed wallet info */
+      padding-bottom: 60px; /* leave space for fixed wallet info */
     }
-    /* Header: three zones */
+    /* Header – three zones */
     .header {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 60px;
       background: var(--primary);
       display: flex;
-      justify-content: space-between;
       align-items: center;
       padding: 0 20px;
       z-index: 100;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    /* Left zone: home button */
-    .header-left { flex: 1; text-align: left; }
-    /* Center zone: feed button */
-    .header-center { flex: 1; text-align: center; }
-    /* Right zone: profile picture */
-    .header-right { flex: 1; text-align: right; }
+    .header-left, .header-center, .header-right {
+      flex: 1;
+    }
+    .header-left { text-align: left; }
+    .header-center { text-align: center; }
+    .header-right { text-align: right; }
     .header-button {
       font-size: 24px;
       cursor: pointer;
@@ -85,14 +79,14 @@
     }
     .header-button:hover { background-color: rgba(255,255,255,0.1); }
     #profile-pic { cursor: pointer; display: inline-block; }
-    /* Fixed wallet info at bottom left */
+    /* Wallet info fixed in bottom left */
     #wallet-info {
       position: fixed;
       bottom: 10px;
       left: 10px;
-      padding: 5px 10px;
       background-color: #fff;
       color: var(--text);
+      padding: 5px 10px;
       border-radius: 5px;
       font-size: 14px;
       z-index: 200;
@@ -108,7 +102,6 @@
     .note-card {
       background: var(--background);
       border-radius: 12px;
-      overflow: hidden;
       margin-bottom: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       transition: transform 0.2s;
@@ -188,6 +181,7 @@
     .note-actions {
       padding: 10px 15px;
       display: flex;
+      align-items: center;
       gap: 15px;
       border-top: 1px solid rgba(0,0,0,0.05);
     }
@@ -195,18 +189,22 @@
       background: none;
       border: none;
       color: var(--text-light);
-      font-size: 14px;
+      font-size: 16px;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
-      padding: 8px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s;
+      gap: 4px;
+      position: relative;
     }
-    .action-button:hover {
-      background: rgba(239,140,86,0.1);
-      color: var(--primary);
+    .badge {
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      border-radius: 50%;
+      padding: 2px 6px;
+      position: absolute;
+      top: -4px;
+      right: -4px;
     }
     .compose-text {
       width: 100%;
@@ -263,20 +261,20 @@
     }
     .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
     .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .replies-container {
+    .replies-container, .zap-details-container {
       margin-left: 40px;
       padding: 10px 15px;
       border-left: 2px solid rgba(0,0,0,0.05);
       display: none;
     }
-    .reply-card {
+    .reply-card, .zap-card {
       background: #f9f9f9;
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 10px;
       transition: transform 0.2s;
     }
-    .reply-card:hover { transform: translateY(-1px); }
+    .reply-card:hover, .zap-card:hover { transform: translateY(-1px); }
     .reply-input {
       padding: 10px 15px;
       border-top: 1px solid rgba(0,0,0,0.05);
@@ -296,7 +294,7 @@
     }
     .reply-input textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
     /* Modal styles */
-    .modal {
+    .modal, .modal-overlay {
       display: none;
       position: fixed;
       z-index: 1000;
@@ -304,7 +302,7 @@
       width: 100%; height: 100%;
       background-color: rgba(0,0,0,0.4);
     }
-    .modal-content {
+    .modal-content, .zap-modal {
       background-color: var(--background);
       margin: 10% auto;
       padding: 20px;
@@ -321,38 +319,10 @@
       font-weight: bold;
       cursor: pointer;
     }
-    /* Zap Modal styles */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      z-index: 1100;
-      top: 0;
-      left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-    }
-    .zap-modal {
-      background: var(--background);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
-      margin: 15% auto;
-      position: relative;
-    }
-    .zap-input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 8px;
-      margin: 10px 0;
-      font-size: 16px;
-    }
   </style>
 </head>
 <body>
-  <!-- Header with three zones: Home (left), Feed (center), Profile (right) -->
+  <!-- Header with three zones -->
   <div class="header">
     <div class="header-left">
       <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
@@ -361,8 +331,8 @@
       <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
     </div>
     <div class="header-right" id="profile-pic" onclick="openSettingsModal()">
-      <!-- Default fallback profile icon (SVG with proper encoding) -->
-      <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E" alt="Profile" class="avatar" />
+      <!-- Default profile fallback SVG (properly encoded) -->
+      <img src="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E" alt="Profile" class="avatar" />
     </div>
   </div>
 
@@ -372,7 +342,7 @@
       <div class="note-header">
         <img id="compose-avatar" class="avatar" src=""
           alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%271%27%20height=%271%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
+          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -400,7 +370,7 @@
     </div>
   </div>
 
-  <!-- Zap Modal -->
+  <!-- Zap Modal (for sending a zap) -->
   <div id="zapModal" class="modal-overlay">
     <div class="zap-modal">
       <span class="close-modal" onclick="closeZapModal()">&times;</span>
@@ -413,21 +383,30 @@
     </div>
   </div>
 
-  <!-- Global Script -->
+  <!-- Optional: A modal to view detailed zap events for a note -->
+  <div id="zapDetailsModal" class="modal-overlay">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeZapDetailsModal()">&times;</span>
+      <h3>Zap Details</h3>
+      <div id="zap-details-container"></div>
+    </div>
+  </div>
+
   <script>
     /***** Global Variables *****/
     let npub = null, profile = null;
     const profileCache = new Map();
     const seenNoteIds = new Set();
-    let lastSeenTimestamp = Math.floor(Date.now()/1000);
     const RELAYS = [
       'wss://relay.damus.io',
       'wss://nos.lol',
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null; // { noteId, pubkey }
-    const zapCounts = {}; // mapping note id -> zap count
-
+    // For each note id, store an array of zap events
+    const zapDetails = {};
+    // For comment count, we use reply count (already updated)
+    
     /***** Global Functions (attached to window) *****/
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'block';
@@ -448,33 +427,35 @@
       document.getElementById('zapModal').style.display = 'none';
       currentZapNote = null;
     };
+    window.closeZapDetailsModal = function() {
+      document.getElementById('zapDetailsModal').style.display = 'none';
+    };
+    // When zap is confirmed, send zap via Bitcoin Connect and update zap details.
     window.confirmZap = async function() {
       if (!currentZapNote) return;
       const amount = parseInt(document.getElementById('zap-amount').value);
       if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
       try {
         await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-        // Update zap count UI
-        zapCounts[currentZapNote.noteId] = (zapCounts[currentZapNote.noteId] || 0) + 1;
-        const statsEl = document.getElementById('stats-' + currentZapNote.noteId);
-        if (statsEl) { statsEl.innerText = "Comments: " + statsEl.dataset.comments + " | Zaps: " + zapCounts[currentZapNote.noteId]; }
         alert('Zap sent successfully!');
+        // (The incoming zap event from the relay should update the UI automatically.)
         closeZapModal();
-      } catch (error) { alert(error.message); }
+      } catch (error) {
+        alert(error.message);
+      }
     };
     window.connectBitcoin = async function() {
       try {
         if (window.webln) {
           await window.webln.enable();
-          // Optionally fetch balance if supported
           let balanceText = "N/A";
           if (window.webln.getBalance) {
             try {
               const bal = await window.webln.getBalance();
               balanceText = bal + " sats";
-            } catch(e){ balanceText = "error"; }
+            } catch (e) { balanceText = "error"; }
           }
-          updateWalletUI({ walletAddress: 'myWallet123', balance: balanceText });
+          updateWalletUI({ walletAddress: window.webln.connectorName || 'Wallet', balance: balanceText });
           alert('Bitcoin wallet connected via WebLN!');
         } else {
           alert('No Bitcoin Connect provider available. Please install a compatible wallet.');
@@ -489,9 +470,43 @@
         walletDiv.innerText = "Connected: " + (result.walletAddress || 'Wallet') + " | Balance: " + (result.balance || '0 sats');
       }
     };
+    // When a user clicks the zap icon, also allow viewing zap details.
+    window.toggleZapDetails = function(noteId) {
+      const container = document.getElementById('zap-details-' + noteId);
+      if (container) {
+        container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+      }
+    };
+    // Alternatively, open a modal to view zap details.
+    window.viewZapDetails = function(noteId) {
+      const container = document.getElementById('zap-details-container');
+      container.innerHTML = '';
+      if (zapDetails[noteId] && zapDetails[noteId].length > 0) {
+        zapDetails[noteId].forEach(async (zapEvent) => {
+          let zapProfile = await fetchProfile(zapEvent.pubkey);
+          if (!zapProfile.picture) {
+            zapProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E";
+          }
+          // Extract zap amount from tag ["amount", "..."]
+          const amountTag = zapEvent.tags.find(tag => tag[0] === "amount");
+          const amt = amountTag ? amountTag[1] : "N/A";
+          const div = document.createElement('div');
+          div.className = 'zap-card';
+          div.innerHTML = `
+            <img src="${zapProfile.picture}" alt="Zap" class="avatar" style="width:32px; height:32px; border-radius:50%;">
+            <span>${amt} sats</span>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = "<p>No zap events yet.</p>";
+      }
+      document.getElementById('zapDetailsModal').style.display = 'block';
+    };
 
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
+      // Load stored profile (if any)
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
@@ -499,7 +514,7 @@
         if (profile.picture) {
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
-          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%271%27%20height=%271%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />`;
+          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />`;
         }
       }
       connectToRelays();
@@ -520,27 +535,28 @@
     function connectToRelays() {
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
-        if (ws.readyState === WebSocket.OPEN) { subscribeToFeed(ws); }
-        else { ws.addEventListener('open', () => subscribeToFeed(ws)); }
+        if (ws.readyState === WebSocket.OPEN) subscribeToFeed(ws);
+        else ws.addEventListener('open', () => subscribeToFeed(ws));
       });
     }
     function subscribeToFeed(ws) {
-      // Subscribe to main feed (non-replies)
+      // Subscribe to main feed (notes)
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
-        // If event kind is 9734, it is a zap event.
         if (data[0] === "EVENT") {
           const event = data[2];
           if (event.kind === 9734) {
-            // Find the note id referenced in tag "e"
+            // Zap event: record it
             const refTag = event.tags.find(t => t[0] === "e");
             if (refTag) {
               const noteId = refTag[1];
-              zapCounts[noteId] = (zapCounts[noteId] || 0) + 1;
-              const statsEl = document.getElementById('stats-' + noteId);
-              if (statsEl) { statsEl.innerText = "Comments: " + statsEl.dataset.comments + " | Zaps: " + zapCounts[noteId]; }
+              if (!zapDetails[noteId]) zapDetails[noteId] = [];
+              zapDetails[noteId].push(event);
+              // Also update any visible zap count badge
+              const zapBadge = document.querySelector(`#note-${noteId} .zap-badge`);
+              if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
             }
           } else if (event.kind === 1) {
             handleNewNote(event);
@@ -551,8 +567,8 @@
     function publishToRelays(event) {
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
-        if (ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify(["EVENT", event])); }
-        else { ws.addEventListener('open', () => { ws.send(JSON.stringify(["EVENT", event])); }); }
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(["EVENT", event]));
+        else ws.addEventListener('open', () => { ws.send(JSON.stringify(["EVENT", event])); });
       });
     }
 
@@ -563,15 +579,15 @@
         const ws = getWebSocket('wss://relay.damus.io');
         const timeoutId = setTimeout(() => resolve({}), 5000);
         ws.addEventListener('message', (e) => {
-          const data = JSON.parse(e.data);
-          if (data[0] === "EVENT" && data[2].content) {
-            try {
+          try {
+            const data = JSON.parse(e.data);
+            if (data[0] === "EVENT" && data[2].content) {
               const prof = JSON.parse(data[2].content);
               clearTimeout(timeoutId);
               profileCache.set(pubkey, prof);
               resolve(prof);
-            } catch (err) { resolve({}); }
-          }
+            }
+          } catch (err) { resolve({}); }
         });
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
@@ -585,22 +601,22 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip replies – they will be loaded nested.
+      // Skip if this is a reply (it will be loaded nested)
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
       if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E";
+        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'note-card';
+      div.id = "note-" + note.id;
       div.dataset.timestamp = note.created_at;
-      // We include a small stats element (for comments and zaps) in the header.
       div.innerHTML = `
         <div class="note-header">
           <img src="${authorProfile.picture}" alt="Profile" class="avatar"
-            onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0 0 24 24'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E'" />
+               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -618,18 +634,16 @@
         })()}
         <div class="note-actions">
           <button class="action-button" onclick="toggleReplies('${note.id}')">
-            💬 <span id="reply-count-${note.id}">0</span>
+            💬 <span class="badge" id="reply-badge-${note.id}">0</span>
           </button>
           <button class="action-button" onclick="openZapModal('${note.id}', '${note.pubkey}')">
-            ⚡️ Zap
+            ⚡️ <span class="badge" id="zap-badge-${note.id}">0</span>
           </button>
-          <div id="stats-${note.id}" data-comments="0">Comments: 0 | Zaps: 0</div>
+          <button class="action-button" onclick="viewZapDetails('${note.id}')">
+            👁️
+          </button>
         </div>
         <div id="replies-${note.id}" class="replies-container"></div>
-        <div class="reply-input">
-          <textarea placeholder="Write a reply..." onkeydown="handleReplyKeydown(event, '${note.id}')"></textarea>
-          <button class="publish-button" onclick="publishReply('${note.id}', this.previousElementSibling)">Reply</button>
-        </div>
       `;
       loadReplies(note.id);
       return div;
@@ -690,8 +704,9 @@
               replies.add(reply.id);
               const el = await createReplyElement(reply);
               if (replyContainer) {
-                replyContainer.appendChild(el);
-                updateReplyCount(noteId, replyContainer.children.length);
+                replyContainer.insertBefore(el, replyContainer.firstChild);
+                // Update reply badge
+                document.getElementById('reply-badge-' + noteId).textContent = replyContainer.children.length;
               }
             }
           }
@@ -702,13 +717,13 @@
       let authorProfile = await fetchProfile(reply.pubkey);
       if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E";
+        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px;"
-               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px; border-radius:50%;" 
+               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -717,49 +732,6 @@
         <div class="note-content" style="padding: 0">${reply.content}</div>
       `;
       return div;
-    }
-    async function publishReply(parentId, textarea) {
-      const content = textarea.value.trim();
-      if (!content) return;
-      try {
-        const event = {
-          kind: 1,
-          content,
-          created_at: Math.floor(Date.now()/1000),
-          tags: [
-            ["t", "puffpuffpaint"],
-            ["e", parentId, "", "reply"]
-          ]
-        };
-        const signedEvent = await window.nostr.signEvent(event);
-        publishToRelays(signedEvent);
-        textarea.value = '';
-        const replyContainer = document.getElementById(`replies-${parentId}`);
-        const el = await createReplyElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
-        if (replyContainer) {
-          replyContainer.insertBefore(el, replyContainer.firstChild);
-          updateReplyCount(parentId, replyContainer.children.length);
-        }
-      } catch (error) {
-        alert('Failed to publish reply: ' + error.message);
-      }
-    }
-    function handleReplyKeydown(event, noteId) {
-      if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        publishReply(noteId, event.target);
-      }
-    }
-    function updateReplyCount(noteId, count) {
-      const el = document.getElementById(`reply-count-${noteId}`);
-      if (el) el.textContent = count;
-      // Also update stats if present.
-      const statsEl = document.getElementById('stats-' + noteId);
-      if (statsEl) {
-        // Assume comments total equals reply count (for simplicity)
-        statsEl.dataset.comments = count;
-        statsEl.innerText = "Comments: " + count + " | Zaps: " + (zapCounts[noteId] || 0);
-      }
     }
     function formatTimestamp(ts) {
       const d = new Date(ts * 1000), now = new Date(), diff = Math.floor((now - d) / 1000);
@@ -770,7 +742,7 @@
       return d.toLocaleDateString();
     }
 
-    /***** Image Upload via nostr.build API (NIP-98) *****/
+    /***** Image Upload (using nostr.build API, NIP-98) *****/
     async function getEventHash(event) {
       const serialized = JSON.stringify([0, event.pubkey, event.created_at, event.kind, event.tags, event.content]);
       const encoder = new TextEncoder();
@@ -836,7 +808,7 @@
       e.target.value = '';
     });
 
-    /***** Zap Functionality *****/
+    /***** Zap Functionality (using Bitcoin Connect and NIP-44) *****/
     async function sendZap(noteId, pubkey, amount) {
       try {
         if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
