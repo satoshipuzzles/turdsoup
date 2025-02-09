@@ -4,122 +4,184 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint - TurdSoup</title>
-  <!-- Import Bitcoin Connect as a module -->
+  <!-- Bitcoin Connect Initialization -->
   <script type="module">
-    import {
-      init,
-      launchModal,
-      requestProvider,
-      onConnected,
-      onDisconnected
-    } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
+    import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
     // Initialize Bitcoin Connect with your app name
     init({ appName: 'Turd Soup' });
-    // When a wallet connects, update the wallet-status element
+    // When a wallet connects, update the wallet status element
     onConnected((provider) => {
-      const wsEl = document.getElementById('wallet-status');
-      if (wsEl) { wsEl.innerText = "Wallet Connected"; }
-      // Also assign the provider to window.webln if needed
+      const walletStatus = document.getElementById('wallet-status');
+      if (walletStatus) {
+        // Here you could use provider APIs to fetch real balance info.
+        walletStatus.textContent = 'Wallet Connected';
+      }
       window.webln = provider;
     });
     onDisconnected(() => {
-      const wsEl = document.getElementById('wallet-status');
-      if (wsEl) { wsEl.innerText = "Not connected"; }
+      const walletStatus = document.getElementById('wallet-status');
+      if (walletStatus) {
+        walletStatus.textContent = 'Not connected';
+      }
     });
   </script>
   <style>
     :root {
       --primary: #EF8C56;
       --primary-dark: #D97B45;
-      --background: #ffffff;
+      --background: #FFFFFF;
       --text: #1f1f1f;
       --text-light: #666666;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
+      font-family: -apple-system, system-ui, sans-serif;
       background-color: var(--primary);
       color: var(--text);
-      font-family: -apple-system, system-ui, sans-serif;
-      -webkit-font-smoothing: antialiased;
       min-height: 100vh;
     }
-    /* Header with 3 equally spaced sections */
+    /* Header: three sections (left, center, right) */
     .header {
       position: fixed;
       top: 0; left: 0; right: 0;
       height: 60px;
-      background: var(--primary);
+      background-color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
       z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    .header-left, .header-center, .header-right {
+    .header-left,
+    .header-center,
+    .header-right {
       flex: 1;
       display: flex;
-      justify-content: center;
+      align-items: center;
     }
     .header-left { justify-content: flex-start; }
+    .header-center { justify-content: center; }
     .header-right { justify-content: flex-end; }
     .header-button {
-      font-size: 24px;
-      cursor: pointer;
       background: none;
       border: none;
       color: #fff;
+      font-size: 24px;
+      cursor: pointer;
       padding: 10px;
       border-radius: 50%;
       transition: background-color 0.2s;
     }
-    .header-button:hover { background-color: rgba(255,255,255,0.1); }
-    /* Compose area and feed */
-    .container { max-width: 600px; margin: 80px auto 0; padding: 20px; }
+    .header-button:hover { background-color: rgba(255,255,255,0.2); }
+    /* Wallet status (displayed at bottom left) */
+    #wallet-status {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background-color: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 200;
+    }
+    /* Main container styling */
+    .container {
+      max-width: 600px;
+      margin: 80px auto 20px;
+      padding: 20px;
+      background-color: var(--background);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    /* Compose card */
     .compose-card {
-      background: var(--background);
+      background-color: var(--background);
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .note-card {
-      background: var(--background);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transition: transform 0.2s;
+    .compose-text {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+      resize: none;
     }
-    .note-card:hover { transform: translateY(-2px); }
-    .note-header {
-      padding: 15px;
+    .compose-actions {
       display: flex;
       align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .upload-button,
+    .publish-button {
+      background-color: var(--primary);
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .upload-button:hover,
+    .publish-button:hover {
+      background-color: var(--primary-dark);
+    }
+    /* Floating compose button */
+    .floating-compose {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+      z-index: 150;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .floating-compose:hover { transform: scale(1.1); }
+    /* Note card */
+    .note-card {
+      background-color: var(--background);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .note-header {
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #eee;
     }
     .avatar {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
+      margin-right: 10px;
       object-fit: cover;
-      background: #f5f5f5;
     }
     .author-info { flex: 1; }
-    .author-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .timestamp { font-size: 14px; color: var(--text-light); }
+    .author-name { font-weight: bold; font-size: 16px; }
+    .timestamp { font-size: 12px; color: var(--text-light); }
     .note-content {
       padding: 15px;
-      white-space: pre-wrap;
-      word-break: break-word;
+      font-size: 14px;
       line-height: 1.5;
     }
-    .media-container { width: 100%; display: grid; gap: 2px; background: #f5f5f5; }
-    .media-container.single { max-height: 500px; }
-    .media-container.single img { width: 100%; height: 100%; max-height: 500px; object-fit: contain; }
-    .media-container.multiple { grid-template-columns: repeat(2, 1fr); }
-    .media-container.multiple img { width: 100%; aspect-ratio: 1; object-fit: cover; }
     .media-preview {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -128,18 +190,17 @@
     }
     .media-preview div {
       position: relative;
-      display: inline-block;
     }
     .media-preview img {
       width: 100%;
-      display: block;
       border-radius: 8px;
+      display: block;
     }
     .remove-btn {
       position: absolute;
       top: 0;
       right: 0;
-      background: rgba(0,0,0,0.6);
+      background-color: rgba(0,0,0,0.6);
       color: #fff;
       border: none;
       cursor: pointer;
@@ -152,7 +213,7 @@
       padding: 10px 15px;
       display: flex;
       gap: 15px;
-      border-top: 1px solid rgba(0,0,0,0.05);
+      border-top: 1px solid #eee;
     }
     .action-button {
       background: none;
@@ -171,157 +232,40 @@
       background: rgba(239,140,86,0.1);
       color: var(--primary);
     }
-    .compose-text {
+    /* Modal styles */
+    .modal, .modal-overlay {
+      display: none;
+      position: fixed;
+      z-index: 300;
+      left: 0;
+      top: 0;
       width: 100%;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 8px;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-      resize: none;
-      outline: none;
-      line-height: 1.5;
-    }
-    .compose-text:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
-    .compose-actions { display: flex; justify-content: space-between; align-items: center; }
-    .floating-compose {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: transform 0.2s, background 0.2s;
-      z-index: 90;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .floating-compose:hover { transform: scale(1.1); background: var(--primary-dark); }
-    .upload-button {
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 8px;
-      border-radius: 50%;
-      transition: background-color 0.2s;
-    }
-    .upload-button:hover { background: rgba(0,0,0,0.05); }
-    .publish-button {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-    }
-    .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .replies-container {
-      margin-left: 40px;
-      padding: 10px 15px;
-      border-left: 2px solid rgba(0,0,0,0.05);
-      display: none;
-    }
-    .reply-card {
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
-      transition: transform 0.2s;
-    }
-    .reply-card:hover { transform: translateY(-1px); }
-    .reply-input {
-      padding: 10px 15px;
-      border-top: 1px solid rgba(0,0,0,0.05);
-      display: flex;
-      gap: 10px;
-    }
-    .reply-input textarea {
-      flex: 1;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 20px;
-      padding: 8px 15px;
-      font-size: 14px;
-      resize: none;
-      outline: none;
-      min-height: 36px;
-      max-height: 120px;
-    }
-    .reply-input textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
-    /* Settings Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
+      height: 100%;
       background-color: rgba(0,0,0,0.4);
     }
-    .modal-content {
+    .modal-content, .zap-modal {
       background-color: var(--background);
-      margin: 10% auto;
+      margin: 15% auto;
       padding: 20px;
+      border-radius: 8px;
       width: 90%;
       max-width: 400px;
-      border-radius: 8px;
       position: relative;
     }
     .close-modal {
       position: absolute;
-      top: 10px; right: 15px;
+      top: 10px;
+      right: 15px;
       font-size: 24px;
-      font-weight: bold;
       cursor: pointer;
-    }
-    /* Zap Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      z-index: 1100;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-    }
-    .zap-modal {
-      background: var(--background);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
-      margin: 15% auto;
-      position: relative;
     }
     .zap-input {
       width: 100%;
       padding: 10px;
-      border: 1px solid rgba(0,0,0,0.1);
+      border: 1px solid #ccc;
       border-radius: 8px;
       margin: 10px 0;
       font-size: 16px;
-    }
-    /* Bottom left wallet feedback */
-    #wallet-status {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      background: #fff;
-      color: var(--text);
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 14px;
-      z-index: 200;
     }
   </style>
 </head>
@@ -339,12 +283,14 @@
     </div>
   </div>
 
-  <!-- Main compose area and feed -->
+  <!-- Wallet status feedback in the bottom left -->
+  <div id="wallet-status">Not connected</div>
+
+  <!-- Main Content -->
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
-        <img id="compose-avatar" class="avatar" src="" alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'" />
+        <img id="compose-avatar" class="avatar" src="" alt="Profile" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/></svg>'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -384,7 +330,7 @@
     </div>
   </div>
 
-  <!-- Main Script (non‑module script can remain as plain script if no imports are used here) -->
+  <!-- Main Script -->
   <script type="module">
     /***** Global Variables *****/
     let npub = null, profile = null;
@@ -407,24 +353,35 @@
         if (profile.picture) {
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0, 8);
-          document.getElementById('profile-pic').innerHTML =
-            `<img src="${profile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/%3E%3C/svg%3E'">`;
-          document.getElementById('profile-pic').classList.remove('hidden');
         }
       }
       connectToRelays();
     });
 
-    /***** Settings & Bitcoin Connect *****/
-    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'block'; }
-    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+    /***** Modal Functions *****/
+    function openSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'block';
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
+    function openZapModal(noteId, pubkey) {
+      currentZapNote = { noteId, pubkey };
+      document.getElementById('zap-amount').value = '1000';
+      document.getElementById('zapModal').style.display = 'block';
+    }
+    function closeZapModal() {
+      document.getElementById('zapModal').style.display = 'none';
+      currentZapNote = null;
+    }
+
+    /***** Bitcoin Connect *****/
     async function connectBitcoin() {
       try {
-        // Use full Bitcoin Connect logic by launching the modal
-        // This will allow the user to choose from available connectors
+        // Use the full Bitcoin Connect API to launch the wallet chooser modal.
         import { launchModal } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
         await launchModal();
-        // After the modal is closed, the onConnected handler (set in the head) will update the wallet status
+        // When the user connects, the onConnected handler (in the head) will update the wallet-status element.
       } catch (err) {
         alert("Bitcoin connect error: " + err.message);
       }
@@ -445,8 +402,11 @@
     function connectToRelays() {
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
-        if (ws.readyState === WebSocket.OPEN) { subscribeToFeed(ws); }
-        else { ws.addEventListener('open', () => subscribeToFeed(ws)); }
+        if (ws.readyState === WebSocket.OPEN) {
+          subscribeToFeed(ws);
+        } else {
+          ws.addEventListener('open', () => subscribeToFeed(ws));
+        }
       });
     }
     function subscribeToRelays(ws, subObj) {
@@ -461,7 +421,9 @@
       subscribeToRelays(ws, ["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]);
       ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
-        if (data[0] === "EVENT") { handleNewNote(data[2]); }
+        if (data[0] === "EVENT") {
+          handleNewNote(data[2]);
+        }
       });
     }
     function publishToRelays(event) {
@@ -500,7 +462,6 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // For now, render all events (even if they have "e" tags)
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
@@ -524,7 +485,7 @@
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
           return imgs.length
             ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
-                 ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                  ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
                </div>`
             : '';
         })()}
@@ -576,7 +537,9 @@
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
         const notesEl = document.getElementById('notes');
         if (el && notesEl) { notesEl.insertBefore(el, notesEl.firstChild); }
-      } catch (error) { alert('Failed to publish note: ' + error.message); }
+      } catch (error) {
+        alert('Failed to publish note: ' + error.message);
+      }
     }
     function toggleReplies(noteId) {
       const container = document.getElementById('replies-' + noteId);
@@ -650,7 +613,9 @@
           replyContainer.insertBefore(el, replyContainer.firstChild);
           updateReplyCount(parentId, replyContainer.children.length);
         }
-      } catch (error) { alert('Failed to publish reply: ' + error.message); }
+      } catch (error) {
+        alert('Failed to publish reply: ' + error.message);
+      }
     }
     function handleReplyKeydown(event, noteId) {
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
@@ -748,58 +713,6 @@
       }
       e.target.value = '';
     });
-
-    /***** Zap Modal & Zap Functionality *****/
-    function openZapModal(noteId, pubkey) {
-      currentZapNote = { noteId, pubkey };
-      document.getElementById('zap-amount').value = '1000';
-      document.getElementById('zapModal').style.display = 'block';
-    }
-    function closeZapModal() {
-      document.getElementById('zapModal').style.display = 'none';
-      currentZapNote = null;
-    }
-    async function confirmZap() {
-      if (!currentZapNote) return;
-      const amount = parseInt(document.getElementById('zap-amount').value);
-      if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
-      try {
-        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-        closeZapModal();
-      } catch (error) { alert(error.message); }
-    }
-    async function sendZap(noteId, pubkey, amount) {
-      try {
-        if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
-        const authorProfile = await fetchProfile(pubkey);
-        if (!authorProfile.lud16) throw new Error('User has not set up a Lightning address');
-        const [name, domain] = authorProfile.lud16.split('@');
-        const resp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
-        if (!resp.ok) throw new Error('Failed to get LNURL info');
-        const lnurlData = await resp.json();
-        const millisats = amount * 1000;
-        if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable)
-          throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
-        const zapRequest = {
-          kind: 9734,
-          created_at: Math.floor(Date.now() / 1000),
-          content: "",
-          tags: [
-            ["relays", ...RELAYS],
-            ["amount", millisats.toString()],
-            ["p", pubkey],
-            ["e", noteId]
-          ]
-        };
-        const signedZapRequest = await window.nostr.signEvent(zapRequest);
-        const callbackResp = await fetch(`${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`);
-        if (!callbackResp.ok) throw new Error('Failed to get invoice');
-        const { pr: invoice } = await callbackResp.json();
-        await window.webln.enable();
-        await window.webln.sendPayment(invoice);
-        alert('Zap sent successfully! ⚡️');
-      } catch (error) { throw error; }
-    }
   </script>
 </body>
 </html>
