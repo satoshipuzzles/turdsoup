@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint - TurdSoup</title>
-  <!-- Bitcoin Connect Initialization (ES module) -->
+  <!-- Import Bitcoin Connect (using the web components and API) -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
     // Initialize Bitcoin Connect with your app name
@@ -14,7 +14,6 @@
       if (walletInfo) {
         walletInfo.innerText = "Connected: " + provider.connectorName + " | Balance: (fetch balance)";
       }
-      // Expose the provider globally (if needed)
       window.webln = provider;
     });
     onDisconnected(() => {
@@ -44,9 +43,7 @@
     /* Header styles */
     .header {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 60px;
       background: var(--primary);
       display: flex;
@@ -67,7 +64,7 @@
     }
     .header-button:hover { background-color: rgba(255,255,255,0.1); }
     #profile-pic { cursor: pointer; }
-    /* Wallet info container (placed in header, right side) */
+    /* Wallet info container */
     #wallet-info {
       margin-left: auto;
       padding: 5px 10px;
@@ -76,7 +73,11 @@
       border-radius: 5px;
       font-size: 14px;
     }
-    .container { max-width: 600px; margin: 80px auto 0; padding: 20px; }
+    .container {
+      max-width: 600px;
+      margin: 80px auto 0;
+      padding: 20px;
+    }
     .compose-card {
       background: var(--background);
       border-radius: 12px;
@@ -107,7 +108,7 @@
       object-fit: cover;
       background: #f5f5f5;
     }
-    .author-info { flex: 1; min-width: 0; }
+    .author-info { flex: 1; }
     .author-name {
       font-weight: 600;
       white-space: nowrap;
@@ -334,15 +335,13 @@
   </style>
 </head>
 <body>
-  <!-- Header with Home, Lightning (feed) and Profile/Settings -->
+  <!-- Header with Home, Feed (Lightning) and Profile/Settings -->
   <div class="header">
     <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
     <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
     <div id="profile-pic" onclick="openSettingsModal()">
-      <!-- By default, a generic icon; if a profile is loaded, it will be replaced -->
       <span>🤖</span>
     </div>
-    <!-- Wallet connection info (will be updated after connection) -->
     <div id="wallet-info">Not connected</div>
   </div>
 
@@ -352,7 +351,7 @@
       <div class="note-header">
         <img id="compose-avatar" class="avatar" src=""
           alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
+          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=48%20height=48%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=12%20cy=12%20r=10%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -393,7 +392,7 @@
     </div>
   </div>
 
-  <!-- Main Script (plain script so functions are global) -->
+  <!-- Main Script -->
   <script>
     /***** Global Variables *****/
     let npub = null, profile = null;
@@ -407,7 +406,7 @@
     ];
     let currentZapNote = null; // { noteId, pubkey }
 
-    /***** Global Function Definitions (attached to window) *****/
+    /***** Global Functions (attached to window) *****/
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'block';
     };
@@ -440,7 +439,7 @@
       try {
         if (window.webln) {
           await window.webln.enable();
-          // Update wallet info UI (in a real app, fetch balance etc.)
+          // Update wallet UI with dummy data; in production, fetch real balance
           updateWalletUI({ walletAddress: 'myWallet123', balance: '5000 sats' });
           alert('Bitcoin wallet connected via WebLN!');
         } else {
@@ -459,6 +458,7 @@
 
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
+      // Load profile from localStorage if available
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
@@ -466,8 +466,7 @@
         if (profile.picture) {
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
-          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />`;
-          document.getElementById('profile-pic').classList.remove('hidden');
+          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=48%20height=48%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=12%20cy=12%20r=10%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />`;
         }
       }
       connectToRelays();
@@ -528,7 +527,9 @@
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
         } else {
-          ws.addEventListener('open', () => { ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }])); });
+          ws.addEventListener('open', () => {
+            ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
+          });
         }
       });
     }
@@ -542,14 +543,14 @@
       let authorProfile = await fetchProfile(note.pubkey) || {};
       if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E';
+        authorProfile.picture = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=48%20height=48%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=12%20cy=12%20r=10%20fill=%22%23ccc%22/%3E%3C/svg%3E';
       const div = document.createElement('div');
       div.className = 'note-card';
       div.dataset.timestamp = note.created_at;
       div.innerHTML = `
         <div class="note-header">
           <img src="${authorProfile.picture}" alt="Profile" class="avatar"
-            onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
+            onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=48%20height=48%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=12%20cy=12%20r=10%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -582,10 +583,11 @@
       return div;
     }
     function handleNewNote(note) {
-      // Do not show replies in the main feed.
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
       createNoteElement(note).then(el => {
-        if (el) { document.getElementById('notes').appendChild(el); }
+        if (el) {
+          document.getElementById('notes').appendChild(el);
+        }
       });
     }
     async function publishNote() {
@@ -611,12 +613,18 @@
         document.getElementById('content').value = '';
         document.getElementById('media-preview').innerHTML = '';
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
-        if (el) { document.getElementById('notes').insertBefore(el, document.getElementById('notes').firstChild); }
-      } catch (error) { alert('Failed to publish note: ' + error.message); }
+        if (el) {
+          document.getElementById('notes').insertBefore(el, document.getElementById('notes').firstChild);
+        }
+      } catch (error) {
+        alert('Failed to publish note: ' + error.message);
+      }
     }
     function toggleReplies(noteId) {
       const container = document.getElementById('replies-' + noteId);
-      if (container) { container.style.display = (container.style.display === 'block') ? 'none' : 'block'; }
+      if (container) {
+        container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+      }
     }
     async function loadReplies(noteId) {
       const replyContainer = document.getElementById(`replies-${noteId}`);
@@ -647,12 +655,13 @@
       let authorProfile = await fetchProfile(reply.pubkey);
       if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E';
+        authorProfile.picture = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=32%20height=32%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=12%20cy=12%20r=10%20fill=%22%23ccc%22/%3E%3C/svg%3E';
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px;" 
+               onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=32%20height=32%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=12%20cy=12%20r=10%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -684,7 +693,9 @@
           replyContainer.insertBefore(el, replyContainer.firstChild);
           updateReplyCount(parentId, replyContainer.children.length);
         }
-      } catch (error) { alert('Failed to publish reply: ' + error.message); }
+      } catch (error) {
+        alert('Failed to publish reply: ' + error.message);
+      }
     }
     function handleReplyKeydown(event, noteId) {
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
@@ -803,9 +814,7 @@
         await window.webln.enable();
         await window.webln.sendPayment(invoice);
         alert('Zap sent successfully! ⚡️');
-      } catch (error) {
-        throw error;
-      }
+      } catch (error) { throw error; }
     }
   </script>
 </body>
