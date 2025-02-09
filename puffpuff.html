@@ -7,13 +7,10 @@
   <!-- Bitcoin Connect Initialization -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-    // Initialize Bitcoin Connect with your app name
     init({ appName: 'Turd Soup' });
-    // When a wallet connects, update the wallet status element
     onConnected((provider) => {
       const walletStatus = document.getElementById('wallet-status');
       if (walletStatus) {
-        // In a full implementation, you might fetch the balance here
         walletStatus.textContent = 'Wallet Connected';
       }
       window.webln = provider;
@@ -44,7 +41,7 @@
       color: var(--text);
       min-height: 100vh;
     }
-    /* Header: three sections */
+    /* Header styling with three sections */
     .header {
       position: fixed;
       top: 0;
@@ -59,9 +56,7 @@
       z-index: 100;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    .header-left,
-    .header-center,
-    .header-right {
+    .header-left, .header-center, .header-right {
       flex: 1;
       display: flex;
       align-items: center;
@@ -127,8 +122,7 @@
       justify-content: space-between;
       margin-top: 10px;
     }
-    .upload-button,
-    .publish-button {
+    .upload-button, .publish-button {
       background-color: var(--primary);
       border: none;
       color: #fff;
@@ -137,8 +131,7 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .upload-button:hover,
-    .publish-button:hover {
+    .upload-button:hover, .publish-button:hover {
       background-color: var(--primary-dark);
     }
     /* Floating compose button */
@@ -192,6 +185,7 @@
       font-size: 14px;
       line-height: 1.5;
     }
+    /* Media preview styling – use the same class everywhere */
     .media-preview {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -243,8 +237,7 @@
       color: var(--primary);
     }
     /* Modal styles */
-    .modal,
-    .modal-overlay {
+    .modal, .modal-overlay {
       display: none;
       position: fixed;
       z-index: 300;
@@ -254,8 +247,7 @@
       height: 100%;
       background-color: rgba(0,0,0,0.4);
     }
-    .modal-content,
-    .zap-modal {
+    .modal-content, .zap-modal {
       background-color: var(--background);
       margin: 15% auto;
       padding: 20px;
@@ -282,7 +274,7 @@
   </style>
 </head>
 <body>
-  <!-- Header with three icons -->
+  <!-- Header with three sections. If profile is loaded, the right section will later be updated. -->
   <div class="header">
     <div class="header-left">
       <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
@@ -290,20 +282,20 @@
     <div class="header-center">
       <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
     </div>
-    <div class="header-right">
+    <div class="header-right" id="header-right">
       <button class="header-button" onclick="openSettingsModal()">👤</button>
     </div>
   </div>
   
-  <!-- Wallet status (displayed at the bottom left) -->
+  <!-- Wallet status (bottom left) -->
   <div id="wallet-status">Not connected</div>
   
-  <!-- Main container: Compose area and Feed -->
+  <!-- Main container: Compose card and Feed -->
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
         <img id="compose-avatar" class="avatar" src="" alt="Profile"
-          onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'10\' fill=\'%23ccc\'/></svg>'">
+          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;48&quot; height=&quot;48&quot; viewBox=&quot;0 0 24 24&quot;%3E%3Ccircle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot; fill=&quot;%23ccc&quot;/ %3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -385,14 +377,16 @@
     
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
-      // If there is stored profile info in localStorage, load it
+      // If there is stored profile info, load it and update the header-right to show the profile picture.
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
         profile = storedProfile;
         if (profile.picture) {
+          // Update the compose card and header-right
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0, 8);
+          document.getElementById('header-right').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:40px; height:40px; border-radius:50%; cursor:pointer;" onclick="openSettingsModal()">`;
         }
       }
       connectToRelays();
@@ -491,7 +485,7 @@
       div.innerHTML = `
         <div class="note-header">
           <img src="${authorProfile.picture}" alt="Profile" class="avatar"
-            onerror="this.src='data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"48\\" height=\\"48\\" viewBox=\\"0 0 24 24\\"><circle cx=\\"12\\" cy=\\"12\\" r=\\"10\\" fill=\\"%23ccc\\"/></svg>'">
+            onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;48&quot; height=&quot;48&quot; viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot; fill=&quot;%23ccc&quot;/></svg>'">
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -500,7 +494,7 @@
         <div class="note-content">${note.content}</div>
         ${(() => {
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-          return imgs.length ? `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
+          return imgs.length ? `<div class="media-preview ${imgs.length === 1 ? 'single' : 'multiple'}">
             ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
           </div>` : '';
         })()}
@@ -532,7 +526,7 @@
     async function publishNote() {
       const content = document.getElementById('content').value;
       const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
-                          .map(img => img.dataset.url);
+                           .map(img => img.dataset.url);
       if (!content.trim() && images.length === 0) {
         alert('Please add some content or images');
         return;
@@ -604,7 +598,8 @@
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" onerror="this.src='data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"32\\" height=\\"32\\" viewBox=\\"0 0 24 24\\"><circle cx=\\"12\\" cy=\\"12\\" r=\\"10\\" fill=\\"%23ccc\\"/></svg>'">
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" 
+            onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;32&quot; height=&quot;32&quot; viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot; fill=&quot;%23ccc&quot;/></svg>'">
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -663,6 +658,56 @@
       if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
       if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
       return d.toLocaleDateString();
+    }
+    
+    /***** Zap Modal & Zap Functionality *****/
+    async function sendZap(noteId, pubkey, amount) {
+      try {
+        if (!window.webln) throw new Error('No WebLN provider available');
+        // Fetch recipient profile to get lud16
+        const authorProfile = await fetchProfile(pubkey);
+        if (!authorProfile.lud16) throw new Error('Recipient has not set up a Lightning address');
+        const [name, domain] = authorProfile.lud16.split('@');
+        const lnurlResp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
+        if (!lnurlResp.ok) throw new Error('Failed to fetch LNURL info');
+        const lnurlData = await lnurlResp.json();
+        const millisats = amount * 1000;
+        if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable) {
+          throw new Error(`Amount must be between ${lnurlData.minSendable / 1000} and ${lnurlData.maxSendable / 1000} sats`);
+        }
+        // Prepare zap request event
+        const zapRequest = {
+          kind: 9734,
+          created_at: Math.floor(Date.now() / 1000),
+          content: "",
+          tags: [
+            ["relays", ...RELAYS],
+            ["amount", millisats.toString()],
+            ["p", pubkey],
+            ["e", noteId]
+          ]
+        };
+        const signedZapRequest = await window.nostr.signEvent(zapRequest);
+        const callbackUrl = `${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`;
+        const callbackResp = await fetch(callbackUrl);
+        if (!callbackResp.ok) throw new Error('Failed to get invoice');
+        const { pr: invoice } = await callbackResp.json();
+        await window.webln.enable();
+        await window.webln.sendPayment(invoice);
+        alert('Zap sent successfully! ⚡️');
+      } catch (err) {
+        alert('Zap error: ' + err.message);
+      }
+    }
+    async function confirmZap() {
+      if (!currentZapNote) return;
+      const amount = parseInt(document.getElementById('zap-amount').value);
+      if (!amount || amount < 1) {
+        alert('Enter a valid amount');
+        return;
+      }
+      await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
+      closeZapModal();
     }
     
     /***** Image Upload via Nostr.build API (NIP-98) *****/
