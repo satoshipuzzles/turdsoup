@@ -4,19 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint – TurdSoup</title>
-  <!-- Import Bitcoin Connect (web components and API) -->
+  <!-- Import Bitcoin Connect from a CDN -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
-    // Initialize Bitcoin Connect
+    // Initialize Bitcoin Connect with our app name.
     init({ appName: 'Turd Soup' });
     onConnected(async (provider) => {
-      // Try to get balance if available
+      console.log("[Bitcoin Connect] Provider connected:", provider);
       let balanceText = "(balance unavailable)";
       if (provider.getBalance) {
         try {
           const bal = await provider.getBalance();
           balanceText = bal + " sats";
         } catch (e) {
+          console.error("[Bitcoin Connect] Error fetching balance:", e);
           balanceText = "error";
         }
       }
@@ -24,9 +25,11 @@
       if (walletDiv) {
         walletDiv.innerText = "Connected: " + (provider.connectorName || 'Wallet') + " | Balance: " + balanceText;
       }
+      // Expose the provider globally
       window.webln = provider;
     });
     onDisconnected(() => {
+      console.log("[Bitcoin Connect] Provider disconnected");
       const walletDiv = document.getElementById('wallet-info');
       if (walletDiv) walletDiv.innerText = "Not connected";
       window.webln = null;
@@ -47,9 +50,9 @@
       font-family: -apple-system, system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      padding-bottom: 60px; /* leave space for wallet info */
+      padding-bottom: 60px; /* space for wallet info */
     }
-    /* Header – three zones */
+    /* Header: three zones using flex layout */
     .header {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -79,7 +82,7 @@
     }
     .header-button:hover { background-color: rgba(255,255,255,0.1); }
     #profile-pic { cursor: pointer; }
-    /* Wallet info fixed in bottom left */
+    /* Wallet info fixed at bottom left */
     #wallet-info {
       position: fixed;
       bottom: 10px;
@@ -185,7 +188,7 @@
       gap: 15px;
       border-top: 1px solid rgba(0,0,0,0.05);
     }
-    /* Badge now is inline */
+    /* Badges next to the icon text */
     .badge {
       display: inline-block;
       background: var(--primary);
@@ -320,8 +323,8 @@
       <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
     </div>
     <div class="header-right" id="profile-pic" onclick="openSettingsModal()">
-      <!-- Fallback profile image using single quotes in the data URL -->
-      <img src="data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E" alt="Profile" class="avatar" />
+      <!-- Fallback profile image using correct SVG attribute values -->
+      <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='48'%20viewBox='0%200%2024%2024'%3E%3Ccircle%20cx='12'%20cy='12'%20r='10'%20fill='%23ccc'/%3E%3C/svg%3E" alt="Profile" class="avatar" />
     </div>
   </div>
 
@@ -329,9 +332,8 @@
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
-        <img id="compose-avatar" class="avatar" src=""
-          alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
+        <img id="compose-avatar" class="avatar" src="" alt="Profile"
+             onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=\'http://www.w3.org/2000/svg\'%20width=\'48\'%20height=\'48\'%20viewBox=\'0%200%2024%2024\'%3E%3Ccircle%20cx=\'12\'%20cy=\'12\'%20r=\'10\'%20fill=\'%23ccc\'/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -392,41 +394,55 @@
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null; // { noteId, pubkey }
-    // Global zap details: for each note id, store an array of zap events.
+    // For each note id, store an array of zap events.
     const zapDetails = {};
+
+    // Helper logging function
+    function logEvent(type, details) {
+      console.log(`[Event] ${type}:`, details);
+    }
 
     /***** Global Functions (attached to window) *****/
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'block';
+      logEvent("Settings Modal Opened", {});
     };
     window.closeSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'none';
+      logEvent("Settings Modal Closed", {});
     };
     window.scrollToCompose = function() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       document.getElementById('content').focus();
+      logEvent("Scrolled to Compose", {});
     };
     window.openZapModal = function(noteId, pubkey) {
       currentZapNote = { noteId, pubkey };
       document.getElementById('zap-amount').value = '1000';
       document.getElementById('zapModal').style.display = 'block';
+      logEvent("Zap Modal Opened", { noteId, pubkey });
     };
     window.closeZapModal = function() {
       document.getElementById('zapModal').style.display = 'none';
       currentZapNote = null;
+      logEvent("Zap Modal Closed", {});
     };
     window.closeZapDetailsModal = function() {
       document.getElementById('zapDetailsModal').style.display = 'none';
+      logEvent("Zap Details Modal Closed", {});
     };
     window.confirmZap = async function() {
       if (!currentZapNote) return;
       const amount = parseInt(document.getElementById('zap-amount').value);
       if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
       try {
+        logEvent("Confirm Zap Initiated", { noteId: currentZapNote.noteId, pubkey: currentZapNote.pubkey, amount });
         await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
         alert('Zap sent successfully!');
+        logEvent("Zap Sent", { noteId: currentZapNote.noteId, amount });
         closeZapModal();
       } catch (error) {
+        console.error("Error sending zap:", error);
         alert(error.message);
       }
     };
@@ -443,10 +459,12 @@
           }
           updateWalletUI({ walletAddress: window.webln.connectorName || 'Wallet', balance: balanceText });
           alert('Bitcoin wallet connected via WebLN!');
+          logEvent("Bitcoin Wallet Connected", { connector: window.webln.connectorName, balance: balanceText });
         } else {
           alert('No Bitcoin Connect provider available. Please install a compatible wallet.');
         }
       } catch (err) {
+        console.error("Bitcoin connect error:", err);
         alert('Bitcoin connect error: ' + err.message);
       }
     };
@@ -455,6 +473,7 @@
       if (walletDiv) {
         walletDiv.innerText = "Connected: " + (result.walletAddress || 'Wallet') + " | Balance: " + (result.balance || '0 sats');
       }
+      logEvent("Wallet UI Updated", result);
     };
     window.toggleZapDetails = function(noteId) {
       const container = document.getElementById('zap-details-' + noteId);
@@ -469,7 +488,7 @@
         zapDetails[noteId].forEach(async (zapEvent) => {
           let zapProfile = await fetchProfile(zapEvent.pubkey);
           if (!zapProfile.picture) {
-            zapProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2732%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E";
+            zapProfile.picture = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E";
           }
           const amountTag = zapEvent.tags.find(tag => tag[0] === "amount");
           const amt = amountTag ? amountTag[1] : "N/A";
@@ -485,6 +504,7 @@
         container.innerHTML = "<p>No zap events yet.</p>";
       }
       document.getElementById('zapDetailsModal').style.display = 'block';
+      logEvent("View Zap Details", { noteId, count: (zapDetails[noteId] ? zapDetails[noteId].length : 0) });
     };
 
     /***** Initialization *****/
@@ -497,10 +517,12 @@
         if (profile.picture) {
           document.getElementById('compose-avatar').src = profile.picture;
           document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
-          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />`;
+          document.getElementById('profile-pic').innerHTML =
+            `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />`;
         }
       }
       connectToRelays();
+      logEvent("DOM Loaded", {});
     });
 
     /***** WebSocket Pool & Relay Connection *****/
@@ -527,25 +549,31 @@
       ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
       ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
-        const data = JSON.parse(e.data);
-        if (data[0] === "EVENT") {
-          const event = data[2];
-          if (event.kind === 9734) { // Zap event
-            const refTag = event.tags.find(t => t[0] === "e");
-            if (refTag) {
-              const noteId = refTag[1];
-              if (!zapDetails[noteId]) zapDetails[noteId] = [];
-              zapDetails[noteId].push(event);
-              const zapBadge = document.getElementById('zap-badge-' + noteId);
-              if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
+        try {
+          const data = JSON.parse(e.data);
+          if (data[0] === "EVENT") {
+            const event = data[2];
+            logEvent("Relay Event Received", event);
+            if (event.kind === 9734) { // Zap event
+              const refTag = event.tags.find(t => t[0] === "e");
+              if (refTag) {
+                const noteId = refTag[1];
+                if (!zapDetails[noteId]) zapDetails[noteId] = [];
+                zapDetails[noteId].push(event);
+                const zapBadge = document.getElementById('zap-badge-' + noteId);
+                if (zapBadge) zapBadge.textContent = zapDetails[noteId].length;
+              }
+            } else if (event.kind === 1) {
+              handleNewNote(event);
             }
-          } else if (event.kind === 1) {
-            handleNewNote(event);
           }
+        } catch (err) {
+          console.error("Error processing relay message:", err);
         }
       });
     }
     function publishToRelays(event) {
+      logEvent("Publishing to Relays", event);
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(["EVENT", event]));
@@ -567,8 +595,11 @@
               clearTimeout(timeoutId);
               profileCache.set(pubkey, prof);
               resolve(prof);
+              logEvent("Profile Fetched", { pubkey, profile: prof });
             }
-          } catch (err) { resolve({}); }
+          } catch (err) {
+            resolve({});
+          }
         });
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
@@ -582,21 +613,21 @@
 
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
-      // Skip if note is a reply
+      // Skip if note is a reply (nested replies appear only in threads)
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
       if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E";
+        authorProfile.picture = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'note-card';
       div.id = "note-" + note.id;
       div.dataset.timestamp = note.created_at;
       div.innerHTML = `
         <div class="note-header">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2748%27%20height=%2748%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -626,11 +657,13 @@
         <div id="replies-${note.id}" class="replies-container"></div>
       `;
       loadReplies(note.id);
+      logEvent("Note Created", { noteId: note.id });
       return div;
     }
     function handleNewNote(note) {
       if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
       createNoteElement(note).then(el => { if (el) document.getElementById('notes').appendChild(el); });
+      logEvent("New Note Received", note);
     }
     async function publishNote() {
       const content = document.getElementById('content').value;
@@ -644,19 +677,22 @@
         const event = {
           kind: 1,
           content,
-          created_at: Math.floor(Date.now()/1000),
+          created_at: Math.floor(Date.now() / 1000),
           tags: [
             ["t", "puffpuffpaint"],
             ...images.map(url => ["r", url])
           ]
         };
+        logEvent("Publishing Note", event);
         const signedEvent = await window.nostr.signEvent(event);
         publishToRelays(signedEvent);
         document.getElementById('content').value = '';
         document.getElementById('media-preview').innerHTML = '';
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
         if (el) document.getElementById('notes').insertBefore(el, document.getElementById('notes').firstChild);
+        logEvent("Note Published", signedEvent);
       } catch (error) {
+        console.error("Failed to publish note:", error);
         alert('Failed to publish note: ' + error.message);
       }
     }
@@ -664,6 +700,7 @@
       const container = document.getElementById('replies-' + noteId);
       if (container) {
         container.style.display = (container.style.display === 'block') ? 'none' : 'block';
+        logEvent("Toggle Replies", { noteId, display: container.style.display });
       }
     }
     async function loadReplies(noteId) {
@@ -676,17 +713,22 @@
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(sub));
         else ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
         ws.addEventListener('message', async (e) => {
-          const data = JSON.parse(e.data);
-          if (data[0] === "EVENT") {
-            const reply = data[2];
-            if (!replies.has(reply.id)) {
-              replies.add(reply.id);
-              const el = await createReplyElement(reply);
-              if (replyContainer) {
-                replyContainer.insertBefore(el, replyContainer.firstChild);
-                document.getElementById('reply-badge-' + noteId).textContent = replyContainer.children.length;
+          try {
+            const data = JSON.parse(e.data);
+            if (data[0] === "EVENT") {
+              const reply = data[2];
+              if (!replies.has(reply.id)) {
+                replies.add(reply.id);
+                const el = await createReplyElement(reply);
+                if (replyContainer) {
+                  replyContainer.insertBefore(el, replyContainer.firstChild);
+                  document.getElementById('reply-badge-' + noteId).textContent = replyContainer.children.length;
+                  logEvent("Reply Loaded", { noteId, replyId: reply.id });
+                }
               }
             }
+          } catch (err) {
+            console.error("Error processing reply:", err);
           }
         });
       });
@@ -695,12 +737,12 @@
       let authorProfile = await fetchProfile(reply.pubkey);
       if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
       if (!authorProfile.picture)
-        authorProfile.picture = "data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2732%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E";
+        authorProfile.picture = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E";
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px; border-radius:50%;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2732%27%20height=%2732%27%20viewBox=%270%200%2024%2024%27%3E%3Ccircle%20cx=%2712%27%20cy=%2712%27%20r=%2710%27%20fill=%27%23ccc%27/%3E%3C/svg%3E'" />
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px; border-radius:50%;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ccc'/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -708,14 +750,15 @@
         </div>
         <div class="note-content" style="padding: 0">${reply.content}</div>
       `;
+      logEvent("Reply Element Created", { replyId: reply.id });
       return div;
     }
     function formatTimestamp(ts) {
       const d = new Date(ts * 1000), now = new Date(), diff = Math.floor((now - d) / 1000);
-      if(diff < 60) return 'just now';
-      if(diff < 3600) return `${Math.floor(diff/60)}m`;
-      if(diff < 86400) return `${Math.floor(diff/3600)}h`;
-      if(diff < 604800) return `${Math.floor(diff/86400)}d`;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
       return d.toLocaleDateString();
     }
 
@@ -735,7 +778,7 @@
         formData.append('file', file);
         const event = {
           kind: 27235,
-          created_at: Math.floor(Date.now()/1000),
+          created_at: Math.floor(Date.now() / 1000),
           content: "",
           tags: [
             ["u", "https://nostr.build/api/v2/upload/files"],
@@ -773,9 +816,13 @@
           preview.appendChild(container);
           const imgs = preview.getElementsByTagName('img');
           preview.className = `media-preview ${imgs.length === 1 ? 'single' : 'multiple'}`;
+          logEvent("Image Uploaded", { url: result.data[0].url });
           return result.data[0].url;
-        } else { throw new Error(result.message || 'Upload failed'); }
+        } else {
+          throw new Error(result.message || 'Upload failed');
+        }
       } catch (error) {
+        console.error("Image upload error:", error);
         alert('Image upload error: ' + error.message);
         return null;
       }
@@ -797,10 +844,10 @@
         const lnurlData = await lnurlResp.json();
         const millisats = amount * 1000;
         if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable)
-          throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
+          throw new Error(`Amount must be between ${lnurlData.minSendable / 1000} and ${lnurlData.maxSendable / 1000} sats`);
         const zapRequest = {
           kind: 9734,
-          created_at: Math.floor(Date.now()/1000),
+          created_at: Math.floor(Date.now() / 1000),
           content: "",
           tags: [
             ["relays", ...RELAYS],
@@ -809,6 +856,7 @@
             ["e", noteId]
           ]
         };
+        logEvent("Sending Zap", { noteId, pubkey, millisats });
         const signedZapRequest = await window.nostr.signEvent(zapRequest);
         const callbackUrl = `${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`;
         const callbackResp = await fetch(callbackUrl);
@@ -816,8 +864,12 @@
         const { pr: invoice } = await callbackResp.json();
         await window.webln.enable();
         await window.webln.sendPayment(invoice);
+        logEvent("Zap Payment Successful", { noteId, invoice });
         return true;
-      } catch (error) { throw error; }
+      } catch (error) {
+        console.error("Error in sendZap:", error);
+        throw error;
+      }
     }
   </script>
 </body>
