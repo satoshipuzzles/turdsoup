@@ -4,188 +4,138 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puff Puff Paint - TurdSoup</title>
-  <!-- Bitcoin Connect Initialization -->
+  <!-- Bitcoin Connect Initialization (ES module) -->
   <script type="module">
     import { init, launchModal, requestProvider, onConnected, onDisconnected } from 'https://esm.sh/@getalby/bitcoin-connect@3.6.3';
+    // Initialize Bitcoin Connect with your app name
     init({ appName: 'Turd Soup' });
     onConnected((provider) => {
-      const walletStatus = document.getElementById('wallet-status');
-      if (walletStatus) {
-        walletStatus.textContent = 'Wallet Connected';
+      const walletInfo = document.getElementById('wallet-info');
+      if (walletInfo) {
+        walletInfo.innerText = "Connected: " + provider.connectorName + " | Balance: (fetch balance)";
       }
+      // Expose the provider globally (if needed)
       window.webln = provider;
     });
     onDisconnected(() => {
-      const walletStatus = document.getElementById('wallet-status');
-      if (walletStatus) {
-        walletStatus.textContent = 'Not connected';
+      const walletInfo = document.getElementById('wallet-info');
+      if (walletInfo) {
+        walletInfo.innerText = "Not connected";
       }
+      window.webln = null;
     });
   </script>
   <style>
     :root {
       --primary: #EF8C56;
       --primary-dark: #D97B45;
-      --background: #FFFFFF;
+      --background: #ffffff;
       --text: #1f1f1f;
       --text-light: #666666;
     }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, system-ui, sans-serif;
       background-color: var(--primary);
       color: var(--text);
+      font-family: -apple-system, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
       min-height: 100vh;
     }
-    /* Header styling with three sections */
+    /* Header styles */
     .header {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       height: 60px;
-      background-color: var(--primary);
+      background: var(--primary);
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 0 20px;
       z-index: 100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .header-left, .header-center, .header-right {
-      flex: 1;
-      display: flex;
-      align-items: center;
-    }
-    .header-left { justify-content: flex-start; }
-    .header-center { justify-content: center; }
-    .header-right { justify-content: flex-end; }
     .header-button {
-      background: none;
-      border: none;
-      color: #fff;
       font-size: 24px;
       cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
       padding: 10px;
       border-radius: 50%;
       transition: background-color 0.2s;
     }
-    .header-button:hover {
-      background-color: rgba(255,255,255,0.2);
-    }
-    /* Wallet status (bottom left) */
-    #wallet-status {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
+    .header-button:hover { background-color: rgba(255,255,255,0.1); }
+    #profile-pic { cursor: pointer; }
+    /* Wallet info container (placed in header, right side) */
+    #wallet-info {
+      margin-left: auto;
+      padding: 5px 10px;
       background-color: #fff;
       color: var(--text);
-      padding: 8px 12px;
-      border: 1px solid #ddd;
       border-radius: 5px;
       font-size: 14px;
-      z-index: 200;
     }
-    /* Main container */
-    .container {
-      max-width: 600px;
-      margin: 80px auto 20px;
-      padding: 20px;
-      background-color: var(--background);
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    /* Compose card */
+    .container { max-width: 600px; margin: 80px auto 0; padding: 20px; }
     .compose-card {
-      background-color: var(--background);
+      background: var(--background);
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-    .compose-text {
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 14px;
-      resize: none;
-    }
-    .compose-actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-    .upload-button, .publish-button {
-      background-color: var(--primary);
-      border: none;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .upload-button:hover, .publish-button:hover {
-      background-color: var(--primary-dark);
-    }
-    /* Floating compose button */
-    .floating-compose {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background-color: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      transition: transform 0.2s;
-      z-index: 150;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .floating-compose:hover {
-      transform: scale(1.1);
-    }
-    /* Note card styling */
     .note-card {
-      background-color: var(--background);
+      background: var(--background);
       border-radius: 12px;
+      overflow: hidden;
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.2s;
     }
+    .note-card:hover { transform: translateY(-2px); }
     .note-header {
-      padding: 10px 15px;
+      padding: 15px;
       display: flex;
       align-items: center;
-      border-bottom: 1px solid #eee;
+      gap: 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      margin-right: 10px;
       object-fit: cover;
+      background: #f5f5f5;
     }
-    .author-info { flex: 1; }
-    .author-name { font-weight: bold; font-size: 16px; }
-    .timestamp { font-size: 12px; color: var(--text-light); }
+    .author-info { flex: 1; min-width: 0; }
+    .author-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .timestamp { font-size: 14px; color: var(--text-light); }
     .note-content {
       padding: 15px;
-      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
       line-height: 1.5;
     }
-    /* Media preview styling – use the same class everywhere */
+    .media-container {
+      width: 100%;
+      display: grid;
+      gap: 2px;
+      background: #f5f5f5;
+    }
+    .media-container.single { max-height: 500px; }
+    .media-container.single img {
+      width: 100%;
+      height: 100%;
+      max-height: 500px;
+      object-fit: contain;
+    }
+    .media-container.multiple { grid-template-columns: repeat(2, 1fr); }
+    .media-container.multiple img { width: 100%; aspect-ratio: 1; object-fit: cover; }
     .media-preview {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -194,17 +144,18 @@
     }
     .media-preview div {
       position: relative;
+      display: inline-block;
     }
     .media-preview img {
       width: 100%;
-      border-radius: 8px;
       display: block;
+      border-radius: 8px;
     }
     .remove-btn {
       position: absolute;
       top: 0;
       right: 0;
-      background-color: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.6);
       color: #fff;
       border: none;
       cursor: pointer;
@@ -217,7 +168,7 @@
       padding: 10px 15px;
       display: flex;
       gap: 15px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid rgba(0,0,0,0.05);
     }
     .action-button {
       background: none;
@@ -236,24 +187,111 @@
       background: rgba(239,140,86,0.1);
       color: var(--primary);
     }
+    .compose-text {
+      width: 100%;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
+    }
+    .compose-text:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
+    .compose-actions { display: flex; justify-content: space-between; align-items: center; }
+    .floating-compose {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.2s, background 0.2s;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .floating-compose:hover { transform: scale(1.1); background: var(--primary-dark); }
+    .upload-button {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    .upload-button:hover { background: rgba(0,0,0,0.05); }
+    .publish-button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .publish-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .publish-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .replies-container {
+      margin-left: 40px;
+      padding: 10px 15px;
+      border-left: 2px solid rgba(0,0,0,0.05);
+      display: none;
+    }
+    .reply-card {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      transition: transform 0.2s;
+    }
+    .reply-card:hover { transform: translateY(-1px); }
+    .reply-input {
+      padding: 10px 15px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      display: flex;
+      gap: 10px;
+    }
+    .reply-input textarea {
+      flex: 1;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 20px;
+      padding: 8px 15px;
+      font-size: 14px;
+      resize: none;
+      outline: none;
+      min-height: 36px;
+      max-height: 120px;
+    }
+    .reply-input textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(239,140,86,0.1); }
     /* Modal styles */
-    .modal, .modal-overlay {
+    .modal {
       display: none;
       position: fixed;
-      z-index: 300;
+      z-index: 1000;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
       background-color: rgba(0,0,0,0.4);
     }
-    .modal-content, .zap-modal {
+    .modal-content {
       background-color: var(--background);
-      margin: 15% auto;
+      margin: 10% auto;
       padding: 20px;
-      border-radius: 8px;
       width: 90%;
       max-width: 400px;
+      border-radius: 8px;
       position: relative;
     }
     .close-modal {
@@ -261,12 +299,34 @@
       top: 10px;
       right: 15px;
       font-size: 24px;
+      font-weight: bold;
       cursor: pointer;
+    }
+    /* Zap Modal styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      z-index: 1100;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+    }
+    .zap-modal {
+      background: var(--background);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      margin: 15% auto;
+      position: relative;
     }
     .zap-input {
       width: 100%;
       padding: 10px;
-      border: 1px solid #ccc;
+      border: 1px solid rgba(0,0,0,0.1);
       border-radius: 8px;
       margin: 10px 0;
       font-size: 16px;
@@ -274,28 +334,25 @@
   </style>
 </head>
 <body>
-  <!-- Header with three sections. If profile is loaded, the right section will later be updated. -->
+  <!-- Header with Home, Lightning (feed) and Profile/Settings -->
   <div class="header">
-    <div class="header-left">
-      <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
+    <button class="header-button" onclick="window.location.href='index.html'">🏡</button>
+    <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
+    <div id="profile-pic" onclick="openSettingsModal()">
+      <!-- By default, a generic icon; if a profile is loaded, it will be replaced -->
+      <span>🤖</span>
     </div>
-    <div class="header-center">
-      <button class="header-button" onclick="window.location.href='puff.html'">⚡️</button>
-    </div>
-    <div class="header-right" id="header-right">
-      <button class="header-button" onclick="openSettingsModal()">👤</button>
-    </div>
+    <!-- Wallet connection info (will be updated after connection) -->
+    <div id="wallet-info">Not connected</div>
   </div>
-  
-  <!-- Wallet status (bottom left) -->
-  <div id="wallet-status">Not connected</div>
-  
-  <!-- Main container: Compose card and Feed -->
+
+  <!-- Main Container: Compose area and Feed -->
   <div class="container">
     <div id="compose" class="compose-card">
       <div class="note-header">
-        <img id="compose-avatar" class="avatar" src="" alt="Profile"
-          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;48&quot; height=&quot;48&quot; viewBox=&quot;0 0 24 24&quot;%3E%3Ccircle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot; fill=&quot;%23ccc&quot;/ %3E%3C/svg%3E'" />
+        <img id="compose-avatar" class="avatar" src=""
+          alt="Profile"
+          onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
         <div class="author-info">
           <div id="compose-name" class="author-name"></div>
         </div>
@@ -303,17 +360,17 @@
       <textarea id="content" class="compose-text" placeholder="What's on your mind?" rows="3"></textarea>
       <div id="media-preview" class="media-preview"></div>
       <div class="compose-actions">
-        <input type="file" accept="image/*" id="image-input" style="display: none" multiple>
+        <input type="file" accept="image/*" id="image-input" style="display: none" multiple />
         <button class="upload-button" onclick="document.getElementById('image-input').click()">📷</button>
         <button id="publish-button" class="publish-button" onclick="publishNote()">Paint</button>
       </div>
     </div>
     <div id="notes"></div>
   </div>
-  
+
   <!-- Floating Compose Button -->
   <button class="floating-compose" onclick="scrollToCompose()">+</button>
-  
+
   <!-- Settings Modal -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
@@ -322,40 +379,44 @@
       <button id="bitcoinConnectButton" class="publish-button" onclick="connectBitcoin()">Connect Bitcoin Wallet</button>
     </div>
   </div>
-  
+
   <!-- Zap Modal -->
   <div id="zapModal" class="modal-overlay">
     <div class="zap-modal">
       <span class="close-modal" onclick="closeZapModal()">&times;</span>
       <h3>Send Zap</h3>
-      <input type="number" id="zap-amount" class="zap-input" placeholder="Amount in sats" min="1">
+      <input type="number" id="zap-amount" class="zap-input" placeholder="Amount in sats" min="1" />
       <div style="display: flex; justify-content: space-between; margin-top: 10px;">
         <button class="publish-button" onclick="closeZapModal()">Cancel</button>
         <button class="publish-button" onclick="confirmZap()">Send Zap</button>
       </div>
     </div>
   </div>
-  
-  <!-- Main Script -->
-  <script type="module">
+
+  <!-- Main Script (plain script so functions are global) -->
+  <script>
     /***** Global Variables *****/
     let npub = null, profile = null;
     const profileCache = new Map();
     const seenNoteIds = new Set();
-    let lastSeenTimestamp = Math.floor(Date.now() / 1000);
+    let lastSeenTimestamp = Math.floor(Date.now()/1000);
     const RELAYS = [
       'wss://relay.damus.io',
       'wss://nos.lol',
       'wss://relay.nostrfreaks.com'
     ];
     let currentZapNote = null; // { noteId, pubkey }
-    
-    /***** Global Function Definitions *****/
+
+    /***** Global Function Definitions (attached to window) *****/
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'block';
     };
     window.closeSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'none';
+    };
+    window.scrollToCompose = function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('content').focus();
     };
     window.openZapModal = function(noteId, pubkey) {
       currentZapNote = { noteId, pubkey };
@@ -366,32 +427,52 @@
       document.getElementById('zapModal').style.display = 'none';
       currentZapNote = null;
     };
+    window.confirmZap = async function() {
+      if (!currentZapNote) return;
+      const amount = parseInt(document.getElementById('zap-amount').value);
+      if (!amount || amount < 1) { alert('Enter a valid amount'); return; }
+      try {
+        await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
+        closeZapModal();
+      } catch (error) { alert(error.message); }
+    };
     window.connectBitcoin = async function() {
       try {
-        const { launchModal } = await import('https://esm.sh/@getalby/bitcoin-connect@3.6.3');
-        await launchModal();
+        if (window.webln) {
+          await window.webln.enable();
+          // Update wallet info UI (in a real app, fetch balance etc.)
+          updateWalletUI({ walletAddress: 'myWallet123', balance: '5000 sats' });
+          alert('Bitcoin wallet connected via WebLN!');
+        } else {
+          alert('No Bitcoin Connect provider available. Please install a compatible wallet.');
+        }
       } catch (err) {
-        alert("Bitcoin connect error: " + err.message);
+        alert('Bitcoin connect error: ' + err.message);
       }
     };
-    
+    window.updateWalletUI = function(result) {
+      const walletDiv = document.getElementById('wallet-info');
+      if (walletDiv) {
+        walletDiv.innerText = "Connected: " + (result.walletAddress || 'Wallet') + " | Balance: " + (result.balance || '0 sats');
+      }
+    };
+
     /***** Initialization *****/
     document.addEventListener('DOMContentLoaded', async () => {
-      // If there is stored profile info, load it and update the header-right to show the profile picture.
       const storedProfile = JSON.parse(localStorage.getItem('profile'));
       if (storedProfile) {
         npub = storedProfile.npub;
         profile = storedProfile;
         if (profile.picture) {
-          // Update the compose card and header-right
           document.getElementById('compose-avatar').src = profile.picture;
-          document.getElementById('compose-name').textContent = profile.name || npub.slice(0, 8);
-          document.getElementById('header-right').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:40px; height:40px; border-radius:50%; cursor:pointer;" onclick="openSettingsModal()">`;
+          document.getElementById('compose-name').textContent = profile.name || npub.slice(0,8);
+          document.getElementById('profile-pic').innerHTML = `<img src="${profile.picture}" alt="Profile" class="avatar" style="width:48px; height:48px; border-radius:50%; cursor:pointer;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />`;
+          document.getElementById('profile-pic').classList.remove('hidden');
         }
       }
       connectToRelays();
     });
-    
+
     /***** WebSocket Pool & Relay Connection *****/
     const wsPool = new Map();
     function getWebSocket(url) {
@@ -401,46 +482,32 @@
       }
       const ws = new WebSocket(url);
       wsPool.set(url, ws);
-      ws.onclose = () => {
-        wsPool.delete(url);
-        setTimeout(() => getWebSocket(url), 1000);
-      };
+      ws.onclose = () => { wsPool.delete(url); setTimeout(() => getWebSocket(url), 1000); };
       return ws;
     }
     function connectToRelays() {
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
-        if (ws.readyState === WebSocket.OPEN) {
-          subscribeToFeed(ws);
-        } else {
-          ws.addEventListener('open', () => subscribeToFeed(ws));
-        }
+        if (ws.readyState === WebSocket.OPEN) { subscribeToFeed(ws); }
+        else { ws.addEventListener('open', () => subscribeToFeed(ws)); }
       });
     }
-    function subscribeToRelays(ws, subObj) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(subObj));
-      } else {
-        ws.addEventListener('open', () => ws.send(JSON.stringify(subObj)));
-      }
-    }
     function subscribeToFeed(ws) {
-      subscribeToRelays(ws, ["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now() / 1000) }]);
-      subscribeToRelays(ws, ["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now() / 1000) }]);
+      ws.send(JSON.stringify(["REQ", "feed", { kinds: [1], "#t": ["puffpuffpaint"], since: Math.floor(Date.now()/1000) }]));
+      ws.send(JSON.stringify(["REQ", "initial", { kinds: [1], "#t": ["puffpuffpaint"], limit: 50, until: Math.floor(Date.now()/1000) }]));
       ws.addEventListener('message', async (e) => {
         const data = JSON.parse(e.data);
-        if (data[0] === "EVENT") {
-          handleNewNote(data[2]);
-        }
+        if (data[0] === "EVENT") { handleNewNote(data[2]); }
       });
     }
     function publishToRelays(event) {
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
-        subscribeToRelays(ws, ["EVENT", event]);
+        if (ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify(["EVENT", event])); }
+        else { ws.addEventListener('open', () => { ws.send(JSON.stringify(["EVENT", event])); }); }
       });
     }
-    
+
     /***** Profile Management *****/
     async function fetchProfile(pubkey) {
       if (profileCache.has(pubkey)) return profileCache.get(pubkey);
@@ -455,37 +522,34 @@
               clearTimeout(timeoutId);
               profileCache.set(pubkey, prof);
               resolve(prof);
-            } catch (err) {
-              resolve({});
-            }
+            } catch (err) { resolve({}); }
           }
         });
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
         } else {
-          ws.addEventListener('open', () => {
-            ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }]));
-          });
+          ws.addEventListener('open', () => { ws.send(JSON.stringify(["REQ", "profile", { kinds: [0], authors: [pubkey] }])); });
         }
       });
     }
-    
+
     /***** Note & Reply Management *****/
     async function createNoteElement(note) {
+      // Skip if the note is a reply (it will be loaded nested)
+      if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return null;
       if (seenNoteIds.has(note.id)) return null;
       seenNoteIds.add(note.id);
       let authorProfile = await fetchProfile(note.pubkey) || {};
-      if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0, 8);
-      if (!authorProfile.picture) {
-        authorProfile.picture = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ccc"/></svg>';
-      }
+      if (!authorProfile.name) authorProfile.name = note.pubkey.slice(0,8);
+      if (!authorProfile.picture)
+        authorProfile.picture = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E';
       const div = document.createElement('div');
       div.className = 'note-card';
       div.dataset.timestamp = note.created_at;
       div.innerHTML = `
         <div class="note-header">
           <img src="${authorProfile.picture}" alt="Profile" class="avatar"
-            onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;48&quot; height=&quot;48&quot; viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot; fill=&quot;%23ccc&quot;/></svg>'">
+            onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(note.created_at)}</div>
@@ -494,9 +558,11 @@
         <div class="note-content">${note.content}</div>
         ${(() => {
           const imgs = note.tags.filter(tag => tag[0] === 'r').map(tag => tag[1]);
-          return imgs.length ? `<div class="media-preview ${imgs.length === 1 ? 'single' : 'multiple'}">
-            ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
-          </div>` : '';
+          if (imgs.length) {
+            return `<div class="media-container ${imgs.length === 1 ? 'single' : 'multiple'}">
+                      ${imgs.map(url => `<img src="${url}" alt="Attached" loading="lazy">`).join('')}
+                    </div>`;
+          } else { return ''; }
         })()}
         <div class="note-actions">
           <button class="action-button" onclick="toggleReplies('${note.id}')">
@@ -516,17 +582,16 @@
       return div;
     }
     function handleNewNote(note) {
+      // Do not show replies in the main feed.
+      if (note.tags && note.tags.some(tag => tag[0] === "e" && tag[3] === "reply")) return;
       createNoteElement(note).then(el => {
-        const notesEl = document.getElementById('notes');
-        if (el && notesEl) {
-          notesEl.appendChild(el);
-        }
+        if (el) { document.getElementById('notes').appendChild(el); }
       });
     }
     async function publishNote() {
       const content = document.getElementById('content').value;
       const images = Array.from(document.getElementById('media-preview').getElementsByTagName('img'))
-                           .map(img => img.dataset.url);
+                          .map(img => img.dataset.url);
       if (!content.trim() && images.length === 0) {
         alert('Please add some content or images');
         return;
@@ -535,7 +600,7 @@
         const event = {
           kind: 1,
           content,
-          created_at: Math.floor(Date.now() / 1000),
+          created_at: Math.floor(Date.now()/1000),
           tags: [
             ["t", "puffpuffpaint"],
             ...images.map(url => ["r", url])
@@ -546,19 +611,12 @@
         document.getElementById('content').value = '';
         document.getElementById('media-preview').innerHTML = '';
         const el = await createNoteElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
-        const notesEl = document.getElementById('notes');
-        if (el && notesEl) {
-          notesEl.insertBefore(el, notesEl.firstChild);
-        }
-      } catch (error) {
-        alert('Failed to publish note: ' + error.message);
-      }
+        if (el) { document.getElementById('notes').insertBefore(el, document.getElementById('notes').firstChild); }
+      } catch (error) { alert('Failed to publish note: ' + error.message); }
     }
     function toggleReplies(noteId) {
       const container = document.getElementById('replies-' + noteId);
-      if (container) {
-        container.style.display = (container.style.display === 'block') ? 'none' : 'block';
-      }
+      if (container) { container.style.display = (container.style.display === 'block') ? 'none' : 'block'; }
     }
     async function loadReplies(noteId) {
       const replyContainer = document.getElementById(`replies-${noteId}`);
@@ -567,11 +625,8 @@
       RELAYS.forEach(url => {
         const ws = getWebSocket(url);
         const sub = ["REQ", `replies-${noteId}`, { kinds: [1], "#e": [noteId], limit: 50 }];
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify(sub));
-        } else {
-          ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
-        }
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(sub));
+        else ws.addEventListener('open', () => ws.send(JSON.stringify(sub)));
         ws.addEventListener('message', async (e) => {
           const data = JSON.parse(e.data);
           if (data[0] === "EVENT") {
@@ -590,16 +645,14 @@
     }
     async function createReplyElement(reply) {
       let authorProfile = await fetchProfile(reply.pubkey);
-      if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0, 8);
-      if (!authorProfile.picture) {
-        authorProfile.picture = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%23ccc"/></svg>';
-      }
+      if (!authorProfile.name) authorProfile.name = reply.pubkey.slice(0,8);
+      if (!authorProfile.picture)
+        authorProfile.picture = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E';
       const div = document.createElement('div');
       div.className = 'reply-card';
       div.innerHTML = `
         <div class="note-header" style="padding: 0 0 8px 0">
-          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width: 32px; height: 32px;" 
-            onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;32&quot; height=&quot;32&quot; viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot; fill=&quot;%23ccc&quot;/></svg>'">
+          <img src="${authorProfile.picture}" alt="Profile" class="avatar" style="width:32px; height:32px;" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2232%22%20height=%2232%22%20viewBox=%220%200%2024%2024%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22%20fill=%22%23ccc%22/%3E%3C/svg%3E'" />
           <div class="author-info">
             <div class="author-name">${authorProfile.name}</div>
             <div class="timestamp">${formatTimestamp(reply.created_at)}</div>
@@ -616,7 +669,7 @@
         const event = {
           kind: 1,
           content,
-          created_at: Math.floor(Date.now() / 1000),
+          created_at: Math.floor(Date.now()/1000),
           tags: [
             ["t", "puffpuffpaint"],
             ["e", parentId, "", "reply"]
@@ -626,14 +679,12 @@
         publishToRelays(signedEvent);
         textarea.value = '';
         const replyContainer = document.getElementById(`replies-${parentId}`);
+        const el = await createReplyElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
         if (replyContainer) {
-          const el = await createReplyElement({ ...event, id: signedEvent.id, pubkey: npub, sig: signedEvent.sig });
           replyContainer.insertBefore(el, replyContainer.firstChild);
           updateReplyCount(parentId, replyContainer.children.length);
         }
-      } catch (error) {
-        alert('Failed to publish reply: ' + error.message);
-      }
+      } catch (error) { alert('Failed to publish reply: ' + error.message); }
     }
     function handleReplyKeydown(event, noteId) {
       if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
@@ -645,80 +696,22 @@
       const el = document.getElementById(`reply-count-${noteId}`);
       if (el) el.textContent = count;
     }
-    function scrollToCompose() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      document.getElementById('content').focus();
-    }
     function formatTimestamp(ts) {
-      const d = new Date(ts * 1000),
-            now = new Date(),
-            diff = Math.floor((now - d) / 1000);
-      if (diff < 60) return 'just now';
-      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-      if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+      const d = new Date(ts * 1000), now = new Date(), diff = Math.floor((now - d) / 1000);
+      if(diff < 60) return 'just now';
+      if(diff < 3600) return `${Math.floor(diff/60)}m`;
+      if(diff < 86400) return `${Math.floor(diff/3600)}h`;
+      if(diff < 604800) return `${Math.floor(diff/86400)}d`;
       return d.toLocaleDateString();
     }
-    
-    /***** Zap Modal & Zap Functionality *****/
-    async function sendZap(noteId, pubkey, amount) {
-      try {
-        if (!window.webln) throw new Error('No WebLN provider available');
-        // Fetch recipient profile to get lud16
-        const authorProfile = await fetchProfile(pubkey);
-        if (!authorProfile.lud16) throw new Error('Recipient has not set up a Lightning address');
-        const [name, domain] = authorProfile.lud16.split('@');
-        const lnurlResp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
-        if (!lnurlResp.ok) throw new Error('Failed to fetch LNURL info');
-        const lnurlData = await lnurlResp.json();
-        const millisats = amount * 1000;
-        if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable) {
-          throw new Error(`Amount must be between ${lnurlData.minSendable / 1000} and ${lnurlData.maxSendable / 1000} sats`);
-        }
-        // Prepare zap request event
-        const zapRequest = {
-          kind: 9734,
-          created_at: Math.floor(Date.now() / 1000),
-          content: "",
-          tags: [
-            ["relays", ...RELAYS],
-            ["amount", millisats.toString()],
-            ["p", pubkey],
-            ["e", noteId]
-          ]
-        };
-        const signedZapRequest = await window.nostr.signEvent(zapRequest);
-        const callbackUrl = `${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`;
-        const callbackResp = await fetch(callbackUrl);
-        if (!callbackResp.ok) throw new Error('Failed to get invoice');
-        const { pr: invoice } = await callbackResp.json();
-        await window.webln.enable();
-        await window.webln.sendPayment(invoice);
-        alert('Zap sent successfully! ⚡️');
-      } catch (err) {
-        alert('Zap error: ' + err.message);
-      }
-    }
-    async function confirmZap() {
-      if (!currentZapNote) return;
-      const amount = parseInt(document.getElementById('zap-amount').value);
-      if (!amount || amount < 1) {
-        alert('Enter a valid amount');
-        return;
-      }
-      await sendZap(currentZapNote.noteId, currentZapNote.pubkey, amount);
-      closeZapModal();
-    }
-    
+
     /***** Image Upload via Nostr.build API (NIP-98) *****/
     async function getEventHash(event) {
       const serialized = JSON.stringify([0, event.pubkey, event.created_at, event.kind, event.tags, event.content]);
       const encoder = new TextEncoder();
       const data = encoder.encode(serialized);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(hashBuffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
     async function handleImageUpload(file) {
       try {
@@ -728,7 +721,7 @@
         formData.append('file', file);
         const event = {
           kind: 27235,
-          created_at: Math.floor(Date.now() / 1000),
+          created_at: Math.floor(Date.now()/1000),
           content: "",
           tags: [
             ["u", "https://nostr.build/api/v2/upload/files"],
@@ -767,20 +760,53 @@
           const imgs = preview.getElementsByTagName('img');
           preview.className = `media-preview ${imgs.length === 1 ? 'single' : 'multiple'}`;
           return result.data[0].url;
-        } else {
-          throw new Error(result.message || 'Upload failed');
-        }
+        } else { throw new Error(result.message || 'Upload failed'); }
       } catch (error) {
         alert('Image upload error: ' + error.message);
         return null;
       }
     }
     document.getElementById('image-input').addEventListener('change', async (e) => {
-      for (let file of e.target.files) {
-        await handleImageUpload(file);
-      }
+      for (let file of e.target.files) { await handleImageUpload(file); }
       e.target.value = '';
     });
+
+    /***** Zap Functionality *****/
+    async function sendZap(noteId, pubkey, amount) {
+      try {
+        if (!window.webln) throw new Error('Please install a WebLN provider (e.g., Alby)');
+        const authorProfile = await fetchProfile(pubkey);
+        if (!authorProfile.lud16) throw new Error('User has not set up a Lightning address');
+        const [name, domain] = authorProfile.lud16.split('@');
+        const lnurlResp = await fetch(`https://${domain}/.well-known/lnurlp/${name}`);
+        if (!lnurlResp.ok) throw new Error('Failed to get LNURL info');
+        const lnurlData = await lnurlResp.json();
+        const millisats = amount * 1000;
+        if (millisats < lnurlData.minSendable || millisats > lnurlData.maxSendable)
+          throw new Error(`Amount must be between ${lnurlData.minSendable/1000} and ${lnurlData.maxSendable/1000} sats`);
+        const zapRequest = {
+          kind: 9734,
+          created_at: Math.floor(Date.now()/1000),
+          content: "",
+          tags: [
+            ["relays", ...RELAYS],
+            ["amount", millisats.toString()],
+            ["p", pubkey],
+            ["e", noteId]
+          ]
+        };
+        const signedZapRequest = await window.nostr.signEvent(zapRequest);
+        const callbackUrl = `${lnurlData.callback}?amount=${millisats}&nostr=${encodeURIComponent(JSON.stringify(signedZapRequest))}`;
+        const callbackResp = await fetch(callbackUrl);
+        if (!callbackResp.ok) throw new Error('Failed to get invoice');
+        const { pr: invoice } = await callbackResp.json();
+        await window.webln.enable();
+        await window.webln.sendPayment(invoice);
+        alert('Zap sent successfully! ⚡️');
+      } catch (error) {
+        throw error;
+      }
+    }
   </script>
 </body>
 </html>
